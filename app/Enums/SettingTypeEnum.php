@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Enums;
 
-enum SettingTypeEnum: string {
+enum SettingTypeEnum: string
+{
     case STRING  = 'string';
     case INTEGER = 'integer';
     case BOOLEAN = 'boolean';
@@ -15,15 +17,15 @@ enum SettingTypeEnum: string {
     public static function labels(): array
     {
         return [
-            self::STRING->value  => 'String',
-            self::INTEGER->value => 'Integer',
-            self::BOOLEAN->value => 'Boolean',
-            self::FILE->value    => 'File',
+            self::STRING->value  => __('enums.setting_type.string'),
+            self::INTEGER->value => __('enums.setting_type.integer'),
+            self::BOOLEAN->value => __('enums.setting_type.boolean'),
+            self::FILE->value    => __('enums.setting_type.file'),
         ];
     }
 
     public static function label(string $value): string
     {
-        return self::labels()[$value] ?? 'Unknown';
+        return self::labels()[$value] ?? __('Unknown');
     }
 }

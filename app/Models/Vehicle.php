@@ -3,25 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Translatable;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
-class Page extends Model  implements TranslatableContract
+class Vehicle extends Model implements TranslatableContract
 {
     use Translatable, Sluggable;
-    public $translatedAttributes = ['title', 'content'];
+
+    public $translatedAttributes = ['name', 'description'];
+
     protected $fillable = ['slug', 'is_active'];
-    /**
-     * Return the sluggable configuration array for this model.
-     *
-     * @return array
-     */
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     public function sluggable(): array
     {
         return [
             'slug' => [
-                'source' => 'title'
+                'source' => 'name'
             ]
         ];
     }
