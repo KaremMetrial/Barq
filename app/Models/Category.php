@@ -55,4 +55,8 @@ class Category extends Model implements TranslatableContract
     {
         return $this->hasMany(Product::class);
     }
+    public function coupons(): BelongsToMany
+    {
+        return $this->belongsToMany(Coupon::class, 'category_coupon', 'category_id', 'coupon_id');
+    }
 }

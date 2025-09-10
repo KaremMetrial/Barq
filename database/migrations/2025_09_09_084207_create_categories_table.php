@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('icon')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->tinyInteger('sort_order')->default(0);
+            $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('is_featured')->default(false);
             $table->timestamps();
 

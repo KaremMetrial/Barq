@@ -39,4 +39,14 @@ return [
         'single' => 'Single Choice',
         'multiple' => 'Multiple Choices',
     ],
+    'coupon_type' => [
+        'free_delivery' => 'Free Delivery',
+        'regular' => 'Regular',
+    ],
+    'object_type' => [
+        'general' => 'General',
+        'product' => 'Product',
+        'store' => 'Store',
+        'category' => 'Category',
+    ],
 ];

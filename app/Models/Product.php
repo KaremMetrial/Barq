@@ -63,4 +63,8 @@ class Product extends Model implements TranslatableContract
     {
         return $this->belongsToMany(AddOn::class, 'add_on_product');
     }
+    public function coupons(): BelongsToMany
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_product', 'product_id', 'coupon_id');
+    }
 }

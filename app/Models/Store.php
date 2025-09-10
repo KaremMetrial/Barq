@@ -8,6 +8,7 @@ use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
 class Store extends Model implements TranslatableContract
@@ -47,4 +48,9 @@ class Store extends Model implements TranslatableContract
     {
         return $this->hasMany(Product::class);
     }
+    public function coupons(): BelongsToMany
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_store', 'store_id', 'coupon_id');
+    }
+    public function 
 }

@@ -39,4 +39,14 @@ return [
         'single' => 'اختيار واحد',
         'multiple' => 'اختيارات متعددة',
     ],
+    'coupon_type' => [
+        'free_delivery' => 'توصيل مجاني',
+        'regular' => 'عادي',
+    ],
+    'object_type' => [
+        'general' => 'عام',
+        'product' => 'منتج',
+        'store' => 'متجر',
+        'category' => 'فئة',
+    ],
 ];

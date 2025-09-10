@@ -6,6 +6,7 @@ use App\Enums\OptionInputTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Translatable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Option extends Model implements TranslatableContract
 {
@@ -21,4 +22,8 @@ class Option extends Model implements TranslatableContract
         'is_food_option' => 'boolean',
         'input_type' => OptionInputTypeEnum::class,
     ];
+    public function values(): HasMany
+    {
+        return $this->hasMany(ProductValue::class);
+    }
 }
