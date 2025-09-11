@@ -52,5 +52,16 @@ class Store extends Model implements TranslatableContract
     {
         return $this->belongsToMany(Coupon::class, 'coupon_store', 'store_id', 'coupon_id');
     }
-    public function 
+    public function CompaignParicipations(): HasMany
+    {
+        return $this->hasMany(CompaignParicipation::class, 'store_id');
+    }
+    public function vendors(): HasMany
+    {
+        return $this->hasMany(Vendor::class);
+    }
+    public function couiers(): HasMany
+    {
+        return $this->hasMany(Couier::class);
+    }
 }

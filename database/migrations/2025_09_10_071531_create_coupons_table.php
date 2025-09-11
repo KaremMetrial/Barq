@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->decimal('discount_amount', 8, 3);
             $table->string('discount_type')->default(SaleTypeEnum::PERCENTAGE->value);
-            $table->integer('usage_limit')->nullable();
-            $table->integer('usage_limit_per_user')->default(1);
+            $table->unsignedInteger('usage_limit')->nullable();
+            $table->unsignedInteger('usage_limit_per_user')->default(1);
             $table->decimal('minimum_order_amount', 10, 3);
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('product_availabilities', function (Blueprint $table) {
             $table->id();
-            $table->integer('stock_quantity')->default(1);
+            $table->unsignedInteger('stock_quantity')->default(1);
             $table->boolean('is_in_stock')->default(true);
             $table->date('available_start_date')->nullable();
             $table->date('available_end_date')->nullable();

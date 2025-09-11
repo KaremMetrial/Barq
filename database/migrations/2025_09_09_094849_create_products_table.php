@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->boolean('is_active')->default(true);
-            $table->tinyInteger('max_cart_quantity')->default(2);
+            $table->unsignedTinyInteger('max_cart_quantity')->default(2);
             $table->string('status')->default(ProductStatusEnum::PENDING->value);
             $table->text('note')->nullable();
             $table->boolean('is_reviewed')->default(true);

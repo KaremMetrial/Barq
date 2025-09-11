@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sms_settings', function (Blueprint $table) {
+        Schema::create('ad_translations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('retry_count')->default(3);
-            $table->boolean('is_enable')->default(true);
-            $table->unsignedBigInteger('sms_provider_id');
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->string('locale')->index();
             $table->timestamps();
-            $table->foreign('sms_provider_id')->references('id')->on('sms_providers')->onDelete('cascade');
+
+            $table->foreignId('ad_id')->constrained('ads')->cascadeOnDelete();
+            $table->unique(['ad_id', 'locale']);
         });
     }
 
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sms_settings');
+        Schema::dropIfExists('ad_translations');
     }
 };

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('product_options', function (Blueprint $table) {
             $table->id();
-            $table->integer('min_select')->default(0);
-            $table->integer('max_select')->default(1);
+            $table->unsignedInteger('min_select')->default(0);
+            $table->unsignedInteger('max_select')->default(1);
             $table->boolean('is_required')->default(false);
             $table->unsignedInteger('sort_order')->default(1);
             $table->timestamps();
