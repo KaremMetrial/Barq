@@ -19,9 +19,10 @@ return new class extends Migration
             $table->decimal('commission_rate', 5, 2)->default(0);
             $table->unsignedTinyInteger('vehicle_limit')->default(0);
             $table->unsignedTinyInteger('order_limit')->default(0);
-            $table->string('billing_cycle')->default(PlanBillingCycleEnum::MONTHLY);
+            $table->string('billing_cycle')->default(PlanBillingCycleEnum::MONTHLY->value);
             $table->string('type')->default(PlanTypeEnum::SUBSCRIPTION->value);
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_for_users')->default(false);
             $table->timestamps();
         });
     }

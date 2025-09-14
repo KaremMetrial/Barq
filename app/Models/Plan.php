@@ -22,6 +22,7 @@ class Plan extends Model implements TranslatableContract
         'billing_cycle',
         'type',
         'is_active',
+        'is_for_users'
     ];
     protected $casts = [
         'billing_cycle' => PlanBillingCycleEnum::class,

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
 class Vehicle extends Model implements TranslatableContract
@@ -25,5 +26,9 @@ class Vehicle extends Model implements TranslatableContract
                 'source' => 'name'
             ]
         ];
+    }
+    public function vehicles(): HasMany
+    {
+        return $this->hasMany(CourierVehicle::class);
     }
 }

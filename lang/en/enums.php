@@ -31,7 +31,7 @@ return [
         'percentage' => 'Percentage',
         'fixed' => 'Fixed Amount',
     ],
-      'add_on_applicable_to' => [
+    'add_on_applicable_to' => [
         'product' => 'Product',
         'delivery' => 'Delivery',
     ],
@@ -103,5 +103,32 @@ return [
         'pasued' => 'Pasued',
         'approved' => 'Approved',
         'expired' => 'Expired',
-    ]
+    ],
+    'address_type' => [
+        'work' => 'Work',
+        'home' => 'Home',
+        'other' => 'other',
+    ],
+    'report_type' => [
+        'delivery_issue' => 'Delivery Issue',
+        'payment_issue' => 'Payment Issue',
+        'order_issue' => 'Order Issue',
+        'worng_item_received' => 'Wrong Item Received',
+        'damaged_item_received' => 'Damaged Item Received',
+        'customer_service_issue' => 'Customer Service Issue',
+        'app_bug' => 'App Bug',
+        'other' => 'Other',
+    ],
+    'report_status' => [
+        'pending' => 'Pending',
+        'processing' => 'Processing',
+        'resolved' => 'Resolved',
+        'closed' => 'Closed',
+    ],
+    'unit_type' => [
+        'weight' => 'Weight',
+        'volume' => 'Volume',
+        'length' => 'Length',
+        'count' => 'Count',
+    ],
 ];

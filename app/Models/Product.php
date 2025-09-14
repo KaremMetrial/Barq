@@ -8,6 +8,7 @@ use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
@@ -66,5 +67,18 @@ class Product extends Model implements TranslatableContract
     public function coupons(): BelongsToMany
     {
         return $this->belongsToMany(Coupon::class, 'coupon_product', 'product_id', 'coupon_id');
+    }
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+    public function units(): BelongsToMany
+    {
+        return $this->belongsToMany(Unit::class)
+                ->withPivot('unit_value');
+    }
+    public function favourites(): MorphMany
+    {
+        return $this->morphMany(Favourite::class, 'favouriteable');
     }
 }

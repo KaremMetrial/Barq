@@ -103,5 +103,38 @@ return [
         'pasued' => 'متوقف مؤقتًا',
         'approved' => 'موافق عليه',
         'expired' => 'منتهي',
-    ]
+    ],
+    'address_type' => [
+        'work' => 'عمل',
+        'home' => 'منزل',
+        'other' => 'أخرى',
+    ],
+    'report_type' => [
+    'delivery_issue' => 'مشكلة توصيل',
+        'payment_issue' => 'مشكلة دفع',
+        'order_issue' => 'مشكلة طلب',
+        'worng_item_received' => 'تم استلام سلعة خاطئة',
+        'damaged_item_received' => 'تم استلام سلعة تالفة',
+        'customer_service_issue' => 'مشكلة خدمة العملاء',
+        'app_bug' => 'خطأ في التطبيق',
+        'other' => 'أخرى',
+    ],
+    'report_status' => [
+        'pending' => 'قيد الانتظار',
+        'processing' => 'قيد المعالجة',
+        'resolved' => 'تم الحل',
+        'closed' => 'مغلق',
+    ],
+    'unit_type' => [
+        'weight' => 'وزن',
+        'volume' => 'حجم',
+        'length' => 'طول',
+        'count' => 'عدد',
+    ],
+    'national_identity_type' => [
+        'national_id' => 'الهوية الوطنية',
+        'driving_license' => 'رخصة القيادة',
+        'passport' => 'جواز السفر',
+        'other' => 'أخرى',
+    ],
 ];

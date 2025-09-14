@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Store extends Model implements TranslatableContract
 {
@@ -63,5 +65,17 @@ class Store extends Model implements TranslatableContract
     public function couiers(): HasMany
     {
         return $this->hasMany(Couier::class);
+    }
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+    public function address(): MorphOne
+    {
+        return $this->morphOne(Address::class, 'addressable');
+    }
+    public function favourites(): MorphMany
+    {
+        return $this->morphMany(Favourite::class, 'favouriteable');
     }
 }

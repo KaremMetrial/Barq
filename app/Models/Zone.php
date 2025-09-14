@@ -1,12 +1,14 @@
 <?php
 namespace App\Models;
 
-use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
-use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+
 class Zone extends Model implements TranslatableContract
 {
     use Translatable;
@@ -36,5 +38,9 @@ class Zone extends Model implements TranslatableContract
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(Address::class);
     }
 }
