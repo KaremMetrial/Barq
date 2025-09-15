@@ -11,12 +11,13 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Couier extends Authenticatable
 {
-    use HasFactory, Notifiable,HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens;
     protected $fillable = [
         "first_name",
         "last_name",
@@ -51,6 +52,19 @@ class Couier extends Authenticatable
     }
     public function vehicle(): HasOne
     {
-        return $this->hasOne(CourierVehicle::class);
+        return $this->hasOne(CouierVehicle::class);
+    }
+    public function shifts(): HasMany
+    {
+        return $this->hasMany(CouierShift::class);
+    }
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class, 'couier_id');
+    }
+
+    public function messages(): MorphMany
+    {
+        return $this->morphMany(Message::class,'messageable');
     }
 }

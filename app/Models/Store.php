@@ -78,4 +78,16 @@ class Store extends Model implements TranslatableContract
     {
         return $this->morphMany(Favourite::class, 'favouriteable');
     }
+    public function storeSetting(): HasMany
+    {
+        return $this->hasMany(StoreSetting::class, 'store_id');
+    }
+    public function posTerminals(): HasMany
+    {
+        return $this->hasMany(PosTerminal::class);
+    }
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

@@ -137,4 +137,48 @@ return [
         'passport' => 'جواز السفر',
         'other' => 'أخرى',
     ],
+    'product_watermark_position' => [
+        'top_left' => 'أعلى اليسار',
+        'top_right' => 'أعلى اليمين',
+        'bottom_left' => 'أسفل اليسار',
+        'bottom_right' => 'أسفل اليمين',
+        'center' => 'الوسط',
+    ],
+    'conversation_type' => [
+        'support' => 'الدعم',
+        'delivery' => 'التوصيل',
+        'inquiry' => 'استفسار',
+    ],
+    'message_type' => [
+        'text' => 'نص',
+        'image' => 'صورة',
+        'video' => 'فيديو',
+        'audio' => 'صوت',
+    ],
+    'delivery_type_unit' => [
+        'minute' => 'دقيقة',
+        'hour' => 'ساعة',
+        'day' => 'يوم',
+    ],
+    'order_status' => [
+        'pending' => 'قيد الانتظار',
+        'confirmed' => 'تم التأكيد',
+        'processing' => 'قيد المعالجة',
+        'ready_for_delivery' => 'جاهز للتسليم',
+        'on_the_way' => 'في الطريق',
+        'delivered' => 'تم التسليم',
+        'cancelled' => 'تم الإلغاء',
+    ],
+    'order_type' => [
+        'pickup' => 'استلام',
+        'deliver' => 'توصيل',
+        'service' => 'خدمة',
+        'pos' => 'نقطة بيع',
+    ],
+    'payment_status' => [
+        'unpaid' => 'غير مدفوع',
+        'paid' => 'مدفوع',
+        'partially_paid' => 'مدفوع جزئياً',
+    ],
+
 ];

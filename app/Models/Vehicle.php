@@ -29,6 +29,11 @@ class Vehicle extends Model implements TranslatableContract
     }
     public function vehicles(): HasMany
     {
-        return $this->hasMany(CourierVehicle::class);
+        return $this->hasMany(CouierVehicle::class);
     }
+    public function shippingPrices(): HasMany
+    {
+        return $this->hasMany(ShippingPrice::class);
+    }
+
 }

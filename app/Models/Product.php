@@ -81,4 +81,20 @@ class Product extends Model implements TranslatableContract
     {
         return $this->morphMany(Favourite::class, 'favouriteable');
     }
+    public function productNutrition(): HasOne
+    {
+        return $this->hasOne(ProductNutrition::class);
+    }
+    public function productAllergen(): HasMany
+    {
+        return $this->hasMany(ProductAllergen::class);
+    }
+    public function pharmacyInfo(): HasMany
+    {
+        return $this->hasMany(PharmacyInfo::class);
+    }
+    public function watermark(): HasOne
+    {
+        return $this->hasOne(ProductWatermarks::class);
+    }
 }

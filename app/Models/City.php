@@ -14,8 +14,6 @@ class City extends Model implements TranslatableContract
 {
     use Translatable;
 
-    public $translatedAttributes = ['name'];
-
     protected $fillable = [
         'governorate_id',
         'is_active',

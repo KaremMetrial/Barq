@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Admin extends Authenticatable
 {
@@ -30,5 +32,14 @@ class Admin extends Authenticatable
             'is_active' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+    public function conversations() : HasMany
+    {
+        return $this->hasMany(Conversation::class, 'admin_id');
+    }
+
+    public function messages(): MorphMany
+    {
+        return $this->morphMany(Message::class,'messageable');
     }
 }

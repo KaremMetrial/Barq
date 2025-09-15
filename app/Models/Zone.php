@@ -43,4 +43,8 @@ class Zone extends Model implements TranslatableContract
     {
         return $this->hasMany(Address::class);
     }
+    public function shippingPrices(): HasMany
+    {
+        return $this->hasMany(ShippingPrice::class);
+    }
 }

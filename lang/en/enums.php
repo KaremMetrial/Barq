@@ -131,4 +131,48 @@ return [
         'length' => 'Length',
         'count' => 'Count',
     ],
+    'product_watermark_position' => [
+        'top_left' => 'Top Left',
+        'top_right' => 'Top Right',
+        'bottom_left' => 'Bottom Left',
+        'bottom_right' => 'Bottom Right',
+        'center' => 'Center',
+    ],
+    'conversation_type' => [
+        'support' => 'Support',
+        'delivery' => 'Delivery',
+        'inquiry' => 'Inquiry',
+    ],
+    'message_type' => [
+        'text' => 'Text',
+        'image' => 'Image',
+        'video' => 'Video',
+        'audio' => 'Audio',
+    ],
+    'delivery_type_unit' => [
+        'minute' => 'Minute',
+        'hour' => 'Hour',
+        'day' => 'Day',
+    ],
+    'order_status' => [
+        'pending' => 'Pending',
+        'confirmed' => 'Confirmed',
+        'processing' => 'Processing',
+        'ready_for_delivery' => 'Ready for Delivery',
+        'on_the_way' => 'On the Way',
+        'delivered' => 'Delivered',
+        'cancelled' => 'Cancelled',
+    ],
+    'order_type' => [
+        'pickup' => 'Pickup',
+        'deliver' => 'Deliver',
+        'service' => 'Service',
+        'pos' => 'POS',
+    ],
+    'payment_status' => [
+        'unpaid' => 'Unpaid',
+        'paid' => 'Paid',
+        'partially_paid' => 'Partially Paid',
+    ],
+
 ];
