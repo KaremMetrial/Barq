@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Repositories;
+namespace Modules\Language\Repositories;
 
 use App\Models\Language;
-use App\Repositories\Contracts\LanguageRepositoryInterface;
-
+use Modules\Language\Repositories\Contracts\LanguageRepositoryInterface;
+use App\Repositories\BaseRepository;
 class LanguageRepository extends BaseRepository implements LanguageRepositoryInterface
 {
     public function __construct(Language $model)

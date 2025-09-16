@@ -7,6 +7,7 @@ use App\Enums\OrderTypeEnum;
 use App\Enums\PaymentStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
@@ -73,5 +74,46 @@ class Order extends Model
     {
         return $this->belongsTo(Couier::class);
     }
-    public function add
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function addOns()
+    {
+        return $this->belongsToMany(AddOn::class);
+    }
+
+    public function actionedBy()
+    {
+        return $this->belongsTo(Admin::class, 'actioned_by');
+    }
+
+    public function posShift()
+    {
+        return $this->belongsTo(PosShift::class);
+    }
+
+    public function cart()
+    {
+        return $this->belongsTo(Cart::class);
+    }
+
+    public function deliveryAddress()
+    {
+        return $this->belongsTo(Address::class, 'delivery_address');
+    }
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+    public function orderProofs(): HasMany
+    {
+        return $this->hasMany(OrderProof::class);
+    }
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(OrderStatusHistory::class);
+    }
 }

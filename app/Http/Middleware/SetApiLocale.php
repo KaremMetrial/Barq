@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetApiLocale
@@ -15,7 +16,7 @@ class SetApiLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->is('api/*')) {
+        if ($request->is('*')) {
             // Get language from header, default to config value
             $locale = $request->header('Accept-Language', config('app.locale'));
 

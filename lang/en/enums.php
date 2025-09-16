@@ -175,4 +175,15 @@ return [
         'partially_paid' => 'Partially Paid',
     ],
 
+    'order_status_history' => [
+        'pending' => 'Pending',
+        'confirmed' => 'Confirmed',
+        'processing' => 'Processing',
+        'on_the_way' => 'On The Way',
+        'ready_for_delivery' => 'Ready For Delivery',
+        'delivered' => 'Delivered',
+        'cancelled' => 'Cancelled',
+        'failed' => 'Failed',
+    ],
+
 ];

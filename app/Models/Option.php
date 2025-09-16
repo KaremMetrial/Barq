@@ -26,4 +26,8 @@ class Option extends Model implements TranslatableContract
     {
         return $this->hasMany(ProductValue::class);
     }
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

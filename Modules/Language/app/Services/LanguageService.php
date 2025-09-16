@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Language\Services;
 
-use App\Repositories\LanguageRepository;
+use Illuminate\Database\Eloquent\Collection;
+use Modules\Language\Repositories\LanguageRepository;
 use Illuminate\Support\Facades\Cache;
 
 class LanguageService
@@ -28,5 +29,9 @@ class LanguageService
     public function clearCache(): void
     {
         Cache::forget('languages.codes');
+    }
+    public function getAllLanguages(): Collection
+    {
+        return $this->languageRepository->all();
     }
 }

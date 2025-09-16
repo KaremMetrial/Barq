@@ -97,4 +97,8 @@ class Product extends Model implements TranslatableContract
     {
         return $this->hasOne(ProductWatermarks::class);
     }
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

@@ -181,4 +181,15 @@ return [
         'partially_paid' => 'مدفوع جزئياً',
     ],
 
+    'order_status_history' => [
+        'pending' => 'قيد الانتظار',
+        'confirmed' => 'تم التأكيد',
+        'processing' => 'قيد المعالجة',
+        'on_the_way' => 'في الطريق',
+        'ready_for_delivery' => 'جاهز للتسليم',
+        'delivered' => 'تم التسليم',
+        'cancelled' => 'تم الإلغاء',
+        'failed' => 'فشل',
+    ],
+
 ];

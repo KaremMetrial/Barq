@@ -31,4 +31,14 @@ class AddOn extends Model implements TranslatableContract
         return $this->belongsToMany(Order::class,'add_on_order')
         ->withPivot('quantity','price');
     }
+    public function cartItems(): BelongsToMany
+    {
+        return $this->belongsToMany(CartItem::class, 'add_on_cart_item')
+        ->withPivot('quantity','price');
+    }
+    public function orderItems(): BelongsToMany
+    {
+        return $this->belongsToMany(OrderItem::class, 'add_on_order_item')
+            ->withPivot('quantity', 'price_modifier');
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class CartItem extends Model
 {
@@ -12,7 +13,8 @@ class CartItem extends Model
         "total_price",
         "note",
         "cart_id",
-        "product_id"
+        "product_id",
+        "product_option_value_id"
     ];
     public function product(): BelongsTo
     {
@@ -21,5 +23,14 @@ class CartItem extends Model
     public function cart(): BelongsTo
     {
         return $this->belongsTo(Cart::class);
+    }
+    public function productOptionValue(): BelongsTo
+    {
+        return $this->belongsTo(ProductOptionValue::class);
+    }
+    public function addOns(): BelongsToMany
+    {
+        return $this->belongsToMany(AddOn::class,"add_on_cart_item")
+        ->withPivot('quantity','price');
     }
 }
