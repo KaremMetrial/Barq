@@ -34,10 +34,23 @@ class LanguageService
     {
         return $this->languageRepository->all();
     }
-    public function createLanguage(array $data): Language
+    public function createLanguage(array $data): ?Language
     {
         $this->clearCache();
         return $this->languageRepository->create($data);
     }
-
+    public function getLanguageById(int $id): ?Language
+    {
+        return $this->languageRepository->find($id);
+    }
+    public function updateLanguage(int $id, array $data): ?Language
+    {
+        $this->clearCache();
+        return $this->languageRepository->update($id, $data);
+    }
+    public function deleteLanguage(int $id): bool
+    {
+        $this->clearCache();
+        return $this->languageRepository->delete($id);
+    }
 }

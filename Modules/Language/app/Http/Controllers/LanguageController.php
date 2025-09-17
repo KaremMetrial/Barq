@@ -6,6 +6,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\Language\Http\Requests\CreateLanguageRequest;
+use Modules\Language\Http\Requests\UpdateLanguageRequest;
 use Modules\Language\Http\Resources\LanguageResource;
 use Modules\Language\Services\LanguageService;
 
@@ -32,7 +33,11 @@ class LanguageController extends Controller
      */
     public function store(CreateLanguageRequest $request)
     {
-        dd($request->all());
+        $language = $this->service->createLanguage($request->validated());
+
+        return $this->successResponse([
+            "language" => new LanguageResource($language),
+        ], __("message.success"));
     }
 
     /**
@@ -40,19 +45,21 @@ class LanguageController extends Controller
      */
     public function show($id)
     {
-        //
-
-        return response()->json([]);
+        $language = $this->service->getLanguageById($id);
+        return $this->successResponse([
+            "language" => new LanguageResource($language),
+        ], __("message.success"));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateLanguageRequest $request, $id)
     {
-        //
-
-        return response()->json([]);
+        $language = $this->service->updateLanguage($id, $request->validated());
+        return $this->successResponse([
+            "language" => new LanguageResource($language),
+        ], __("message.success"));
     }
 
     /**
@@ -60,8 +67,7 @@ class LanguageController extends Controller
      */
     public function destroy($id)
     {
-        //
-
-        return response()->json([]);
+        $language = $this->service->deleteLanguage($id);
+        return $this->successResponse(null, __("message.success"));
     }
 }

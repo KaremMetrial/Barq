@@ -4,7 +4,7 @@ namespace Modules\Language\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateLanguageRequest extends FormRequest
+class UpdateLanguageRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -12,10 +12,10 @@ class CreateLanguageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name"=> ["required","string","max:255"],
-            "code"=> ["required","string","max:255","unique:languages,code"],
-            "native_name"=> ["required","string","max:255"],
-            "direction"=> ["required","string","max:255","in:ltr,rtl"],
+            "name"=> ["nullable","string","max:255"],
+            "code"=> ["nullable","string","max:255","unique:languages,code," . $this->route('language')],
+            "native_name"=> ["nullable","string","max:255"],
+            "direction"=> ["nullable","string","max:255","in:ltr,rtl"],
             "is_default"=> ["nullable","boolean"],
             "is_active"=> ["nullable","boolean"],
         ];
