@@ -3,7 +3,8 @@
 namespace Modules\Language\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Language;
+use Modules\Language\Models\Language;
+
 class LanguageDatabaseSeeder extends Seeder
 {
     /**

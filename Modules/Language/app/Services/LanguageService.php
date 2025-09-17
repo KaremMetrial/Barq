@@ -5,7 +5,7 @@ namespace Modules\Language\Services;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Language\Repositories\LanguageRepository;
 use Illuminate\Support\Facades\Cache;
-
+use Modules\Language\Models\Language;
 class LanguageService
 {
     public function __construct(
@@ -34,4 +34,10 @@ class LanguageService
     {
         return $this->languageRepository->all();
     }
+    public function createLanguage(array $data): Language
+    {
+        $this->clearCache();
+        return $this->languageRepository->create($data);
+    }
+
 }

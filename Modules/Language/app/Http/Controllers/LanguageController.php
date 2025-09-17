@@ -5,6 +5,7 @@ namespace Modules\Language\Http\Controllers;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Modules\Language\Http\Requests\CreateLanguageRequest;
 use Modules\Language\Http\Resources\LanguageResource;
 use Modules\Language\Services\LanguageService;
 
@@ -29,11 +30,9 @@ class LanguageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateLanguageRequest $request)
     {
-        //
-
-        return response()->json([]);
+        dd($request->all());
     }
 
     /**
