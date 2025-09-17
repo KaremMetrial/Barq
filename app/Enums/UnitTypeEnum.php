@@ -22,4 +22,8 @@ enum UnitTypeEnum: string
             self::COUNT->value => __('enums.unit_type.count'),
         ];
     }
+    public static function label(string $value): string
+    {
+        return self::labels()[$value] ?? __('Unknown');
+    }
 }

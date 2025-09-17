@@ -1,3 +1,6 @@
 {
-    "Language": true
+    "Language": true,
+    "Country": true,
+    "Unit": true,
+    "Category": true
 }
