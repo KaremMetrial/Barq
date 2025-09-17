@@ -20,6 +20,9 @@ class CategoryService
 
     public function createCategory(array $data): ?Category
     {
+        if (request()->hasFile('icon')) {
+            $data['icon'] = request()->file('icon')->store('uploads/icons', 'public');
+        }
         return $this->CategoryRepository->create($data);
     }
 
@@ -30,6 +33,9 @@ class CategoryService
 
     public function updateCategory(int $id, array $data): ?Category
     {
+        if (request()->hasFile('icon')) {
+            $data['icon'] = request()->file('icon')->store('uploads/icons', 'public');
+        }
         return $this->CategoryRepository->update($id, $data);
     }
 

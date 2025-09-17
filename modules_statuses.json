@@ -2,5 +2,6 @@
     "Language": true,
     "Country": true,
     "Unit": true,
-    "Category": true
+    "Category": true,
+    "Section": true
 }

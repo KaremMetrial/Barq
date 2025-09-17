@@ -185,5 +185,10 @@ return [
         'cancelled' => 'Cancelled',
         'failed' => 'Failed',
     ],
-
+    'section_type' => [
+        'restaurant' => 'Restaurant',
+        'pharmacy' => 'Pharmacy',
+        'regular_store' => 'Regular Store',
+        'other' => 'Other',
+    ]
 ];

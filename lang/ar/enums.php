@@ -191,5 +191,10 @@ return [
         'cancelled' => 'تم الإلغاء',
         'failed' => 'فشل',
     ],
-
+    'section_type' => [
+        'restaurant' => 'مطعم',
+        'pharmacy' => 'صيدلية',
+        'regular_store' => 'متجر عادي',
+        'other' => 'أخرى',
+    ]
 ];

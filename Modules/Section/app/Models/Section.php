@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Section\Models;
 
+use App\Enums\SectionTypeEnum;
+use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Cviebrock\EloquentSluggable\Sluggable;
@@ -19,11 +21,13 @@ class Section extends Model implements TranslatableContract
         'icon',
         'is_restaurant',
         'is_active',
+        'type'
     ];
 
     protected $casts = [
         'is_restaurant' => 'boolean',
         'is_active' => 'boolean',
+        'type' => SectionTypeEnum::class,
     ];
     public function sluggable(): array
     {

@@ -1,26 +1,26 @@
 <?php
 
-namespace Modules\Category\Http\Requests;
+namespace Modules\Section\Http\Requests;
 
-use App\Traits\FileUploadTrait;
-use Modules\Category\Models\Category;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateCategoryRequest extends FormRequest
+class UpdateSectionRequest extends FormRequest
 {
-    use FileUploadTrait;
     /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
-            "name" => ["required", "string", "max:255"],
+            "name" => ["nullable", "string", "max:255"],
             "icon" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
             "is_active" => ["nullable", "boolean"],
             "sort_order" => ["nullable", "numeric", "min:0", "unique:categories,sort_order"],
             "is_featured" => ["nullable", "boolean"],
             "parent_id" => ["nullable", "numeric", "exists:categories,id"],
+            "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }
 
@@ -35,18 +35,19 @@ class CreateCategoryRequest extends FormRequest
     {
         $validated = $this->validated();
 
+        $fields = ['name'];
+
+        foreach ($fields as $field) {
+            if (isset($validated[$field], $validated['lang'])) {
+                $validated["{$field}:{$validated['lang']}"] = $validated[$field];
+                unset($validated[$field]);
+            }
+
+            
+        }
+        unset($validated['lang']);
         $validated = array_filter($validated, fn($value) => !blank($value));
 
         $this->replace($validated);
-    }
-    protected function prepareForValidation(): void
-    {
-        if ($this->filled('sort_order') === false) {
-            $lastSortOrder = Category::max('sort_order') ?? 0;
-
-            $this->merge([
-                'sort_order' => $lastSortOrder + 1,
-            ]);
-        }
     }
 }
