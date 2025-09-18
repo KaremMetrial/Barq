@@ -31,7 +31,7 @@ class CountryController extends Controller
      */
     public function store(StoreCountryRequest $request)
     {
-        $country = $this->countryService->createCountry($request->validated());
+        $country = $this->countryService->createCountry($request->all());
         return $this->successResponse([
             "country" => new CountryResource($country),
         ], __("message.success"));

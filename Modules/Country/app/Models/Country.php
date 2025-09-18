@@ -1,5 +1,6 @@
 <?php
 
+
     namespace Modules\Country\Models;
 
     use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
@@ -9,6 +10,7 @@
     use Illuminate\Database\Eloquent\Model;
     use Illuminate\Database\Eloquent\Relations\HasMany;
     use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+    use Modules\Governorate\Models\Governorate;
 
     class Country extends Model implements TranslatableContract
     {

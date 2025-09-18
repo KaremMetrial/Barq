@@ -3,5 +3,14 @@
     "Country": true,
     "Unit": true,
     "Category": true,
-    "Section": true
+    "Section": true,
+    "Compaign": true,
+    "Store": true,
+    "Offer": true,
+    "NationalIdentity": true,
+    "Governorate": true,
+    "City": true,
+    "Zone": true,
+    "Address": true,
+    "Tag": true
 }

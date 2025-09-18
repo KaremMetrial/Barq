@@ -30,12 +30,4 @@ class CreateSectionRequest extends FormRequest
     {
         return true;
     }
-    protected function passedValidation(): void
-    {
-        $validated = $this->validated();
-
-        $validated = array_filter($validated, fn($value) => !blank($value));
-
-        $this->replace($validated);
-    }
 }

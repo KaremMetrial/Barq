@@ -57,7 +57,7 @@ class SectionController extends Controller
      */
     public function update(UpdateSectionRequest $request, int $id): JsonResponse
     {
-        $section = $this->sectionService->updateSection($id, $request->validated());
+        $section = $this->sectionService->updateSection($id, $request->all());
         return $this->successResponse([
             'section' => new SectionResource($section)
         ], __('message.success'));

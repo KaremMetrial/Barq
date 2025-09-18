@@ -42,12 +42,8 @@ class UpdateSectionRequest extends FormRequest
                 $validated["{$field}:{$validated['lang']}"] = $validated[$field];
                 unset($validated[$field]);
             }
-
-            
         }
         unset($validated['lang']);
-        $validated = array_filter($validated, fn($value) => !blank($value));
-
         $this->replace($validated);
     }
 }

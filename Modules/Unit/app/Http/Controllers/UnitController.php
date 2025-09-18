@@ -33,7 +33,7 @@ class UnitController extends Controller
      */
     public function store(CreateUnitRequest $request): JsonResponse
     {
-        $unit = $this->unitService->createUnit($request->validated());
+        $unit = $this->unitService->createUnit($request->all());
         return $this->successResponse([
             "unit" => new UnitResource($unit)
         ], __("message.success"));
@@ -56,7 +56,6 @@ class UnitController extends Controller
     public function update(UpdateUnitRequest $request, int $id): JsonResponse
     {
         $unit = $this->unitService->updateUnit($id, $request->all());
-
         return $this->successResponse([
             "unit" => new UnitResource($unit)
         ], __("message.success"));

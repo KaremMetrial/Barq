@@ -2,13 +2,16 @@
 
 namespace Modules\Section\Services;
 
-use Illuminate\Database\Eloquent\Collection;
+use App\Traits\FileUploadTrait;
+use Illuminate\Support\Facades\DB;
 use Modules\Section\Models\Section;
-use Modules\Section\Repositories\SectionRepository;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Collection;
+use Modules\Section\Repositories\SectionRepository;
 
 class SectionService
 {
+    use FileUploadTrait;
     public function __construct(
         protected SectionRepository $SectionRepository
     ) {}
@@ -20,10 +23,16 @@ class SectionService
 
     public function createSection(array $data): ?Section
     {
-        if (request()->hasFile('icon')) {
-            $data['icon'] = request()->file('icon')->store('uploads/icons', 'public');
-        }
-        return $this->SectionRepository->create($data);
+        return DB::transaction(function () use ($data) {
+            $data['icon'] = $this->upload(
+                request(),
+                'icon',
+                'uploads/icons',
+                'public'
+            );
+            $data = array_filter($data, fn($value) => !blank($value));
+            return $this->SectionRepository->create($data);
+        });
     }
 
     public function getSectionById(int $id): ?Section
@@ -33,10 +42,17 @@ class SectionService
 
     public function updateSection(int $id, array $data): ?Section
     {
-        if (request()->hasFile('icon')) {
-            $data['icon'] = request()->file('icon')->store('uploads/icons', 'public');
-        }
-        return $this->SectionRepository->update($id, $data);
+        return DB::transaction(function () use ($data, $id) {
+            $data['icon'] = $this->upload(
+                request(),
+                'icon',
+                'uploads/icons',
+                'public'
+            );
+            $data = array_filter($data, fn($value) => !blank($value));
+            return $this->SectionRepository->update($id, $data);
+        });
+
     }
 
     public function deleteSection(int $id): bool
