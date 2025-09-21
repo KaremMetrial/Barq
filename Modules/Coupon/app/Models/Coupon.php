@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Coupon\Models;
 
 use App\Enums\SaleTypeEnum;
 use App\Enums\CouponTypeEnum;
 use App\Enums\ObjectTypeEnum;
+use Modules\Store\Models\Store;
+use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -48,5 +50,17 @@ class Coupon extends Model implements TranslatableContract
     public function stores(): BelongsToMany
     {
         return $this->belongsToMany(Store::class, 'coupon_store', 'coupon_id', 'store_id');
+    }
+        public function isValid(): bool
+    {
+        return $this->is_active && $this->start_date <= now() && $this->end_date >= now();
+    }
+    public function getDiscountValue(float $orderAmount): float
+    {
+        if ($this->discount_type == SaleTypeEnum::PERCENTAGE) {
+            return ($orderAmount * $this->discount_amount) / 100;
+        }
+
+        return min($orderAmount, $this->discount_amount);
     }
 }

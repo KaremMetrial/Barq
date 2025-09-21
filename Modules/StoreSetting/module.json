@@ -1,0 +1,11 @@
+{
+    "name": "StoreSetting",
+    "alias": "storesetting",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\StoreSetting\\Providers\\StoreSettingServiceProvider"
+    ],
+    "files": []
+}

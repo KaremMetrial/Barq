@@ -2,7 +2,6 @@
 
 namespace Modules\Tag\Http\Resources;
 
-use App\Enums\TagTypeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

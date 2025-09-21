@@ -12,5 +12,7 @@
     "City": true,
     "Zone": true,
     "Address": true,
-    "Tag": true
+    "Tag": true,
+    "Coupon": true,
+    "StoreSetting": true
 }
