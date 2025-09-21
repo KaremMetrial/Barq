@@ -1,7 +1,8 @@
 <?php
 
-namespace Modules\Store\Models;
+namespace Modules\StoreSetting\Models;
 
+use Modules\Store\Models\Store;
 use App\Enums\DeliveryTypeUnitEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

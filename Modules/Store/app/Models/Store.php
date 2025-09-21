@@ -7,12 +7,14 @@ use Modules\Section\Models\Section;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\StoreSetting\Models\StoreSetting;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Store extends Model implements TranslatableContract
 {
@@ -79,9 +81,9 @@ class Store extends Model implements TranslatableContract
     {
         return $this->morphMany(Favourite::class, 'favouriteable');
     }
-    public function storeSetting(): HasMany
+    public function storeSetting(): HasOne
     {
-        return $this->hasMany(StoreSetting::class, 'store_id');
+        return $this->hasOne(StoreSetting::class, 'store_id');
     }
     public function posTerminals(): HasMany
     {

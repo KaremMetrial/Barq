@@ -5,7 +5,7 @@ namespace App\Enums;
 enum DeliveryTypeUnitEnum: string
 {
     case MINUTE = "minute";
-    case HOUR = "HOUR";
+    case HOUR = "hour";
     case DAY = "day";
     public static function values(): array
     {
