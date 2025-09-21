@@ -235,7 +235,7 @@
             'day_of_week' => 'اليوم',
             'open_time' => 'وقت الفتح',
             'close_time' => 'وقت الإغلاق',
-            'rental_shop_id' => 'المتجر',
+            'store_id' => 'المتجر',
         ],
 
     ];

@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/workingday",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\WorkingDay\\": "app/",
+            "Modules\\WorkingDay\\Database\\Factories\\": "database/factories/",
+            "Modules\\WorkingDay\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\WorkingDay\\Tests\\": "tests/"
+        }
+    }
+}

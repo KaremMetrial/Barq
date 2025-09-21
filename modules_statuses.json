@@ -14,5 +14,6 @@
     "Address": true,
     "Tag": true,
     "Coupon": true,
-    "StoreSetting": true
+    "StoreSetting": true,
+    "WorkingDay": true
 }

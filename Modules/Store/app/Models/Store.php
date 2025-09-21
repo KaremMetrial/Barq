@@ -6,15 +6,16 @@ use App\Enums\StoreStatusEnum;
 use Modules\Section\Models\Section;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
+use Modules\WorkingDay\Models\WorkingDay;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\StoreSetting\Models\StoreSetting;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Store extends Model implements TranslatableContract
 {

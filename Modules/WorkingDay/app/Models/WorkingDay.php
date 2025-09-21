@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace Modules\WorkingDay\Models;
 
 use App\Enums\WorkingDayEnum;
+use Modules\Store\Models\Store;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -12,13 +13,11 @@ class WorkingDay extends Model
         'day_of_week',
         'open_time',
         'close_time',
-        'rental_shop_id',
+        'store_id',
     ];
 
     protected $casts = [
         'day_of_week' => WorkingDayEnum::class,
-        'open_time' => 'datetime:H:i',
-        'close_time' => 'datetime:H:i',
     ];
     public function store(): BelongsTo
     {

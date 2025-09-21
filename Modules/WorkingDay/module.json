@@ -1,0 +1,11 @@
+{
+    "name": "WorkingDay",
+    "alias": "workingday",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\WorkingDay\\Providers\\WorkingDayServiceProvider"
+    ],
+    "files": []
+}
