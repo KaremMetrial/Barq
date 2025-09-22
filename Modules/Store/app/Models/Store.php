@@ -4,6 +4,7 @@ namespace Modules\Store\Models;
 
 use App\Enums\StoreStatusEnum;
 use Modules\Coupon\Models\Coupon;
+use Modules\Balance\Models\Balance;
 use Modules\Section\Models\Section;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
@@ -95,4 +96,9 @@ class Store extends Model implements TranslatableContract
     {
         return $this->hasMany(Order::class);
     }
+    public function balance(): MorphOne
+    {
+        return $this->morphOne(Balance::class, 'balanceable');
+    }
+
 }

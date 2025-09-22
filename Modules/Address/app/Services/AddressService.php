@@ -13,7 +13,7 @@ class AddressService
         protected AddressRepository $AddressRepository
     ) {}
 
-    public function getAllCountries(): Collection
+    public function getAllAddresses(): Collection
     {
         return $this->AddressRepository->all();
     }

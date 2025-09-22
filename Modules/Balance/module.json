@@ -1,0 +1,11 @@
+{
+    "name": "Balance",
+    "alias": "balance",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Balance\\Providers\\BalanceServiceProvider"
+    ],
+    "files": []
+}

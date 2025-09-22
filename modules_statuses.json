@@ -18,5 +18,6 @@
     "WorkingDay": true,
     "Vendor": true,
     "PosTerminal": true,
-    "CompaignParicipation": true
+    "CompaignParicipation": true,
+    "Balance": true
 }
