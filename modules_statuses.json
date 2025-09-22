@@ -17,5 +17,6 @@
     "StoreSetting": true,
     "WorkingDay": true,
     "Vendor": true,
-    "PosTerminal": true
+    "PosTerminal": true,
+    "CompaignParicipation": true
 }

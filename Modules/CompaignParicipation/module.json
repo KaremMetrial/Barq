@@ -1,0 +1,11 @@
+{
+    "name": "CompaignParicipation",
+    "alias": "compaignparicipation",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CompaignParicipation\\Providers\\CompaignParicipationServiceProvider"
+    ],
+    "files": []
+}

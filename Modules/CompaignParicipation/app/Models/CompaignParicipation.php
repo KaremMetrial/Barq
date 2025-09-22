@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace Modules\CompaignParicipation\Models;
 
+use Modules\Store\Models\Store;
+use Modules\Compaign\Models\Compaign;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\CompaignParicipationStatusEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
