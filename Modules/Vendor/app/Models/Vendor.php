@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Vendor\Models;
 
+use Modules\Store\Models\Store;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;

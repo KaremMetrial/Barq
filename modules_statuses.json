@@ -15,5 +15,7 @@
     "Tag": true,
     "Coupon": true,
     "StoreSetting": true,
-    "WorkingDay": true
+    "WorkingDay": true,
+    "Vendor": true,
+    "PosTerminal": true
 }

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace Modules\PosTerminal\Models;
 
+use Modules\Store\Models\Store;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

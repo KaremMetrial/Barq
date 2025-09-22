@@ -1,0 +1,11 @@
+{
+    "name": "PosTerminal",
+    "alias": "posterminal",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PosTerminal\\Providers\\PosTerminalServiceProvider"
+    ],
+    "files": []
+}

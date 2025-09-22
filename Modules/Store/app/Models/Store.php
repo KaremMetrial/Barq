@@ -3,6 +3,7 @@
 namespace Modules\Store\Models;
 
 use App\Enums\StoreStatusEnum;
+use Modules\Coupon\Models\Coupon;
 use Modules\Section\Models\Section;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
