@@ -43,9 +43,9 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $record->delete();
     }
 
-    public function paginate(int $perPage = 15, array $columns = ['*'])
+    public function paginate(int $perPage = 15,array $relations = [], array $columns = ['*'])
     {
-        return $this->model->paginate($perPage, $columns);
+        return $this->model->with($relations)->latest()->paginate($perPage, $columns);
     }
 
     public function where(array $conditions, array $columns = ['*'])

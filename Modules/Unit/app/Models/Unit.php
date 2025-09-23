@@ -3,6 +3,7 @@
 namespace Modules\Unit\Models;
 
 use App\Enums\UnitTypeEnum;
+use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

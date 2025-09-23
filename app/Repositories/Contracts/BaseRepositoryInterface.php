@@ -6,7 +6,7 @@ interface BaseRepositoryInterface
 {
     public function all(array $columns = ['*']);
 
-    public function find(int|string $id, array $columns = ['*']);
+    public function find(int|string $id, array $relations = [], array $columns = ['*']);
 
     public function create(array $data);
 
@@ -14,7 +14,7 @@ interface BaseRepositoryInterface
 
     public function delete(int|string $id): bool;
 
-    public function paginate(int $perPage = 15, array $columns = ['*']);
+    public function paginate(int $perPage = 15, array $relations = [], array $columns = ['*']);
 
     public function where(array $conditions, array $columns = ['*']);
 }

@@ -1,8 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Product\Models;
 
+use Modules\Tag\Models\Tag;
+use Modules\Unit\Models\Unit;
+use Modules\Store\Models\Store;
 use App\Enums\ProductStatusEnum;
+use Modules\Coupon\Models\Coupon;
+use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -27,6 +32,7 @@ class Product extends Model implements TranslatableContract
         'is_featured',
         'store_id',
         'category_id',
+        'barcode',
     ];
     protected $casts = [
         'is_active' => 'boolean',

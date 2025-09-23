@@ -19,5 +19,6 @@
     "Vendor": true,
     "PosTerminal": true,
     "CompaignParicipation": true,
-    "Balance": true
+    "Balance": true,
+    "Product": true
 }

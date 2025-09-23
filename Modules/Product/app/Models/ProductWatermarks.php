@@ -1,19 +1,21 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Product\Models;
 
+use App\Enums\ProductWatermarkPositionEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ProductImage extends Model
+class ProductWatermarks extends Model
 {
     protected $fillable = [
-        'image_path',
-        'is_primary',
+        'image_url',
+        'position',
+        'opacity',
         'product_id',
     ];
     protected $casts = [
-        'is_primary' => 'boolean',
+        'position' => ProductWatermarkPositionEnum::class,
     ];
     public function product(): BelongsTo
     {

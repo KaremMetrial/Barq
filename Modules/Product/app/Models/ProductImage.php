@@ -1,20 +1,19 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ProductNutrition extends Model
+class ProductImage extends Model
 {
     protected $fillable = [
-        'calories',
-        'fat',
-        'protein',
-        'carbohydrates',
-        'sugar',
-        'fiber',
-        'product_id'
+        'image_path',
+        'is_primary',
+        'product_id',
+    ];
+    protected $casts = [
+        'is_primary' => 'boolean',
     ];
     public function product(): BelongsTo
     {
