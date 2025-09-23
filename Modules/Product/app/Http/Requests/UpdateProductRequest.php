@@ -2,9 +2,10 @@
 
 namespace Modules\Product\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Enums\ProductStatusEnum;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -28,7 +29,7 @@ class UpdateProductRequest extends FormRequest
         return [
             // Product Table
             'product' => ['required', 'array'],
-            'product.barcode'            => ['nullable', 'string', 'max:255', Rule::unique('products', 'barcode')->ignore($this->route('id'))],
+            'product.barcode'            => ['nullable', 'string', 'max:255', Rule::unique('products', 'barcode')->ignore($this->route('product'))],
             'product.name'               => ['required', 'string', 'max:255'],
             'product.description'        => ['nullable', 'string'],
             'product.status'             => ['nullable', 'string', Rule::in(ProductStatusEnum::values())],
@@ -79,7 +80,7 @@ class UpdateProductRequest extends FormRequest
 
             // Product Tags Table
             'tags' => ['nullable', 'array'],
-            'tags.*'=> ['required', 'integer','exists:tags,id'],
+            'tags.*' => ['required', 'integer', 'exists:tags,id'],
 
             // Product Units Table (with pivot data)
             'units' => ['nullable', 'array'],
@@ -91,11 +92,33 @@ class UpdateProductRequest extends FormRequest
             'watermarks.image_url' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'watermarks.position' => ['required_with:watermarks.image_url', 'string', 'max:255'],
             'watermarks.opacity' => ['required_with:watermarks.image_url', 'integer', 'min:0', 'max:100'],
+
+            "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }
 
     public function authorize(): bool
     {
         return true;
+    }
+    protected function passedValidation(): void
+    {
+        $validated = $this->validated();
+        $lang = $validated['lang'] ?? null;
+
+        if ($lang && isset($validated['product'])) {
+            $fieldsToTranslate = ['name', 'description'];
+
+            foreach ($fieldsToTranslate as $field) {
+                if (isset($validated['product'][$field])) {
+                    $validated['product']["{$field}:{$lang}"] = $validated['product'][$field];
+                    unset($validated['product'][$field]);
+                }
+            }
+        }
+
+        unset($validated['lang']);
+
+        $this->replace($validated);
     }
 }
