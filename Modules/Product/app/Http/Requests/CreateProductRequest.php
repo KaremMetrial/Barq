@@ -18,6 +18,12 @@ class CreateProductRequest extends FormRequest
             'pharmacyInfo' => $this->filterArray($this->input('pharmacyInfo',[])),
             'productAllergen' => $this->filterArray($this->input('productAllergen', [])),
             'availability' => $this->filterArray($this->input('availability', [])),
+            'productNutrition' => $this->filterArray($this->input('productNutrition', [])),
+            'prices' => $this->filterArray($this->input('prices', [])),
+            'tags' => $this->filterArray($this->input('tags', [])),
+            'units' => $this->filterArray($this->input('units', [])),
+            'watermarks' => $this->filterArray($this->input('watermarks', [])),
+            'productOptions' => $this->filterArray($this->input('productOptions', [])),
         ]);
     }
     private function filterArray(array $data): array
@@ -99,6 +105,21 @@ class CreateProductRequest extends FormRequest
             'watermarks.image_url' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'watermarks.position' => ['required', 'string', 'max:255'],
             'watermarks.opacity' => ['required', 'integer', 'min:0', 'max:100'],
+
+            // Product Option and Values Table
+            'productOptions' => ['nullable', 'array'],
+            'productOptions.*.option_id' => ['required', 'integer', 'exists:options,id'],
+            'productOptions.*.min_select' => ['nullable', 'integer', 'min:0'],
+            'productOptions.*.max_select' => ['nullable', 'integer', 'min:1'],
+            'productOptions.*.is_required' => ['nullable', 'boolean'],
+            'productOptions.*.sort_order' => ['nullable', 'integer', 'min:1'],
+
+            'productOptions.*.values' => ['nullable', 'array'],
+            'productOptions.*.values.*.name' => ['required', 'string', 'max:255'],
+            'productOptions.*.values.*.price' => ['nullable', 'numeric', 'min:0'],
+            'productOptions.*.values.*.stock' => ['nullable', 'integer', 'min:0'],
+            'productOptions.*.values.*.is_default' => ['nullable', 'boolean'],
+
         ];
     }
 

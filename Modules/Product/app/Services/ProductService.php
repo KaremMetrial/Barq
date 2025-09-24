@@ -40,7 +40,7 @@ class ProductService
     {
         return DB::transaction(function () use ($data) {
             $product = $this->ProductRepository->create($data['product']);
-            
+
             $this->syncPharmacyInfo($product, $data['pharmacyInfo'] ?? []);
             $this->syncProductAllergen($product, $data['productAllergen'] ?? []);
             $this->syncAvailability($product, $data['availability'] ?? []);
@@ -48,6 +48,7 @@ class ProductService
             $this->syncPrice($product, $data['prices'] ?? []);
             $this->syncTags($product, $data['tags'] ?? []);
             $this->syncUnits($product, $data['units'] ?? []);
+            $this->syncProductOptions($product, $data['productOptions'] ?? []);
 
             if (!empty($data['images'])) {
                 $this->handleProductImages($product, $data['images']);
@@ -90,6 +91,7 @@ class ProductService
             $this->syncPrice($product, $data['prices'] ?? []);
             $this->syncTags($product, $data['tags'] ?? []);
             $this->syncUnits($product, $data['units'] ?? []);
+            $this->syncProductOptions($product, $data['productOptions'] ?? []);
 
             if (isset($data['images'])) {
                 $product->images()->delete();
@@ -185,6 +187,23 @@ class ProductService
             })->toArray();
 
             $product->units()->sync($unitData);
+        }
+    }
+    private function syncProductOptions(Product $product, array $options): void
+    {
+        if (empty($options)) return;
+        foreach ($options as $option) {
+            $productOption = $product->productOptions()->create([
+                'option_id'   => $option['option_id'],
+                'min_select'  => $option['min_select'] ?? 0,
+                'max_select'  => $option['max_select'] ?? 1,
+                'is_required' => $option['is_required'] ?? false,
+                'sort_order'  => $option['sort_order'] ?? 1,
+            ]);
+
+            if (!empty($option['values'])) {
+                $productOption->values()->createMany($option['values']);
+            }
         }
     }
 }

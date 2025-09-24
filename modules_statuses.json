@@ -20,5 +20,7 @@
     "PosTerminal": true,
     "CompaignParicipation": true,
     "Balance": true,
-    "Product": true
+    "Product": true,
+    "Option": true,
+    "Interest": true
 }

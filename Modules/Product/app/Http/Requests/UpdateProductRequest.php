@@ -2,25 +2,33 @@
 
 namespace Modules\Product\Http\Requests;
 
-use Illuminate\Validation\Rule;
-use App\Enums\ProductStatusEnum;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cache;
+use App\Enums\ProductStatusEnum;
 
 class UpdateProductRequest extends FormRequest
 {
-    public function prepareForValidation()
+    public function prepareForValidation(): void
     {
+        // Filter input data before validation to clean up null or empty values
         $this->merge([
             'product' => $this->filterArray($this->input('product', [])),
             'pharmacyInfo' => $this->filterArray($this->input('pharmacyInfo', [])),
             'productAllergen' => $this->filterArray($this->input('productAllergen', [])),
             'availability' => $this->filterArray($this->input('availability', [])),
+            'productNutrition' => $this->filterArray($this->input('productNutrition', [])),
+            'prices' => $this->filterArray($this->input('prices', [])),
+            'tags' => $this->filterArray($this->input('tags', [])),
+            'units' => $this->filterArray($this->input('units', [])),
+            'watermarks' => $this->filterArray($this->input('watermarks', [])),
+            'productOptions' => $this->filterArray($this->input('productOptions', [])),
         ]);
     }
 
     private function filterArray(array $data): array
     {
+        // Filter out null or empty values from the array
         return array_filter($data, fn($value) => !is_null($value) && $value !== '');
     }
 
@@ -29,42 +37,47 @@ class UpdateProductRequest extends FormRequest
         return [
             // Product Table
             'product' => ['required', 'array'],
-            'product.barcode'            => ['nullable', 'string', 'max:255', Rule::unique('products', 'barcode')->ignore($this->route('product'))],
-            'product.name'               => ['required', 'string', 'max:255'],
-            'product.description'        => ['nullable', 'string'],
-            'product.status'             => ['nullable', 'string', Rule::in(ProductStatusEnum::values())],
-            'product.note'               => ['nullable', 'string'],
-            'product.is_vegetarian'      => ['nullable', 'boolean'],
-            'product.is_reviewed'        => ['nullable', 'boolean'],
-            'product.is_featured'        => ['nullable', 'boolean'],
-            'product.is_active'          => ['nullable', 'boolean'],
-            'product.store_id'           => ['required', 'integer', 'exists:stores,id'],
-            'product.category_id'        => ['nullable', 'integer', 'exists:categories,id'],
-            'product.max_cart_quantity'  => ['nullable', 'integer', 'min:1'],
+            'product.barcode' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('products', 'barcode')->ignore($this->route('product'))
+            ],
+            'product.name' => ['required', 'string', 'max:255'],
+            'product.description' => ['nullable', 'string'],
+            'product.status' => ['nullable', 'string', Rule::in(ProductStatusEnum::values())],
+            'product.note' => ['nullable', 'string'],
+            'product.is_vegetarian' => ['nullable', 'boolean'],
+            'product.is_reviewed' => ['nullable', 'boolean'],
+            'product.is_featured' => ['nullable', 'boolean'],
+            'product.is_active' => ['nullable', 'boolean'],
+            'product.store_id' => ['required', 'integer', 'exists:stores,id'],
+            'product.category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'product.max_cart_quantity' => ['nullable', 'integer', 'min:1'],
 
-            // Pharmacy Info Table
+            // Pharmacy Info
             'pharmacyInfo' => ['nullable', 'array'],
             'pharmacyInfo.*.generic_name' => ['required', 'string', 'max:255'],
             'pharmacyInfo.*.common_use' => ['required', 'string', 'max:255'],
             'pharmacyInfo.*.prescription_required' => ['required', 'boolean'],
 
-            // Product Allergen Table
+            // Product Allergen
             'productAllergen' => ['nullable', 'array'],
             'productAllergen.*.name' => ['required', 'string', 'max:255'],
 
-            // Product Availability Table
+            // Availability
             'availability' => ['required', 'array'],
             'availability.stock_quantity' => ['required', 'integer', 'min:0'],
-            'availability.is_in_stock'   => ['required', 'boolean'],
+            'availability.is_in_stock' => ['required', 'boolean'],
             'availability.available_start_date' => ['nullable', 'date'],
             'availability.available_end_date' => ['nullable', 'date', 'after_or_equal:availability.available_start_date'],
 
-            // Product Image Table (optional on update)
+            // Images
             'images' => ['nullable', 'array'],
             'images.*.image_path' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'images.*.is_primary' => ['nullable', 'boolean'],
 
-            // Product Nutrition Table
+            // Nutrition
             'productNutrition' => ['nullable', 'array'],
             'productNutrition.calories' => ['nullable', 'integer', 'min:0'],
             'productNutrition.fat' => ['nullable', 'integer'],
@@ -73,27 +86,41 @@ class UpdateProductRequest extends FormRequest
             'productNutrition.sugar' => ['nullable', 'integer'],
             'productNutrition.fiber' => ['nullable', 'integer'],
 
-            // Product Price Table
+            // Prices
             'prices' => ['required', 'array'],
             'prices.price' => ['required', 'numeric', 'min:0'],
             'prices.purchase_price' => ['required', 'numeric', 'min:0'],
 
-            // Product Tags Table
+            // Tags
             'tags' => ['nullable', 'array'],
             'tags.*' => ['required', 'integer', 'exists:tags,id'],
 
-            // Product Units Table (with pivot data)
+            // Units
             'units' => ['nullable', 'array'],
             'units.*.unit_id' => ['required', 'integer', 'exists:units,id'],
             'units.*.unit_value' => ['required', 'numeric', 'min:0'],
 
-            // Product Watermark Table
+            // Watermarks
             'watermarks' => ['nullable', 'array'],
             'watermarks.image_url' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'watermarks.position' => ['required_with:watermarks.image_url', 'string', 'max:255'],
             'watermarks.opacity' => ['required_with:watermarks.image_url', 'integer', 'min:0', 'max:100'],
 
-            "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
+            // Product Options + Values
+            'productOptions' => ['nullable', 'array'],
+            'productOptions.*.option_id' => ['required', 'integer', 'exists:options,id'],
+            'productOptions.*.min_select' => ['nullable', 'integer', 'min:0'],
+            'productOptions.*.max_select' => ['nullable', 'integer', 'min:1'],
+            'productOptions.*.is_required' => ['nullable', 'boolean'],
+            'productOptions.*.sort_order' => ['nullable', 'integer', 'min:1'],
+
+            'productOptions.*.values' => ['nullable', 'array'],
+            'productOptions.*.values.*.price_modifier' => ['nullable', 'numeric', 'min:0'],
+            'productOptions.*.values.*.stock' => ['nullable', 'integer', 'min:0'],
+            'productOptions.*.values.*.is_default' => ['nullable', 'boolean'],
+
+            // Language
+            'lang' => ['required', 'string', Rule::in(Cache::get('languages.codes'))],
         ];
     }
 
@@ -102,6 +129,9 @@ class UpdateProductRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Handle translation logic for fields that require language-specific keys.
+     */
     protected function passedValidation(): void
     {
         $validated = $this->validated();
@@ -110,30 +140,36 @@ class UpdateProductRequest extends FormRequest
             'product' => ['name', 'description'],
             'pharmacyInfo' => ['generic_name', 'common_use'],
             'productAllergen' => ['name'],
+            'productOptions' => ['name'],
         ];
 
-        foreach ($fieldTranslate as $key => $fields) {
-            if (isset($validated[$key], $validated['lang'])) {
-                if (array_key_exists(0, $validated[$key])) {
-                    foreach ($validated[$key] as $index => $item) {
-                        foreach ($fields as $field) {
-                            if (isset($item[$field])) {
-                                $validated[$key][$index]["{$field}:{$validated['lang']}"] = $item[$field];
-                                unset($validated[$key][$index][$field]);
-                            }
+        // Iterate over each section and translate the fields based on language
+        foreach ($fieldTranslate as $section => $fields) {
+            if (!isset($validated[$section], $validated['lang'])) {
+                continue;
+            }
+
+            // Check if the section is an array and iterate accordingly
+            if (array_is_list($validated[$section])) {
+                foreach ($validated[$section] as $index => $item) {
+                    foreach ($fields as $field) {
+                        if (isset($item[$field])) {
+                            $validated[$section][$index]["{$field}:{$validated['lang']}"] = $item[$field];
+                            unset($validated[$section][$index][$field]);
                         }
                     }
-                } else {
-                    foreach ($fields as $field) {
-                        if (isset($validated[$key][$field])) {
-                            $validated[$key]["{$field}:{$validated['lang']}"] = $validated[$key][$field];
-                            unset($validated[$key][$field]);
-                        }
+                }
+            } else {
+                foreach ($fields as $field) {
+                    if (isset($validated[$section][$field])) {
+                        $validated[$section]["{$field}:{$validated['lang']}"] = $validated[$section][$field];
+                        unset($validated[$section][$field]);
                     }
                 }
             }
         }
-        
+
+        // Remove the language field after translation
         unset($validated['lang']);
         $this->replace($validated);
     }

@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Country\Http\Requests;
+namespace Modules\Interest\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCountryRequest extends FormRequest
+class CreateInterestRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -13,8 +13,9 @@ class StoreCountryRequest extends FormRequest
     {
         return [
             'name' => ['required','string','max:255'],
-            'code' => ["required", "string", "max:5", "unique:countries,code"],
             'is_active' => ["nullable", "boolean"],
+            'icon' => ['nullable','image', 'mimes:jpeg,png,jpg,gif,svg'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
         ];
     }
 

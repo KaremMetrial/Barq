@@ -81,7 +81,7 @@ class Product extends Model implements TranslatableContract
     public function units(): BelongsToMany
     {
         return $this->belongsToMany(Unit::class)
-                ->withPivot('unit_value');
+            ->withPivot('unit_value');
     }
     public function favourites(): MorphMany
     {
@@ -106,5 +106,20 @@ class Product extends Model implements TranslatableContract
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+    public function productOptions(): HasMany
+    {
+        return $this->hasMany(ProductOption::class);
+    }
+    public function optionValues()
+    {
+        return $this->hasManyThrough(
+            ProductValue::class,
+            ProductOption::class,
+            'product_id',
+            'option_id',
+            'id',
+            'id'
+        );
     }
 }
