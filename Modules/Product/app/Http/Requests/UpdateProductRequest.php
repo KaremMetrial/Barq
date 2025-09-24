@@ -101,24 +101,40 @@ class UpdateProductRequest extends FormRequest
     {
         return true;
     }
+
     protected function passedValidation(): void
     {
         $validated = $this->validated();
-        $lang = $validated['lang'] ?? null;
 
-        if ($lang && isset($validated['product'])) {
-            $fieldsToTranslate = ['name', 'description'];
+        $fieldTranslate = [
+            'product' => ['name', 'description'],
+            'pharmacyInfo' => ['generic_name', 'common_use'],
+            'productAllergen' => ['name'],
+        ];
 
-            foreach ($fieldsToTranslate as $field) {
-                if (isset($validated['product'][$field])) {
-                    $validated['product']["{$field}:{$lang}"] = $validated['product'][$field];
-                    unset($validated['product'][$field]);
+        foreach ($fieldTranslate as $key => $fields) {
+            if (isset($validated[$key], $validated['lang'])) {
+                if (array_key_exists(0, $validated[$key])) {
+                    foreach ($validated[$key] as $index => $item) {
+                        foreach ($fields as $field) {
+                            if (isset($item[$field])) {
+                                $validated[$key][$index]["{$field}:{$validated['lang']}"] = $item[$field];
+                                unset($validated[$key][$index][$field]);
+                            }
+                        }
+                    }
+                } else {
+                    foreach ($fields as $field) {
+                        if (isset($validated[$key][$field])) {
+                            $validated[$key]["{$field}:{$validated['lang']}"] = $validated[$key][$field];
+                            unset($validated[$key][$field]);
+                        }
+                    }
                 }
             }
         }
-
+        
         unset($validated['lang']);
-
         $this->replace($validated);
     }
 }
