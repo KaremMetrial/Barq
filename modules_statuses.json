@@ -22,5 +22,6 @@
     "Balance": true,
     "Product": true,
     "Option": true,
-    "Interest": true
+    "Interest": true,
+    "PosShift": true
 }

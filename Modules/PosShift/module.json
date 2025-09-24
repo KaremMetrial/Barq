@@ -1,0 +1,11 @@
+{
+    "name": "PosShift",
+    "alias": "posshift",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PosShift\\Providers\\PosShiftServiceProvider"
+    ],
+    "files": []
+}

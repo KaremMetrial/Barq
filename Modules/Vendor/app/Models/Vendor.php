@@ -4,6 +4,7 @@ namespace Modules\Vendor\Models;
 
 use Modules\Store\Models\Store;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\PosShift\Models\PosShift;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,6 +23,7 @@ class Vendor extends Authenticatable
         'password',
         'is_owner',
         'is_active',
+        'store_id'
     ];
     protected $casts = [
         'is_owner' => 'boolean',
@@ -35,5 +37,9 @@ class Vendor extends Authenticatable
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
+    }
+    public function posShifts()
+    {
+        return $this->hasMany(PosShift::class);
     }
 }

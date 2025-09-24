@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace Modules\PosShift\Models;
 
+use Modules\Vendor\Models\Vendor;
 use Illuminate\Database\Eloquent\Model;
+use Modules\PosTerminal\Models\PosTerminal;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PosShift extends Model
@@ -17,7 +19,11 @@ class PosShift extends Model
         "vendor_id"
     ];
     public function posTerminal(): BelongsTo
-{
+    {
         return $this->belongsTo(PosTerminal::class);
+    }
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
     }
 }
