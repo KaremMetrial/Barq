@@ -14,7 +14,8 @@ class ProductService
     use FileUploadTrait;
     public function __construct(
         protected ProductRepository $ProductRepository
-    ) {}
+    ) {
+    }
 
     public function getAllProducts(): LengthAwarePaginator
     {
@@ -191,18 +192,35 @@ class ProductService
     }
     private function syncProductOptions(Product $product, array $options): void
     {
-        if (empty($options)) return;
+        if (empty($options))
+            return;
         foreach ($options as $option) {
             $productOption = $product->productOptions()->create([
-                'option_id'   => $option['option_id'],
-                'min_select'  => $option['min_select'] ?? 0,
-                'max_select'  => $option['max_select'] ?? 1,
+                'option_id' => $option['option_id'],
+                'min_select' => $option['min_select'] ?? 0,
+                'max_select' => $option['max_select'] ?? 1,
                 'is_required' => $option['is_required'] ?? false,
-                'sort_order'  => $option['sort_order'] ?? 1,
+                'sort_order' => $option['sort_order'] ?? 1,
             ]);
 
             if (!empty($option['values'])) {
-                $productOption->values()->createMany($option['values']);
+                // Create product values
+                $productValues = $productOption->values()->createMany(
+                    collect($option['values'])->map(fn($value) => ['name' => $value['name']])->toArray()
+                );
+
+                // Create option values for each product value
+                foreach ($productValues as $productValue) {
+                    foreach ($option['values'] as $value) {
+                        $productValue->optionValues()->create([
+                            'product_value_id' => $productValue->id,
+                            'product_option_id' => $productOption->id,
+                            'price' => $value['price'] ?? 0,
+                            'stock' => $value['stock'] ?? 0,
+                            'is_default' => $value['is_default'] ?? false,
+                        ]);
+                    }
+                }
             }
         }
     }

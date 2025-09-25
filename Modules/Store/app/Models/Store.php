@@ -2,6 +2,7 @@
 
 namespace Modules\Store\Models;
 
+use Modules\Cart\Models\Cart;
 use App\Enums\StoreStatusEnum;
 use Modules\Coupon\Models\Coupon;
 use Modules\Balance\Models\Balance;
@@ -100,5 +101,8 @@ class Store extends Model implements TranslatableContract
     {
         return $this->morphOne(Balance::class, 'balanceable');
     }
-
+    public function carts(): HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
 }

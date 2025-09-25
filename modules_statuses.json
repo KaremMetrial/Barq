@@ -28,5 +28,6 @@
     "Vehicle": true,
     "Favourite": true,
     "Banner": true,
-    "Couier": true
+    "Couier": true,
+    "Cart": true
 }

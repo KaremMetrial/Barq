@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('cart_key')->unique();
             $table->timestamps();
 
-            $table->foreignId('pos_shift_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('store_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('pos_shift_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('store_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
         });
     }

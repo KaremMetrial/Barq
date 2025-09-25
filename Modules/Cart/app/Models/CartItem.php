@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Cart\Models;
 
+use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Product\Models\ProductOptionValue;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 

@@ -5,11 +5,13 @@ namespace Modules\User\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Enums\UserStatusEnum;
+use Modules\Cart\Models\Cart;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Address\Models\Address;
 use Modules\Interest\Models\Interest;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -106,5 +108,9 @@ class User extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+    public function cart(): HasOne
+    {
+        return $this->hasOne(Cart::class);
     }
 }

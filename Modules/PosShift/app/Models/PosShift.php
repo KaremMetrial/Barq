@@ -2,9 +2,11 @@
 
 namespace Modules\PosShift\Models;
 
+use Modules\Cart\Models\Cart;
 use Modules\Vendor\Models\Vendor;
 use Illuminate\Database\Eloquent\Model;
 use Modules\PosTerminal\Models\PosTerminal;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PosShift extends Model
@@ -25,5 +27,9 @@ class PosShift extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);
+    }
+    public function cart(): HasOne
+    {
+        return $this->hasOne(Cart::class);
     }
 }
