@@ -40,7 +40,6 @@ class Order extends Model
         'created_at',
         'updated_at',
         'pos_shift_id',
-        'cart_id',
     ];
 
     protected $casts = [

@@ -14,11 +14,17 @@ class UpdateBalanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'available_balance' => ['nullable', 'numeric'],
-            'pending_balance'   => ['nullable', 'numeric'],
-            'total_balance'     => ['nullable', 'numeric'],
-            'balanceable_id'    => ['nullable', 'integer'],
-            'balanceable_type'  => ['nullable', 'string', 'in:store'],
+            'available_balance' => ['required', 'numeric'],
+            'pending_balance'   => ['required', 'numeric'],
+            'total_balance'     => ['required', 'numeric'],
+            'balanceable_id'    => [
+                'required',
+                'integer',
+                Rule::unique('balances')->where(function ($query) {
+                    return $query->where('balanceable_type', $this->balanceable_type);
+                }),
+            ],
+            'balanceable_type'  => ['required', 'string','in:store'],
         ];
     }
 

@@ -27,7 +27,6 @@ class CreateAddressRequest extends FormRequest
             'zone_id' => ['required', 'exists:zones,id'],
             'icon' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
-            ''
         ];
     }
 

@@ -23,5 +23,9 @@
     "Product": true,
     "Option": true,
     "Interest": true,
-    "PosShift": true
+    "PosShift": true,
+    "User": true,
+    "Vehicle": true,
+    "Favourite": true,
+    "Banner": true
 }
