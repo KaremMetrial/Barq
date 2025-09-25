@@ -27,5 +27,6 @@
     "User": true,
     "Vehicle": true,
     "Favourite": true,
-    "Banner": true
+    "Banner": true,
+    "Couier": true
 }

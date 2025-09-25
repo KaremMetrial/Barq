@@ -1,18 +1,19 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Couier\Models;
 
 use App\Enums\UserStatusEnum;
+use Modules\Store\Models\Store;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\CouierAvaliableStatusEnum;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Couier extends Authenticatable
@@ -29,6 +30,7 @@ class Couier extends Authenticatable
         "avaliable_status",
         "avg_rate",
         "status",
+        "store_id",
     ];
     protected $casts = [
         "avaliable_status" => CouierAvaliableStatusEnum::class,

@@ -1,0 +1,11 @@
+{
+    "name": "Couier",
+    "alias": "couier",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Couier\\Providers\\CouierServiceProvider"
+    ],
+    "files": []
+}
