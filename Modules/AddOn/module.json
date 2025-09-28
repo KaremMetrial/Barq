@@ -1,0 +1,11 @@
+{
+    "name": "AddOn",
+    "alias": "addon",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\AddOn\\Providers\\AddOnServiceProvider"
+    ],
+    "files": []
+}

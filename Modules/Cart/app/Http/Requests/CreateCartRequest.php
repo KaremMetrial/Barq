@@ -12,16 +12,8 @@ class CreateCartRequest extends FormRequest
     public function prepareForValidation()
     {
         $this->merge([
-            'product' => $this->filterArray($this->input('product', [])),
-            'pharmacyInfo' => $this->filterArray($this->input('pharmacyInfo', [])),
-            'productAllergen' => $this->filterArray($this->input('productAllergen', [])),
-            'availability' => $this->filterArray($this->input('availability', [])),
-            'productNutrition' => $this->filterArray($this->input('productNutrition', [])),
-            'prices' => $this->filterArray($this->input('prices', [])),
-            'tags' => $this->filterArray($this->input('tags', [])),
-            'units' => $this->filterArray($this->input('units', [])),
-            'watermarks' => $this->filterArray($this->input('watermarks', [])),
-            'productOptions' => $this->filterArray($this->input('productOptions', [])),
+            'cart' => $this->filterArray($this->input('cart', [])),
+            'items' => $this->filterArray($this->input('items', [])),
         ]);
     }
     private function filterArray(array $data): array
@@ -50,12 +42,12 @@ class CreateCartRequest extends FormRequest
             "items.*.quantity" => ["required", "integer", "min:1"],
             "items.*.note" => ["nullable", "string"],
             "items.*.product_option_value_id" => ["nullable", "integer", "exists:product_option_values,id"],
+            "items.*.total_price" => ["nullable", "numeric", "min:0"],
 
             // Add On Pivot Table
-            // "items.*.add_ons" => ["nullable", "array"],
-            // "items.*.add_ons.*.id" => ["required_with:items.*.add_ons", "integer", "exists:add_ons,id"],
-            // "items.*.add_ons.*.quantity" => ["required_with:items.*.add_ons", "integer", "min:1"],
-            // "items.*.add_ons.*.price" => ["required_with:items.*.add_ons", "numeric", "min:0"],
+            "items.*.add_ons" => ["nullable", "array"],
+            "items.*.add_ons.*.id" => ["required_with:items.*.add_ons", "integer", "exists:add_ons,id"],
+            "items.*.add_ons.*.quantity" => ["required_with:items.*.add_ons", "integer", "min:1"],
         ];
     }
 

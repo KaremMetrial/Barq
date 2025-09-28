@@ -18,23 +18,24 @@ class CartResource extends JsonResource
         return [
             "id" => $this->id,
             "cart_key" => $this->cart_key,
-            "pos_shift_id" => $this->whenLoaded('posShift', function () {
+            "pos_shift" => $this->whenLoaded('posShift', function () {
                 return $this->posShift ? [
                     "id" => $this->posShift->id,
                 ] : null;
             }),
-            "store_id" => $this->whenLoaded('store', function () {
+            "store" => $this->whenLoaded('store', function () {
                 return $this->store ? [
                     "id" => $this->store->id,
                     "name" => $this->store->name,
                 ] : null;
             }),
-            "user_id" => $this->whenLoaded('user', function () {
+            "user" => $this->whenLoaded('user', function () {
                 return $this->user ? [
                     "id" => $this->user->id,
                     "name" => $this->user->name,
                 ] : null;
             }),
+            "items" => CartItemResource::collection($this->whenLoaded('items')),
         ];
     }
 }

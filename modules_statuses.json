@@ -29,5 +29,6 @@
     "Favourite": true,
     "Banner": true,
     "Couier": true,
-    "Cart": true
+    "Cart": true,
+    "AddOn": true
 }

@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace Modules\AddOn\Models;
 
+use Modules\Cart\Models\CartItem;
+use Modules\Product\Models\Product;
 use App\Enums\AddOnApplicableToEnum;
 use Illuminate\Database\Eloquent\Model;
-use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
 class AddOn extends Model implements TranslatableContract
 {
