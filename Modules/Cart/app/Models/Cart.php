@@ -17,10 +17,10 @@ class Cart extends Model
         "store_id",
         "user_id"
     ];
-    public function getRouteKeyName()
-    {
-        return 'cart_key';
-    }
+    // public function getRouteKeyName()
+    // {
+    //     return 'cart_key';
+    // }
 
     public function user(): BelongsTo
     {

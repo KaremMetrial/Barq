@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Admin\Models;
 
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;

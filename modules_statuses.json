@@ -30,5 +30,6 @@
     "Banner": true,
     "Couier": true,
     "Cart": true,
-    "AddOn": true
+    "AddOn": true,
+    "Admin": true
 }
