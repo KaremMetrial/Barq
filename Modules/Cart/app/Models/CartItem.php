@@ -2,6 +2,7 @@
 
 namespace Modules\Cart\Models;
 
+use Modules\AddOn\Models\AddOn;
 use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Product\Models\ProductOptionValue;
@@ -32,7 +33,11 @@ class CartItem extends Model
     }
     public function addOns(): BelongsToMany
     {
-        return $this->belongsToMany(AddOn::class,"add_on_cart_item")
-        ->withPivot('quantity','price');
+        return $this->belongsToMany(
+            AddOn::class,
+            'add_on_cart_item',
+            'cart_item_id',
+            'add_on_id'
+        )->withPivot('quantity', 'price_modifier');
     }
 }

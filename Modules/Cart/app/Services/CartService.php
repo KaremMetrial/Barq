@@ -4,107 +4,150 @@ namespace Modules\Cart\Services;
 
 use Illuminate\Support\Str;
 use Modules\Cart\Models\Cart;
+use Modules\AddOn\Models\AddOn;
 use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\Product;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Cart\Repositories\CartRepository;
 use Modules\Product\Models\ProductOptionValue;
 
 class CartService
 {
-    public function __construct(
-        protected CartRepository $CartRepository
-    ) {}
+    public function __construct(protected CartRepository $cartRepository) {}
 
     public function getAllCarts(): Collection
     {
-        return $this->CartRepository->all();
+        return $this->cartRepository->all();
     }
 
     public function createCart(array $data): ?Cart
     {
         return DB::transaction(function () use ($data) {
-            $data['cart']['cart_key'] = Str::uuid()->toString();
-            $data = array_filter($data, fn($value) => !blank($value));
-            $cart = $this->CartRepository->create($data['cart']);
+            $cartData = $data['cart'] ?? [];
+            $cartData['cart_key'] = Str::uuid()->toString();
 
-            $this->syncCartItem($cart, $data['items'] ?? []);
+            $filteredCartData = array_filter($cartData, fn($value) => !blank($value));
+            $cart = $this->cartRepository->create($filteredCartData);
+
+            $this->syncCartItems($cart, $data['items'] ?? []);
             return $cart->refresh();
         });
     }
 
-    public function getCartById(int $id)
+    public function getCartById(int $id): ?Cart
     {
-        return $this->CartRepository->find($id, ['items.product', 'items.productOptionValue.productOption.values', 'store', 'user', 'posShift']);
+        return $this->cartRepository->find(
+            $id,
+            [
+                'items.product',
+                'items.addOns',
+                'items.productOptionValue.productOption.values',
+                'store',
+                'user',
+                'posShift',
+            ]
+        );
     }
 
     public function updateCart(int $id, array $data): ?Cart
     {
         return DB::transaction(function () use ($id, $data) {
-            $data = array_filter($data, fn($value) => !blank($value));
-            $cart = $this->CartRepository->update($id, $data['cart'] ?? []);
+            $cart = $this->cartRepository->find($id);
 
-            $this->syncCartItem($cart, $data['items'] ?? []);
+            if (!$cart) {
+                return null;
+            }
+            $filteredCartData = array_filter($data['cart'] ?? [], fn($value) => !blank($value));
+
+            $this->cartRepository->update($id, $filteredCartData);
+
+            $this->syncCartItems($cart, $data['items'] ?? []);
+
             return $cart->refresh();
         });
     }
 
     public function deleteCart(int $id): bool
     {
-        return $this->CartRepository->delete($id);
+        return $this->cartRepository->delete($id);
     }
-    private function syncCartItem(Cart $cart, array $items): void
+    private function syncCartItems(Cart $cart, array $items): void
     {
-        $preparedItems = $this->prepareCartItems($items);
-
-        if (!empty($preparedItems)) {
-            $cart->items()->createMany($preparedItems);
+        if (empty($items)) {
+            return;
         }
-    }
-    private function prepareCartItems(array $items): array
-    {
-        if (empty($items)) return [];
 
-        $productIds = collect($items)->pluck('product_id')->unique()->all();
-        $optionValueIds = collect($items)->pluck('product_option_value_id')->filter()->unique()->all();
+        $productIds = collect($items)->pluck('product_id')->unique()->values()->all();
+        $optionValueIds = collect($items)->pluck('product_option_value_id')->filter()->unique()->values()->all();
+        $addOnIds = collect($items)
+            ->flatMap(fn($item) => $item['add_ons'] ?? [])
+            ->pluck('id')
+            ->unique()
+            ->values()
+            ->all();
 
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
         $options = ProductOptionValue::whereIn('id', $optionValueIds)->get()->keyBy('id');
+        $addOnModels = AddOn::whereIn('id', $addOnIds)->get()->keyBy('id');
 
-        return collect($items)->map(function ($item) use ($products, $options) {
-            $product = $products[$item['product_id']] ?? null;
-            if (!$product) return null;
+        $cart->items()->delete();
 
-            $quantity = $item['quantity'] ?? 1;
-            $optionId = $item['product_option_value_id'] ?? null;
-            $option = $optionId ? ($options[$optionId] ?? null) : null;
+        foreach ($items as $item) {
+            $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels);
+            $cartItem = $cart->items()->create($cartItemData);
 
-            $addOns = collect($item['add_ons'] ?? []);
-
-            $totalPrice = $this->calculateTotalPrice(
-                productPrice: $product->price->price ?? 0,
-                optionPrice: $option?->price ?? 0,
-                addOns: $addOns,
-                quantity: $quantity
-            );
-
-            return [
-                'product_id' => $item['product_id'],
-                'product_option_value_id' => $optionId,
-                'quantity' => $quantity,
-                'note' => $item['note'] ?? null,
-                'total_price' => $totalPrice,
-            ];
-        })->filter()->values()->all();
+            if (!empty($item['add_ons'])) {
+                $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
+                $cartItem->addOns()->sync($addOnPivotData);
+            }
+        }
     }
 
-    private function calculateTotalPrice(float $productPrice, float $optionPrice, \Illuminate\Support\Collection $addOns, int $quantity): float
-    {
-        $addOnTotal = $addOns->map(function ($addOn) {
-            return ($addOn['price'] ?? 0) * ($addOn['quantity'] ?? 1);
-        })->sum();
+    private function prepareCartItemData(
+        array $item,
+        Collection $products,
+        Collection $options,
+        Collection $addOnModels
+    ): array {
+        $quantity = $item['quantity'] ?? 1;
+        $product = $products[$item['product_id']] ?? null;
+        $option = $options[$item['product_option_value_id'] ?? null] ?? null;
 
-        return ($productPrice + $optionPrice + $addOnTotal) * $quantity;
+        $productPrice = $product?->price->price ?? 0;
+        $optionPrice = $option?->price ?? 0;
+
+        $addOnTotal = collect($item['add_ons'] ?? [])
+            ->sum(
+                fn($addOn) => ($addOnModels[$addOn['id']]->price ?? 0) * ($addOn['quantity'] ?? 1)
+            );
+
+        $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $quantity;
+
+        return [
+            'product_id' => $item['product_id'],
+            'product_option_value_id' => $item['product_option_value_id'] ?? null,
+            'quantity' => $quantity,
+            'note' => $item['note'] ?? null,
+            'total_price' => $totalPrice,
+        ];
+    }
+
+    private function prepareAddOnPivotData(array $addOns, Collection $addOnModels): array
+    {
+        return collect($addOns)->mapWithKeys(function ($addOn) use ($addOnModels) {
+            $model = $addOnModels[$addOn['id']] ?? null;
+            if (!$model) {
+                return [];
+            }
+
+            $quantity = $addOn['quantity'] ?? 1;
+
+            return [
+                $addOn['id'] => [
+                    'quantity' => $quantity,
+                    'price_modifier' => $model->price * $quantity,
+                ],
+            ];
+        })->toArray();
     }
 }
