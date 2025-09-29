@@ -43,7 +43,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $record->delete();
     }
 
-    public function paginate(int $perPage = 15,array $relations = [], array $columns = ['*'])
+    public function paginate(int $perPage = 15, array $relations = [], array $columns = ['*'])
     {
         return $this->model->with($relations)->latest()->paginate($perPage, $columns);
     }
@@ -57,5 +57,19 @@ abstract class BaseRepository implements BaseRepositoryInterface
         }
 
         return $query->get($columns);
+    }
+    public function firstWhere(array $conditions, array $columns = ['*'])
+    {
+        $query = $this->model->newQuery();
+
+        foreach ($conditions as $field => $value) {
+            $query->where($field, $value);
+        }
+
+        return $query->first($columns);
+    }
+    public function updateOrCreate(array $conditions, array $data)
+    {
+        return $this->model->updateOrCreate($conditions, $data);
     }
 }

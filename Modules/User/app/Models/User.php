@@ -41,9 +41,6 @@ class User extends Authenticatable
         'referral_code',
         'referral_id',
         'password',
-        'otp_hash',
-        'otp_expires_at',
-        'otp_verified_at'
     ];
 
     /**

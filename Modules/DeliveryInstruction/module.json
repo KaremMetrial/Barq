@@ -1,0 +1,11 @@
+{
+    "name": "DeliveryInstruction",
+    "alias": "deliveryinstruction",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\DeliveryInstruction\\Providers\\DeliveryInstructionServiceProvider"
+    ],
+    "files": []
+}

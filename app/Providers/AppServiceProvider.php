@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Modules\User\Models\User;
+use Modules\Admin\Models\Admin;
 use Modules\Store\Models\Store;
 use Modules\Vendor\Models\Vendor;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
             'store' => Store::class,
             'user' => User::class,
             'vendor' => Vendor::class,
+            'admin' => Admin::class,
         ]);
     }
 }

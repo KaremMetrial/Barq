@@ -17,4 +17,6 @@ interface BaseRepositoryInterface
     public function paginate(int $perPage = 15, array $relations = [], array $columns = ['*']);
 
     public function where(array $conditions, array $columns = ['*']);
+    public function firstWhere(array $conditions, array $columns = ['*']);
+    public function updateOrCreate(array $conditions, array $data);
 }

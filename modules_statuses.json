@@ -31,5 +31,10 @@
     "Couier": true,
     "Cart": true,
     "AddOn": true,
-    "Admin": true
+    "Admin": true,
+    "Order": true,
+    "Ad": true,
+    "Otp": true,
+    "DeliveryInstruction": true,
+    "Page": true
 }

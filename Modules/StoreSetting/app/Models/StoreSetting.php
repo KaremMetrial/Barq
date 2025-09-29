@@ -23,6 +23,7 @@ class StoreSetting extends Model
         'tax_rate',
         'order_interval_time',
         'store_id',
+        'service_fee_percentage'
     ];
     protected $casts = [
         'delivery_type_unit' => DeliveryTypeUnitEnum::class,

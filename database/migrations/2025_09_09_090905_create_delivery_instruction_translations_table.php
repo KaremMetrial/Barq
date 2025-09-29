@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('delivery_instruction_translations', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('title');
             $table->string('locale')->index();
             $table->text('description')->nullable();
             $table->timestamps();
