@@ -37,7 +37,7 @@ class UpdateCartRequest extends FormRequest
             // Cart Item Table
             "items" => ["required", "array"],
             "items.*.product_id" => ["required", "integer", "exists:products,id"],
-            "items.*.quantity" => ["required", "integer", "min:1"],
+            "items.*.quantity" => ["required", "integer", "min:0"],
             "items.*.note" => ["nullable", "string"],
             "items.*.product_option_value_id" => ["nullable", "integer", "exists:product_option_values,id"],
             "items.*.total_price" => ["nullable", "numeric", "min:0"],

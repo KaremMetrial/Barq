@@ -2,6 +2,7 @@
 
 namespace Modules\Cart\Models;
 
+use Modules\User\Models\User;
 use Modules\AddOn\Models\AddOn;
 use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,8 @@ class CartItem extends Model
         "note",
         "cart_id",
         "product_id",
-        "product_option_value_id"
+        "product_option_value_id",
+        "is_group_order"
     ];
     public function product(): BelongsTo
     {
@@ -39,5 +41,9 @@ class CartItem extends Model
             'cart_item_id',
             'add_on_id'
         )->withPivot('quantity', 'price_modifier');
+    }
+    public function addedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'added_by_user_id');
     }
 }

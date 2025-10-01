@@ -2,8 +2,10 @@
 
 namespace Modules\Order\Models;
 
+use App\Models\Review;
 use App\Enums\OrderStatus;
 use App\Enums\OrderTypeEnum;
+use App\Models\ShippingPrice;
 use Modules\Cart\Models\Cart;
 use Modules\User\Models\User;
 use Modules\AddOn\Models\AddOn;
@@ -48,6 +50,7 @@ class Order extends Model
         'created_at',
         'updated_at',
         'pos_shift_id',
+        'coupon_id'
     ];
 
     protected $casts = [
@@ -123,4 +126,44 @@ class Order extends Model
     {
         return $this->hasMany(OrderStatusHistory::class);
     }
+    public function reviews()
+    {
+        return $this->morphMany(Review::class,'reviewable');
+    }
+        public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['search'])) {
+            $query->where('order_number', 'like', '%' . $filters['search'] . '%');
+        }
+
+        return $query->latest();
+    }
+        public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
+    {
+        $zoneId = $this->address?->zone_id;
+        if (!$zoneId) {
+            return null;
+        }
+
+        $shippingPriceQuery = ShippingPrice::where('zone_id', $zoneId);
+        if ($vehicleId) {
+            $shippingPriceQuery->where('vehicle_id', $vehicleId);
+        }
+        $shippingPrice = $shippingPriceQuery->first();
+
+        if (!$shippingPrice) {
+            return null;
+        }
+
+        $distanceKm = $distanceKm ?? 0;
+
+        $fee = $shippingPrice->base_price + ($shippingPrice->per_km_price * $distanceKm);
+
+        if ($shippingPrice->max_price && $fee > $shippingPrice->max_price) {
+            $fee = $shippingPrice->max_price;
+        }
+
+        return round($fee, 2);
+    }
+
 }

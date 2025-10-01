@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Models;
 
+use App\Models\Review;
 use Modules\Tag\Models\Tag;
 use Modules\Unit\Models\Unit;
 use Modules\Store\Models\Store;
@@ -9,6 +10,7 @@ use App\Enums\ProductStatusEnum;
 use Modules\Coupon\Models\Coupon;
 use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Favourite\Models\Favourite;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -121,5 +123,21 @@ class Product extends Model implements TranslatableContract
             'id',
             'id'
         );
+    }
+    public function reviews()
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+    public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['store_id'])) {
+            $query->where('store_id', $filters['store_id']);
+        }
+        return $query->whereStatus(ProductStatusEnum::ACTIVE)->latest();
+    }
+
+    public function getAvgRateAttribute()
+    {
+        return $this->reviews()->avg('rating') ?? 0;
     }
 }

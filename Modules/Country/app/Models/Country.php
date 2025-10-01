@@ -1,61 +1,63 @@
 <?php
 
 
-    namespace Modules\Country\Models;
+namespace Modules\Country\Models;
 
-    use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
-    use Astrotomic\Translatable\Translatable;
-    use Illuminate\Database\Eloquent\Attributes\Scope;
-    use Illuminate\Database\Eloquent\Builder;
-    use Illuminate\Database\Eloquent\Model;
-    use Illuminate\Database\Eloquent\Relations\HasMany;
-    use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-    use Modules\Governorate\Models\Governorate;
+use Modules\City\Models\City;
+use Illuminate\Database\Eloquent\Model;
+use Astrotomic\Translatable\Translatable;
+use Illuminate\Database\Eloquent\Builder;
+use Modules\Governorate\Models\Governorate;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
-    class Country extends Model implements TranslatableContract
-    {
-        use Translatable;
+class Country extends Model implements TranslatableContract
+{
+    use Translatable;
 
-        public $translatedAttributes = ['name'];
-        protected $fillable = [
-            'code',
-            'is_active',
-        ];
-        protected $casts = [
-            'is_active' => 'boolean',
-        ];
+    public $translatedAttributes = ['name'];
+    protected $fillable = [
+        'code',
+        'is_active',
+    ];
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
-        /*
+    /*
          * Scopes Query to get Only Active Country
          */
-        #[Scope]
-        protected function active(Builder $query)
-        {
-            return $this->where('is_active', true);
-        }
+    #[Scope]
+    protected function active(Builder $query)
+    {
+        return $this->where('is_active', true);
+    }
 
-        /*
-         * Scopes Query to search by name
-         */
-        #[Scope]
-        public function searchName(Builder $query, string $search): Builder
-        {
-            return $query->whereTranslationLike('name', "%{$search}%");
-        }
-
-        /*
+    /*
          * Relationship to Governorates
          */
-        public function governorates(): HasMany
-        {
-            return $this->hasMany(Governorate::class);
-        }
+    public function governorates(): HasMany
+    {
+        return $this->hasMany(Governorate::class);
+    }
 
-        /*
+    /*
          * Relationship to Cities through Governorates
          */
-        public function cities(): HasManyThrough
-        {
-            return $this->hasManyThrough(City::class, Governorate::class);
-        }
+    public function cities(): HasManyThrough
+    {
+        return $this->hasManyThrough(City::class, Governorate::class);
     }
+
+    public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%')
+                ->orWhere('code', 'like', '%' .$filters['search'] . '%');
+        }
+
+        return $query->latest();
+    }
+}

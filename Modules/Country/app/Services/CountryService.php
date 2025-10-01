@@ -2,10 +2,11 @@
 
 namespace Modules\Country\Services;
 
-use Illuminate\Database\Eloquent\Collection;
 use Modules\Country\Models\Country;
-use Modules\Country\Repositories\CountryRepository;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Collection;
+use Modules\Country\Repositories\CountryRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class CountryService
 {
@@ -32,11 +33,10 @@ class CountryService
         Cache::forget('countries.codes');
     }
 
-    public function getAllCountries(): Collection
+    public function getAllCountries(array $filters = []): LengthAwarePaginator
     {
-        return $this->countryRepository->all();
+        return $this->countryRepository->paginate(filters: $filters);
     }
-
     public function createCountry(array $data): ?Country
     {
         $this->clearCache();

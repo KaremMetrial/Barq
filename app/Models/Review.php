@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Modules\Order\Models\Order;
 use Illuminate\Database\Eloquent\Model;
 
 class Review extends Model

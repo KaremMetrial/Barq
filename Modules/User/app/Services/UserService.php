@@ -35,4 +35,9 @@ class UserService
     {
         return $this->UserRepository->delete($id);
     }
+    public function registerUser(array $data): ?User
+    {
+        $data = array_filter($data, fn($value) => !blank($value));
+        return $this->UserRepository->create($data)->refresh();
+    }
 }

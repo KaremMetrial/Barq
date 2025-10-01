@@ -8,6 +8,7 @@ use Modules\PosShift\Models\PosShift;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Cart extends Model
 {
@@ -15,7 +16,8 @@ class Cart extends Model
         "cart_key",
         "pos_shift_id",
         "store_id",
-        "user_id"
+        "user_id",
+        "is_group_order"
     ];
     // public function getRouteKeyName()
     // {
@@ -37,5 +39,14 @@ class Cart extends Model
     public function items(): HasMany
     {
         return $this->hasMany(CartItem::class);
+    }
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function participants(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'cart_user');
     }
 }

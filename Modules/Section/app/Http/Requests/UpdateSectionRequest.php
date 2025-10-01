@@ -2,12 +2,26 @@
 
 namespace Modules\Section\Http\Requests;
 
+use App\Enums\SectionTypeEnum;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSectionRequest extends FormRequest
 {
+    public function prepareForValidation()
+    {
+        $this->merge([
+            'categories' => $this->filterArray($this->input('categories', [])),
+        ]);
+    }
+    private function filterArray(array $data): array
+    {
+        return array_filter($data, function ($value) {
+            return !is_null($value) && $value !== '';
+        });
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -16,10 +30,11 @@ class UpdateSectionRequest extends FormRequest
         return [
             "name" => ["nullable", "string", "max:255"],
             "icon" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
-            "is_active" => ["nullable", "boolean"],
-            "sort_order" => ["nullable", "numeric", "min:0", "unique:categories,sort_order"],
-            "is_featured" => ["nullable", "boolean"],
-            "parent_id" => ["nullable", "numeric", "exists:categories,id"],
+            'is_active' => ['nullable', 'boolean'],
+            'is_restaurant' => ['nullable', 'boolean'],
+            'type' => ['nullable', 'string', Rule::in(SectionTypeEnum::values())],
+            'categories' => ['nullable', 'array'],
+            'categories.*' => ['integer', Rule::exists('categories', 'id')],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }
@@ -30,20 +45,5 @@ class UpdateSectionRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
-    }
-    protected function passedValidation(): void
-    {
-        $validated = $this->validated();
-
-        $fields = ['name'];
-
-        foreach ($fields as $field) {
-            if (isset($validated[$field], $validated['lang'])) {
-                $validated["{$field}:{$validated['lang']}"] = $validated[$field];
-                unset($validated[$field]);
-            }
-        }
-        unset($validated['lang']);
-        $this->replace($validated);
     }
 }

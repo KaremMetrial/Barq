@@ -2,13 +2,14 @@
 
 namespace Modules\Country\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
 use Illuminate\Http\Request;
 use Modules\Country\Services\CountryService;
+use Modules\Country\Http\Resources\CountryResource;
 use Modules\Country\Http\Requests\StoreCountryRequest;
 use Modules\Country\Http\Requests\UpdateCountryRequest;
-use Modules\Country\Http\Resources\CountryResource;
 
 class CountryController extends Controller
 {
@@ -18,11 +19,13 @@ class CountryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $countries = $this->countryService->getAllCountries();
+        $filters = $request->only(['search']);
+        $countries = $this->countryService->getAllCountries($filters);
         return $this->successResponse([
             "countries" => CountryResource::collection($countries),
+            "pagination" => new PaginationResource($countries)
         ], __("message.success"));
     }
 
@@ -31,7 +34,7 @@ class CountryController extends Controller
      */
     public function store(StoreCountryRequest $request)
     {
-        $country = $this->countryService->createCountry($request->all());
+        $country = $this->countryService->createCountry($request->validated());
         return $this->successResponse([
             "country" => new CountryResource($country),
         ], __("message.success"));
@@ -53,7 +56,7 @@ class CountryController extends Controller
      */
     public function update(UpdateCountryRequest $request, $id)
     {
-        $country = $this->countryService->updateCountry($id, $request->all());
+        $country = $this->countryService->updateCountry($id, $request->validated());
         return $this->successResponse([
             "country"=> new CountryResource($country),
         ], __("message.success"));

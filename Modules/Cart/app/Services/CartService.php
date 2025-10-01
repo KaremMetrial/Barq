@@ -90,18 +90,48 @@ class CartService
         $options = ProductOptionValue::whereIn('id', $optionValueIds)->get()->keyBy('id');
         $addOnModels = AddOn::whereIn('id', $addOnIds)->get()->keyBy('id');
 
-        $cart->items()->delete();
+        $existingItems = $cart->items()->get()->keyBy(function ($item) {
+            return $item->product_id . '-' . ($item->product_option_value_id ?? 'null');
+        });
+
+        $incomingKeys = [];
 
         foreach ($items as $item) {
-            $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels);
-            $cartItem = $cart->items()->create($cartItemData);
+            $key = $item['product_id'] . '-' . ($item['product_option_value_id'] ?? 'null');
+            $incomingKeys[] = $key;
 
-            if (!empty($item['add_ons'])) {
-                $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
-                $cartItem->addOns()->sync($addOnPivotData);
+            // لو كمية العنصر صفر، نحذفه إذا كان موجود
+            if (($item['quantity'] ?? 1) == 0) {
+                if ($existingItems->has($key)) {
+                    $existingItems->get($key)->delete();
+                }
+                continue; // ننتقل للعنصر التالي
+            }
+
+            $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels);
+
+            if ($existingItems->has($key)) {
+                $existingItem = $existingItems->get($key);
+                $existingItem->update($cartItemData);
+
+                if (!empty($item['add_ons'])) {
+                    $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
+                    $existingItem->addOns()->sync($addOnPivotData);
+                } else {
+                    $existingItem->addOns()->detach();
+                }
+            } else {
+                $newCartItem = $cart->items()->create($cartItemData);
+
+                if (!empty($item['add_ons'])) {
+                    $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
+                    $newCartItem->addOns()->sync($addOnPivotData);
+                }
             }
         }
     }
+
+
 
     private function prepareCartItemData(
         array $item,
@@ -149,5 +179,22 @@ class CartService
                 ],
             ];
         })->toArray();
+    }
+    public function getShareById(int $id)
+    {
+        $cart = $this->getCartById($id);
+        $cart->is_group_order = true;
+        $cart->save();
+
+        $shareableLink = route('api.cart.join', ['cart_key' => $cart->cart_key]);
+
+        return $shareableLink;
+    }
+    public function joinCart($cartKey)
+    {
+        $cart = $this->cartRepository->firstWhere(['cart_key' => $cartKey]);
+        $cart->participants()->attach(auth()->id());
+        $cart->save();
+        return $cart;
     }
 }

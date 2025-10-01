@@ -14,9 +14,7 @@ class UserController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected UserService $userService)
-    {
-    }
+    public function __construct(protected UserService $userService) {}
 
     /**
      * Display a listing of the resource.
@@ -69,5 +67,12 @@ class UserController extends Controller
     {
         $deleted = $this->userService->deleteUser($id);
         return $this->successResponse(null, __("message.success"));
+    }
+    public function register(CreateUserRequest $request): JsonResponse
+    {
+        $user = $this->userService->registerUser($request->all());
+        return $this->successResponse([
+            "user" => new UserResource($user)
+        ], __("message.success"));
     }
 }

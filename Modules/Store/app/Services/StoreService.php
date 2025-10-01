@@ -16,9 +16,9 @@ class StoreService
         protected StoreRepository $StoreRepository
     ) {}
 
-    public function getAllStores(): Collection
+    public function getAllStores()
     {
-        return $this->StoreRepository->all();
+        return $this->StoreRepository->paginate([],15,['section.categories','storeSetting']);
     }
 
     public function createStore(array $data): ?Store
@@ -43,7 +43,7 @@ class StoreService
 
     public function getStoreById(int $id): ?Store
     {
-        return $this->StoreRepository->find($id);
+        return $this->StoreRepository->find($id, ['section.categories','storeSetting']);
     }
 
     public function updateStore(int $id, array $data): ?Store
@@ -70,5 +70,10 @@ class StoreService
     public function deleteStore(int $id): bool
     {
         return $this->StoreRepository->delete($id);
+    }
+    public function getHomeStores(array $filters = []): array
+    {
+        $relation = ['section', 'section.categories', 'StoreSetting'];
+        return $this->StoreRepository->getHomeStores($relation, $filters);
     }
 }

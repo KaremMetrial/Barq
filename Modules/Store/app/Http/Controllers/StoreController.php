@@ -2,22 +2,21 @@
 
 namespace Modules\Store\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Modules\Store\Models\Store;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Modules\Store\Services\StoreService;
+use App\Http\Resources\PaginationResource;
+use Modules\Store\Http\Resources\StoreResource;
 use Modules\Store\Http\Requests\CreateStoreRequest;
 use Modules\Store\Http\Requests\UpdateStoreRequest;
-use Modules\Store\Http\Resources\StoreResource;
-use Modules\Store\Services\StoreService;
-use Illuminate\Http\JsonResponse;
-use Modules\Store\Models\Store;
 
 class StoreController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected StoreService $StoreService)
-    {
-    }
+    public function __construct(protected StoreService $StoreService) {}
 
     /**
      * Display a listing of the resource.
@@ -26,7 +25,8 @@ class StoreController extends Controller
     {
         $Stores = $this->StoreService->getAllStores();
         return $this->successResponse([
-            "Stores" => StoreResource::collection($Stores)
+            "Stores" => StoreResource::collection($Stores),
+            "pagination" => new PaginationResource($Stores)
         ], __('message.success'));
     }
 
@@ -35,7 +35,7 @@ class StoreController extends Controller
      */
     public function store(CreateStoreRequest $request): JsonResponse
     {
-        $Store = $this->StoreService->createStore($request->all());
+        $Store = $this->StoreService->createStore($request->validated());
         return $this->successResponse([
             'Store' => new StoreResource($Store)
         ], __('message.success'));
@@ -57,7 +57,7 @@ class StoreController extends Controller
      */
     public function update(UpdateStoreRequest $request, int $id): JsonResponse
     {
-        $Store = $this->StoreService->updateStore($id, $request->all());
+        $Store = $this->StoreService->updateStore($id, $request->validated());
         return $this->successResponse([
             'Store' => new StoreResource($Store)
         ], __('message.success'));
@@ -70,5 +70,14 @@ class StoreController extends Controller
     {
         $isDeleted = $this->StoreService->deleteStore($id);
         return $this->successResponse(null, __('message.success'));
+    }
+    public function home(): JsonResponse
+    {
+        $stores = $this->StoreService->getHomeStores();
+        return $this->successResponse([
+            "topReviews" => StoreResource::collection($stores['topReviews']),
+            "featured" => StoreResource::collection($stores['featured']),
+            "newProduct" => StoreResource::collection($stores['newStores']),
+        ], __("message.success"));
     }
 }

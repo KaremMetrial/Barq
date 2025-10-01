@@ -2,15 +2,16 @@
 
 namespace Modules\Section\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Modules\Section\Models\Section;
+use App\Http\Controllers\Controller;
+use Modules\Section\Services\SectionService;
+use Modules\Section\Http\Resources\SectionResource;
+use Modules\Category\Http\Resources\CategoryResource;
 use Modules\Section\Http\Requests\CreateSectionRequest;
 use Modules\Section\Http\Requests\UpdateSectionRequest;
-use Modules\Section\Http\Resources\SectionResource;
-use Modules\Section\Services\SectionService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Modules\Section\Models\Section;
 
 class SectionController extends Controller
 {
@@ -35,7 +36,7 @@ class SectionController extends Controller
      */
     public function store(CreateSectionRequest $request): JsonResponse
     {
-        $section = $this->sectionService->createSection($request->all());
+        $section = $this->sectionService->createSection($request->validated());
         return $this->successResponse([
             'section' => new SectionResource($section)
         ], __('message.success'));
@@ -48,7 +49,8 @@ class SectionController extends Controller
     {
         $section = $this->sectionService->getSectionById($id);
         return $this->successResponse([
-            'section' => new SectionResource($section)
+            'section' => new SectionResource($section),
+            'categories' => CategoryResource::collection($section->categories)
         ], __('message.success'));
     }
 
@@ -57,7 +59,7 @@ class SectionController extends Controller
      */
     public function update(UpdateSectionRequest $request, int $id): JsonResponse
     {
-        $section = $this->sectionService->updateSection($id, $request->all());
+        $section = $this->sectionService->updateSection($id, $request->validated());
         return $this->successResponse([
             'section' => new SectionResource($section)
         ], __('message.success'));

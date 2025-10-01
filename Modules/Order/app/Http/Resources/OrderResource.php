@@ -42,7 +42,7 @@ class OrderResource extends JsonResource
             "requires_otp"=> (bool) $this->requires_otp,
             "delivery_address"=> $this->delivery_address,
             "tip_amount"=> $this->tip_amount,
-            "estimated_delivery_time"=> $this->estimated_delivery_time,
+            "estimated_delivery_time"=> $this->estimated_delivery_time?->format('Y-m-d H:i:s'),
             "delivered_at"=> $this->delivered_at,
             "actioned_by"=> $this->actioned_by,
             "store"=> $this->whenLoaded('store', function () {

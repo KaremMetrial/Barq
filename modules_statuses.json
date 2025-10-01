@@ -36,5 +36,6 @@
     "Ad": true,
     "Otp": true,
     "DeliveryInstruction": true,
-    "Page": true
+    "Page": true,
+    "Search": true
 }

@@ -2,29 +2,29 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
-use App\Traits\ApiResponse;
+use Modules\Product\Services\ProductService;
+use Modules\Product\Http\Resources\ProductResource;
 use Modules\Product\Http\Requests\CreateProductRequest;
 use Modules\Product\Http\Requests\UpdateProductRequest;
-use Modules\Product\Http\Resources\ProductResource;
-use Modules\Product\Services\ProductService;
-use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected ProductService $productService)
-    {
-    }
+    public function __construct(protected ProductService $productService) {}
 
     /**
      * Display a listing of products.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $products = $this->productService->getAllProducts();
+        $filters = $request->only('store_id');
+        $products = $this->productService->getAllProducts($filters);
         return $this->successResponse([
             "products" => ProductResource::collection($products),
             "pagination" => new PaginationResource($products),
@@ -71,5 +71,29 @@ class ProductController extends Controller
     {
         $deleted = $this->productService->deleteProduct($id);
         return $this->successResponse(null, __("message.success"));
+    }
+    public function home(): JsonResponse
+    {
+        $products = $this->productService->getHomeProducts();
+        return $this->successResponse([
+            "topReviews" => ProductResource::collection($products['topReviews']),
+            "featured" => ProductResource::collection($products['featured']),
+            "newProduct" => ProductResource::collection($products['newProduct']),
+        ], __("message.success"));
+    }
+    public function groupedProductsByStore(Request $request, int $storeId): JsonResponse
+    {
+        $result = $this->productService->getGroupedProductsByStore($storeId, $request->all());
+
+        $grouped = collect($result['grouped_products'])->map(function ($products) {
+            return [
+                'products' => ProductResource::collection($products),
+            ];
+        });
+
+        return $this->successResponse([
+            ...$grouped,
+            'pagination' => new PaginationResource($result['paginator']),
+        ], __("message.success"));
     }
 }

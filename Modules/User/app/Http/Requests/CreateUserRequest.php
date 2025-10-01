@@ -15,10 +15,11 @@ class CreateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => ["required", "string", "max:255"],
-            "email" => ["required", "string", "email", Rule::unique("users")],
+            "first_name" => ["required", "string", "max:255"],
+            "last_name"=> ["required", "string","max:255"],
+            "email" => ["nullable", "string", "email", Rule::unique("users")],
             "phone" => ["required", "string", "max:255", Rule::unique("users")],
-            "password" => ["required", "string"],
+            "password" => ["nullable", "string"],
             "avatar" => ["nullable", "image", "mimes:jpeg,png,jpg,gif,svg", "max:2048"],
             "status" => ["nullable", "string", Rule::in(UserStatusEnum::values())],
             "provider" => ["nullable", "string", "max:255"],

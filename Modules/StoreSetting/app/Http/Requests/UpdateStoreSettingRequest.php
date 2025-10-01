@@ -27,6 +27,7 @@ class UpdateStoreSettingRequest extends FormRequest
             'delivery_time_max' => ['nullable', 'integer', 'min:0'],
             'delivery_type_unit' => ['nullable', 'string', Rule::in(DeliveryTypeUnitEnum::values())],
             'tax_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'service_fee_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'order_interval_time' => ['nullable', 'integer', 'min:1'],
             'store_id' => ['nullable' ,'integer', 'exists:stores,id',Rule::unique('store_settings', 'store_id')->ignore($this->store_id)],
         ];

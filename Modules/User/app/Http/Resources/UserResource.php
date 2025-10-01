@@ -18,10 +18,10 @@ class UserResource extends JsonResource
     {
         return [
             "id" => $this->id,
-            "name" => $this->name,
+            "name" => $this->first_name . ' ' . $this->last_name,
             "email" => $this->email,
             "phone" => $this->phone,
-            "avatar" => asset("storage/" . $this->avatar),
+            "avatar" => $this->avatar ? asset("storage/" . $this->avatar) : null,
             "status" => $this->status->value,
             "status_label" => UserStatusEnum::label($this->status->value),
             "balance" => $this->balance,

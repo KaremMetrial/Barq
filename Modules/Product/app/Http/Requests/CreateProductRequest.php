@@ -73,7 +73,7 @@ class CreateProductRequest extends FormRequest
 
             // Product Image Table
             'images' => ['required', 'array'],
-            'images.*.image_path' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'images.*.image_path' => ['required', 'image', 'mimes:jpeg,png,jpg,gif'],
             'images.*.is_primary' => ['nullable', 'boolean'],
 
 
@@ -102,12 +102,12 @@ class CreateProductRequest extends FormRequest
 
             // Product Watermarks Table
             'watermarks' => ['nullable', 'array'],
-            'watermarks.image_url' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'watermarks.position' => ['required', 'string', 'max:255'],
-            'watermarks.opacity' => ['required', 'integer', 'min:0', 'max:100'],
+            'watermarks.image_url' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif'],
+            'watermarks.position' => ['nullable', 'string', 'max:255'],
+            'watermarks.opacity' => ['nullable', 'integer', 'min:0', 'max:100'],
 
             // Product Option and Values Table
-            'productOptions' => ['nullable', 'array'],
+            'productOptions' => ['required', 'array'],
             'productOptions.*.option_id' => ['required', 'integer', 'exists:options,id'],
             'productOptions.*.min_select' => ['nullable', 'integer', 'min:0'],
             'productOptions.*.max_select' => ['nullable', 'integer', 'min:1'],

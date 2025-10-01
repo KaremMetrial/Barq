@@ -14,7 +14,7 @@ interface BaseRepositoryInterface
 
     public function delete(int|string $id): bool;
 
-    public function paginate(int $perPage = 15, array $relations = [], array $columns = ['*']);
+    public function paginate(array $filters = [], int $perPage = 15, array $relations = [], array $columns = ['*']);
 
     public function where(array $conditions, array $columns = ['*']);
     public function firstWhere(array $conditions, array $columns = ['*']);

@@ -2,13 +2,14 @@
 
 namespace Modules\Cart\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Modules\Cart\Services\CartService;
+use Modules\Cart\Http\Resources\CartResource;
 use Modules\Cart\Http\Requests\CreateCartRequest;
 use Modules\Cart\Http\Requests\UpdateCartRequest;
-use Modules\Cart\Http\Resources\CartResource;
-use Modules\Cart\Services\CartService;
-use Illuminate\Http\JsonResponse;
 
 class CartController extends Controller
 {
@@ -69,5 +70,19 @@ class CartController extends Controller
     {
         $deleted = $this->cartService->deleteCart($id);
         return $this->successResponse(null, __("message.success"));
+    }
+    public function shareCart(int $id): JsonResponse
+    {
+        $share = $this->cartService->getShareById($id);
+        return $this->successResponse([
+            "share" => $share,
+        ], __("message.success"));
+    }
+    public function joinCart(Request $request): JsonResponse
+    {
+        $cart = $this->cartService->joinCart($request->all());
+        return $this->successResponse([
+            "cart" => new CartResource($cart),
+        ], __("message.success"));
     }
 }

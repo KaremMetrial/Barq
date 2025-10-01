@@ -2,8 +2,9 @@
 
 namespace App\Repositories;
 
-use App\Repositories\Contracts\BaseRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
+use App\Repositories\Contracts\BaseRepositoryInterface;
 
 abstract class BaseRepository implements BaseRepositoryInterface
 {
@@ -43,9 +44,13 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $record->delete();
     }
 
-    public function paginate(int $perPage = 15, array $relations = [], array $columns = ['*'])
+    public function paginate(array $filters = [], int $perPage = 15, array $relations = [], array $columns = ['*']): LengthAwarePaginator
     {
-        return $this->model->with($relations)->latest()->paginate($perPage, $columns);
+        return $this->model
+            ->with($relations)
+            ->filter($filters)
+            ->latest()
+            ->paginate($perPage, $columns);
     }
 
     public function where(array $conditions, array $columns = ['*'])

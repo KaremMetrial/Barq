@@ -4,6 +4,7 @@ namespace Modules\Order\Http\Requests;
 
 use App\Enums\OrderTypeEnum;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateOrderRequest extends FormRequest
@@ -46,6 +47,8 @@ class CreateOrderRequest extends FormRequest
             "items.*.add_ons" => ["nullable", "array"],
             "items.*.add_ons.*.add_on_id" => ["required", "integer", "exists:add_ons,id"],
             "items.*.add_ons.*.quantity" => ["required", "integer", "min:1"],
+
+            "items.coupon_code" => ["nullable", "integer","exists:coupons,code"],
         ];
     }
 
@@ -54,6 +57,6 @@ class CreateOrderRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::guard('user')->check();
     }
 }

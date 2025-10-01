@@ -2,7 +2,9 @@
 
 namespace Modules\Product\Services;
 
+use Illuminate\Support\Arr;
 use App\Traits\FileUploadTrait;
+use App\Enums\ProductStatusEnum;
 use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,15 +16,15 @@ class ProductService
     use FileUploadTrait;
     public function __construct(
         protected ProductRepository $ProductRepository
-    ) {
-    }
+    ) {}
 
-    public function getAllProducts(): LengthAwarePaginator
+    public function getAllProducts(array $filters = []): LengthAwarePaginator
     {
         return $this->ProductRepository->paginate(
+            $filters,
             15,
             [
-                'store',
+                'store.storeSetting',
                 'category',
                 'images',
                 'price',
@@ -82,9 +84,9 @@ class ProductService
 
     public function updateProduct(int $id, array $data): ?Product
     {
+        dd($data);
         return DB::transaction(function () use ($data, $id) {
             $product = $this->ProductRepository->update($id, $data['product']);
-
             $this->syncPharmacyInfo($product, $data['pharmacyInfo'] ?? []);
             $this->syncProductAllergen($product, $data['productAllergen'] ?? []);
             $this->syncAvailability($product, $data['availability'] ?? []);
@@ -223,5 +225,46 @@ class ProductService
                 }
             }
         }
+    }
+    public function getHomeProducts()
+    {
+        $relation = ['store.storeSetting', 'category', 'images', 'price', 'availability'];
+        return $this->ProductRepository->home($relation);
+    }
+
+    public function getGroupedProductsByStore(int $storeId, array $filters = []): array
+    {
+        $perPage = Arr::get($filters, 'per_page', 10);
+
+        $query = Product::with(['category', 'images', 'price', 'availability'])
+            ->where('store_id', $storeId)
+            ->whereStatus(ProductStatusEnum::ACTIVE)
+            ->latest();
+
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+        }
+
+        $paginator = $query->paginate($perPage);
+        $products = $paginator->getCollection();
+
+        $groupedByCategory = $products->groupBy(function ($product) {
+            return $product->category?->name ?? 'Uncategorized';
+        });
+
+        $grouped = [];
+
+        foreach ($groupedByCategory as $categoryName => $items) {
+            $grouped[$categoryName] = $items->values();
+        }
+
+        return [
+            'grouped_products' => $grouped,
+            'paginator' => $paginator,
+        ];
     }
 }

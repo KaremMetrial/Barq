@@ -6,6 +6,7 @@ use App\Enums\SaleTypeEnum;
 use App\Enums\CouponTypeEnum;
 use App\Enums\ObjectTypeEnum;
 use Modules\Store\Models\Store;
+use Modules\Product\Models\Product;
 use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;

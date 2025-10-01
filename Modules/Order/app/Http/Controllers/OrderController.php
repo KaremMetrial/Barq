@@ -3,6 +3,7 @@
 namespace Modules\Order\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Modules\Order\Services\OrderService;
@@ -25,6 +26,7 @@ class OrderController extends Controller
 
         return $this->successResponse([
             'orders' => OrderResource::collection($orders),
+            'pagination' => new PaginationResource($orders),
         ], __('message.success'));
     }
 
