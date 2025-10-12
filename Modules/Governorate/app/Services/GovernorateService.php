@@ -18,7 +18,7 @@ class GovernorateService
 
     public function getAllGovernorates(): Collection
     {
-        return $this->GovernorateRepository->all();
+        return $this->GovernorateRepository->allWithTranslations();
     }
 
     public function createGovernorate(array $data): ?Governorate

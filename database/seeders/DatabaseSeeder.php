@@ -13,7 +13,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([
+            LanguageSeeder::class,
+            CountrySeeder::class,
+            GovernorateSeeder::class,
+            CitySeeder::class,
+            ZoneSeeder::class,
+            CategorySeeder::class,
+            SectionSeeder::class,
+            StoreSeeder::class,
+            VendorSeeder::class,
+            ProductSeeder::class,
+            UserSeeder::class,
+            CouponSeeder::class,
+            OptionSeeder::class,
+            AddOnSeeder::class,
+            CartSeeder::class,
+            OrderSeeder::class,
+            BannerSeeder::class,
+            AdSeeder::class,
+            ReviewSeeder::class,
+            FavouriteSeeder::class,
+        ]);
 
     }
 }

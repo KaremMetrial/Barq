@@ -2,14 +2,16 @@
 
 namespace Modules\Order\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\PaginationResource;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
 use Modules\Order\Services\OrderService;
+use App\Http\Resources\PaginationResource;
+use Illuminate\Http\Request;
+use Modules\Order\Http\Resources\OrderResource;
 use Modules\Order\Http\Requests\CreateOrderRequest;
 use Modules\Order\Http\Requests\UpdateOrderRequest;
-use Modules\Order\Http\Resources\OrderResource;
+use Modules\Order\Http\Resources\OrderCollectionResource;
 
 class OrderController extends Controller
 {
@@ -20,9 +22,10 @@ class OrderController extends Controller
     /**
      * Display a listing of the orders.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $orders = $this->orderService->getAllOrders();
+        $filter = $request->only('search','status');
+        $orders = $this->orderService->getAllOrders($filter);
 
         return $this->successResponse([
             'orders' => OrderResource::collection($orders),
@@ -37,7 +40,7 @@ class OrderController extends Controller
     {
         $order = $this->orderService->createOrder($request->all());
         return $this->successResponse([
-            'order' => new OrderResource($order),
+            'order' => new OrderResource($order)
         ], __('message.success'));
     }
 
@@ -47,7 +50,6 @@ class OrderController extends Controller
     public function show(int $id): JsonResponse
     {
         $order = $this->orderService->getOrderById($id);
-
         return $this->successResponse([
             'order' => new OrderResource($order),
         ], __('message.success'));

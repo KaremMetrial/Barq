@@ -80,4 +80,11 @@ class StoreController extends Controller
             "newProduct" => StoreResource::collection($stores['newStores']),
         ], __("message.success"));
     }
+    public function stats()
+    {
+        $store = $this->StoreService->stats();
+        return $this->successResponse([
+            "stats" => $store,
+        ], __("message.success"));
+    }
 }

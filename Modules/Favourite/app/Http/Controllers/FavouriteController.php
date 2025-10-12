@@ -1,59 +1,61 @@
 <?php
-
 namespace Modules\Favourite\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Traits\ApiResponse;
+use Modules\Favourite\Http\Requests\CreateFavouriteRequest;
+use Modules\Favourite\Http\Requests\UpdateFavouriteRequest;
+use Modules\Favourite\Http\Resources\FavouriteResource;
+use Modules\Favourite\Services\FavouriteService;
+use Illuminate\Http\JsonResponse;
 
 class FavouriteController extends Controller
 {
+    use ApiResponse;
+
+    public function __construct(protected FavouriteService $favouriteService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
-
-        return response()->json([]);
+        $favourites = $this->favouriteService->getAllFavourites();
+        return $this->successResponse([
+            "favourites"=> $favourites
+        ], __("message.success"));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateFavouriteRequest $request): JsonResponse
     {
-        //
-
-        return response()->json([]);
+        $favourite = $this->favouriteService->createFavourite($request->all());
+        return $this->successResponse([
+            "favourite" => new FavouriteResource($favourite),
+        ], __("message.success"));
     }
 
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
-        //
-
-        return response()->json([]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-
-        return response()->json([]);
+        $favourite = $this->favouriteService->getFavouriteById($id);
+        return $this->successResponse([
+            "favourite" => new FavouriteResource($favourite),
+        ], __("message.success"));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        //
-
-        return response()->json([]);
+        $deleted = $this->favouriteService->deleteFavourite($id);
+        return $this->successResponse(null, __("message.success"));
     }
 }

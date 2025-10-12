@@ -37,5 +37,8 @@
     "Otp": true,
     "DeliveryInstruction": true,
     "Page": true,
-    "Search": true
+    "Search": true,
+    "Review": true,
+    "ContactUs": true,
+    "Conversation": true
 }

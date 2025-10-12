@@ -25,7 +25,6 @@ class CountryController extends Controller
         $countries = $this->countryService->getAllCountries($filters);
         return $this->successResponse([
             "countries" => CountryResource::collection($countries),
-            "pagination" => new PaginationResource($countries)
         ], __("message.success"));
     }
 

@@ -2,23 +2,26 @@
 
 namespace Modules\Vendor\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
-use Modules\Vendor\Http\Requests\CreateVendorRequest;
-use Modules\Vendor\Http\Requests\UpdateVendorRequest;
-use Modules\Vendor\Http\Resources\VendorResource;
-use Modules\Vendor\Services\VendorService;
+use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Http\JsonResponse;
 use Modules\Vendor\Models\Vendor;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use Modules\Vendor\Services\VendorService;
+use Modules\Vendor\Http\Requests\LoginRequest;
+use Modules\Vendor\Http\Resources\VendorResource;
+use Modules\Vendor\Http\Requests\CreateVendorRequest;
+use Modules\Vendor\Http\Requests\UpdateVendorRequest;
+use Modules\Vendor\Http\Requests\UpdatePasswordRequest;
 
 class VendorController extends Controller
 {
     use ApiResponse;
 
     // Inject the VendorService to handle business logic
-    public function __construct(protected VendorService $vendorService)
-    {
-    }
+    public function __construct(protected VendorService $vendorService) {}
 
     /**
      * Display a listing of the resource.
@@ -70,6 +73,25 @@ class VendorController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $isDeleted = $this->vendorService->deleteVendor($id);
+        return $this->successResponse(null, __('message.success'));
+    }
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $vendor = $this->vendorService->login($request->validated());
+        return $this->successResponse([
+            'vendor' => new VendorResource($vendor['vendor']),
+            'token' => $vendor['token'],
+        ], __('message.success'));
+    }
+    public function logout(Request $request): JsonResponse
+    {
+        $vendor = $this->vendorService->logout($request);
+
+        return $this->successResponse(null, __('message.success'));
+    }
+    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
+    {
+        $vendor = $this->vendorService->updatePassword($request->validated());
         return $this->successResponse(null, __('message.success'));
     }
 }

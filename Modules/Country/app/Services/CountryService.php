@@ -33,9 +33,9 @@ class CountryService
         Cache::forget('countries.codes');
     }
 
-    public function getAllCountries(array $filters = []): LengthAwarePaginator
+    public function getAllCountries()
     {
-        return $this->countryRepository->paginate(filters: $filters);
+        return $this->countryRepository->allWithTranslations();
     }
     public function createCountry(array $data): ?Country
     {

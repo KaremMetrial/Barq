@@ -6,6 +6,7 @@ use App\Models\Review;
 use App\Models\ShippingPrice;
 use Modules\Cart\Models\Cart;
 use App\Enums\StoreStatusEnum;
+use Modules\Order\Models\Order;
 use Modules\Coupon\Models\Coupon;
 use Modules\Vendor\Models\Vendor;
 use Modules\Address\Models\Address;
@@ -119,7 +120,15 @@ class Store extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
-        return $query->whereStatus(StoreStatusEnum::APPROVED)->whereIsActive(true);
+        $query->withTranslation();
+        if (request()->header('agent') == 'user') {
+            $query->whereStatus(StoreStatusEnum::APPROVED)->whereIsActive(true);
+        }
+        if (request()->header('agent') == 'vendor') {
+            $query->where('user_id', auth('vendor')->user()->id);
+        }
+
+        return $query;
     }
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {
@@ -146,5 +155,10 @@ class Store extends Model implements TranslatableContract
         }
 
         return round($fee, 2);
+    }
+    public function currentUserFavourite()
+    {
+        return $this->morphOne(Favourite::class, 'favouriteable')
+            ->where('user_id', auth()->id());
     }
 }

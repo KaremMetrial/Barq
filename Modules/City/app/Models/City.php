@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Governorate\Models\Governorate;
+use function PHPUnit\Framework\throwException;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
 class City extends Model implements TranslatableContract
@@ -47,5 +50,17 @@ class City extends Model implements TranslatableContract
     public function banners(): HasMany
     {
         return $this->hasMany(Banner::class);
+    }
+    public function scopeFilter($query, $filters)
+    {
+        $agent = request()->header('agent');
+        if ($agent === 'admin') {
+            if (!auth('admin')->check()) {
+            throw new HttpException(403, 'Unauthorized: Admin access requires login.');
+            }
+        } else {
+            $query->whereIsActive(true);
+        }
+        return $query->latest();
     }
 }

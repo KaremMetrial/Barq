@@ -21,6 +21,9 @@ class ZoneService
     public function createZone(array $data): ?Zone
     {
         return DB::transaction(function () use ($data) {
+            if (!empty($data['area'])) {
+                $data['area'] = DB::raw("ST_GeomFromText('{$data['area']}')");
+            }
             $data = array_filter($data, fn($value) => !blank($value));
             return $this->ZoneRepository->create($data);
         });
@@ -34,6 +37,10 @@ class ZoneService
     public function updateZone(int $id, array $data): ?Zone
     {
         return DB::transaction(function () use ($data, $id) {
+            if (!empty($data['area'])) {
+                $data['area'] = DB::raw("ST_GeomFromText('{$data['area']}')");
+            }
+
             $data = array_filter($data, fn($value) => !blank($value));
             return $this->ZoneRepository->update($id, $data);
         });

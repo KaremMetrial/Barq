@@ -6,6 +6,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\Zone\Services\ZoneService;
+use App\Http\Resources\PaginationResource;
 use Modules\Zone\Http\Resources\ZoneResource;
 use Modules\Zone\Http\Requests\CreateZoneRequest;
 use Modules\Zone\Http\Requests\UpdateZoneRequest;

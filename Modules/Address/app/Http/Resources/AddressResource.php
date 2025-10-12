@@ -17,12 +17,20 @@ class AddressResource extends JsonResource
     {
         return [
             "id"=> $this->id,
+            "latitude"=> $this->latitude,
+            "longitude"=> $this->longitude,
             "name"=> $this->name,
-            "slug"=> $this->slug,
-            "icon" => $this->icon ? asset("storage/". $this->icon) : null,
-            "is_active" => (bool) $this->is_active,
-            "sort_order" => (int) $this->sort_order,
-            "is_featured" => (bool) $this->is_featured,
+            "phone"=> $this->phone,
+            "is_default"=> (bool) $this->is_default,
+            "type" => $this->type?->value,
+            "type_label" => AddressTypeEnum::label($this->type?->value),
+            'zone' => $this->whenLoaded('zone', function () {
+                return [
+                    'id'=> $this->id,
+                    'name'=> $this->zone->name,
+                ];
+            }),
+
         ];
     }
 }

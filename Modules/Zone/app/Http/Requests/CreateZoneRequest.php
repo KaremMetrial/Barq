@@ -17,7 +17,7 @@ class CreateZoneRequest extends FormRequest
         return [
             'city_id' => ['required', 'exists:cities,id'],
             'name' => ['required', 'string', 'max:255'],
-            'area' => ['nullable', 'json'],
+            'area' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

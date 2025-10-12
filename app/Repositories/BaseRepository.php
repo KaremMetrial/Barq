@@ -77,4 +77,8 @@ abstract class BaseRepository implements BaseRepositoryInterface
     {
         return $this->model->updateOrCreate($conditions, $data);
     }
+    public function allWithTranslations(array $filters = [],array $columns = ['*'])
+    {
+        return $this->model->withTranslation()->filter($filters)->get($columns);
+    }
 }

@@ -46,4 +46,8 @@ class Governorate extends Model implements TranslatableContract
     {
         return $this->hasMany(City::class);
     }
+         public function scopeFilter($query, $filters)
+    {
+        return $query->latest();
+    }
 }

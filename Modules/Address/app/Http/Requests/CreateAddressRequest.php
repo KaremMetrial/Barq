@@ -24,9 +24,12 @@ class CreateAddressRequest extends FormRequest
             'address_line_2' => ['nullable', 'string'],
             'is_default' => ['nullable', 'boolean'],
             'type' => ['nullable', 'string', Rule::in(AddressTypeEnum::values())],
-            'zone_id' => ['required', 'exists:zones,id'],
-            'icon' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
-            'is_active' => ['nullable', 'boolean'],
+            'zone_id' => ['nullable', 'exists:zones,id'],
+            'addressable_type' => ['required', 'string'],
+            'addressable_id' => ['required', 'numeric'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'governorate_id' => ['nullable', 'exists:governorates,id'],
+            'country_id' => ['nullable', 'exists:countries,id'],
         ];
     }
 

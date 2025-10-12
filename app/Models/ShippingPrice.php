@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Modules\Zone\Models\Zone;
+use Modules\Vehicle\Models\Vehicle;
 use Illuminate\Database\Eloquent\Model;
+use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
-use Astrotomic\Translatable\Translatable;
 
 class ShippingPrice extends Model implements TranslatableContract
 {

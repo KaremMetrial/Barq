@@ -2,6 +2,7 @@
 
 namespace Modules\Address\Http\Requests;
 
+use App\Enums\AddressTypeEnum;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,13 +15,19 @@ class UpdateAddressRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => ["nullable", "string", "max:255"],
-            "icon" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
-            "is_active" => ["nullable", "boolean"],
-            "sort_order" => ["nullable", "numeric", "min:0", "unique:categories,sort_order"],
-            "is_featured" => ["nullable", "boolean"],
-            "parent_id" => ["nullable", "numeric", "exists:categories,id"],
-            "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
+            'name' => ['nullable', 'string', 'max:255'],
+            'latitude' => ['nullable', 'numeric'],
+            'longitude' => ['nullable', 'numeric'],
+            'address_line_1' => ['nullable', 'string'],
+            'address_line_2' => ['nullable', 'string'],
+            'is_default' => ['nullable', 'boolean'],
+            'type' => ['nullable', 'string', Rule::in(AddressTypeEnum::values())],
+            'zone_id' => ['nullable', 'exists:zones,id'],
+            'addressable_type' => ['required', 'string'],
+            'addressable_id' => ['required', 'numeric'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'governorate_id' => ['nullable', 'exists:governorates,id'],
+            'country_id' => ['nullable', 'exists:countries,id'],
         ];
     }
 
@@ -30,22 +37,5 @@ class UpdateAddressRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
-    }
-    protected function passedValidation(): void
-    {
-        $validated = $this->validated();
-
-        $fields = ['name'];
-
-        foreach ($fields as $field) {
-            if (isset($validated[$field], $validated['lang'])) {
-                $validated["{$field}:{$validated['lang']}"] = $validated[$field];
-                unset($validated[$field]);
-            }
-        }
-        unset($validated['lang']);
-        $validated = array_filter($validated, fn($value) => !blank($value));
-
-        $this->replace($validated);
     }
 }

@@ -3,6 +3,7 @@
 namespace Modules\User\Services;
 
 use Modules\User\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\User\Repositories\UserRepository;
@@ -37,7 +38,18 @@ class UserService
     }
     public function registerUser(array $data): ?User
     {
-        $data = array_filter($data, fn($value) => !blank($value));
-        return $this->UserRepository->create($data)->refresh();
+        return DB::transaction(function () use ($data) {
+            $filteredData = array_filter($data, fn($value) => !blank($value));
+
+            $addressData = $filteredData['address'] ?? null;
+            unset($filteredData['address']);
+
+            $user = $this->UserRepository->create($filteredData);
+
+            if ($addressData) {
+                $user->addresses()->create($addressData);
+            }
+            return $user->refresh();
+        });
     }
 }

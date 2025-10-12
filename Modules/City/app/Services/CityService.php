@@ -15,7 +15,7 @@ class CityService
 
     public function getAllCitys(): Collection
     {
-        return $this->CityRepository->all();
+        return $this->CityRepository->allWithTranslations();
     }
 
     public function createCity(array $data): ?City

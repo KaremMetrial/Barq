@@ -26,6 +26,9 @@ class Address extends Model implements TranslatableContract
         'zone_id',
         'addressable_type',
         'addressable_id',
+        'city_id',
+        'governorate_id',
+        'country_id'
     ];
     protected $casts = [
         'is_default' => 'boolean',
@@ -38,5 +41,14 @@ class Address extends Model implements TranslatableContract
     public function zone(): BelongsTo
     {
         return $this->belongsTo(Zone::class);
+    }
+    public function scopeFilter($query, $filters)
+    {
+        $user = auth('user')->user();
+        if ($user) {
+            $query->where('addressable_id', $user->id)
+                ->where('addressable_type', 'user');
+        }
+        return $query->latest();
     }
 }

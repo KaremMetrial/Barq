@@ -2,6 +2,7 @@
 namespace Modules\Zone\Models;
 
 use Modules\City\Models\City;
+use Modules\Address\Models\Address;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Builder;

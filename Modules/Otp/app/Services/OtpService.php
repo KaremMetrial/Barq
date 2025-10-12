@@ -31,7 +31,6 @@ class OtpService
         if (!$modelTypeClass) {
             throw new \InvalidArgumentException('Invalid model_type.');
         }
-
         $otp = $this->otpRepository->updateOrCreate(
             [
                 'phone'        => $data['phone'],
@@ -41,7 +40,7 @@ class OtpService
             [
                 'otp_hash'       => Hash::make($otpCode),
                 'otp_expires_at' => Carbon::now()->addMinutes(30),
-                'otp'            => $otpCode,
+                'otp'            => app()->environment('local', 'testing') ? $otpCode : null,
             ]
         );
 
@@ -92,9 +91,9 @@ class OtpService
                 'message' => 'OTP verified, but user account does not exist.',
             ];
         }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
+        if (!request()->has('update_profile') && request()->input('update_profile') != 'true') {
+            $token = $user->createToken('auth_token')->plainTextToken;
+        }
         return [
             'success' => true,
             'token' => $token,
@@ -113,8 +112,8 @@ class OtpService
     /**
      * Generate numeric OTP code.
      */
-    private function generateOtpCode(int $length = 4): string
+    private function generateOtpCode()
     {
-        return str_pad((string) random_int(0, pow(10, $length) - 1), $length, '0', STR_PAD_LEFT);
+        return random_int(1000, 9999);
     }
 }

@@ -33,12 +33,12 @@ class StoreResource extends JsonResource
             "is_featured" => (bool) $this->is_featured,
             "is_active" => (bool) $this->is_active,
             "is_closed" => (bool) $this->is_closed,
-            "is_favorite" => (bool) User::isFavorite($this->id, 'store'),
+            "is_favorite" => $this->relationLoaded('currentUserFavourite') && $this->currentUserFavourite !== null,
             "avg_rate" => $this->avg_rate,
             "section" => new SectionResource($this->section),
             "banners" => $this->getProductBanners(),
             "categories" => CategoryResource::collection($this->whenLoaded('section')->categories),
-            "store_setting" => new StoreSettingResource($this->whenLoaded('storeSetting')),
+            'store_setting' => new StoreSettingResource($this->whenLoaded('storeSetting')),
             "delivery_fee" => $this->getDeliveryFee(),
         ];
     }

@@ -18,7 +18,7 @@ class SectionService
 
     public function getAllSections(): Collection
     {
-        return $this->SectionRepository->all();
+        return $this->SectionRepository->allWithTranslations([]);
     }
 
     public function createSection(array $data): ?Section

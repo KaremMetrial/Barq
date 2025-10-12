@@ -12,10 +12,9 @@ class CreateFavouriteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required','string','max:255'],
-            'is_active' => ["nullable", "boolean"],
-            'icon' => ['nullable','image', 'mimes:jpeg,png,jpg,gif,svg'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'user_id' => 'required|exists:users,id', 
+            'favouriteable_id' => 'required|integer',
+            'favouriteable_type' => 'required|string',
         ];
     }
 
@@ -26,5 +25,4 @@ class CreateFavouriteRequest extends FormRequest
     {
         return true;
     }
-
 }

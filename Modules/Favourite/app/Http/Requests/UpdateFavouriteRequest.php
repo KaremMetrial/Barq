@@ -14,11 +14,9 @@ class UpdateFavouriteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255'],
-            'is_active' => ["nullable", "boolean"],
-            'icon' => ['nullable','image', 'mimes:jpeg,png,jpg,gif,svg'],
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
-            "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
+            'user_id' => 'required|exists:users,id',
+            'favouriteable_id' => 'required|integer',
+            'favouriteable_type' => 'required|string',
         ];
     }
 
@@ -28,21 +26,5 @@ class UpdateFavouriteRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
-    }
-    protected function passedValidation(): void
-    {
-        $validated = $this->validated();
-
-        $fields = ['name'];
-
-        foreach ($fields as $field) {
-            if (isset($validated[$field], $validated['lang'])) {
-                $validated["{$field}:{$validated['lang']}"] = $validated[$field];
-                unset($validated[$field]);
-            }
-        }
-        unset($validated['lang']);
-
-        $this->replace($validated);
     }
 }

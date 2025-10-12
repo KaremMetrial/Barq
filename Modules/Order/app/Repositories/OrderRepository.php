@@ -1,9 +1,11 @@
 <?php
 
 namespace Modules\Order\Repositories;
+
 use Modules\Order\Models\Order;
 use Modules\Order\Repositories\Contracts\OrderRepositoryInterface;
 use App\Repositories\BaseRepository;
+
 class OrderRepository extends BaseRepository implements OrderRepositoryInterface
 {
     public function __construct(Order $model)
@@ -14,4 +16,5 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
     {
         return $this->model->orderBy('created_at', 'desc')->first();
     }
+ 
 }

@@ -23,7 +23,7 @@ class AddressController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $addresses = $this->addressService->getAllAddresses();
         return $this->successResponse([

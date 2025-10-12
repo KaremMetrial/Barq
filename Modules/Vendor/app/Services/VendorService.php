@@ -3,10 +3,13 @@
 namespace Modules\Vendor\Services;
 
 use App\Traits\FileUploadTrait;
-use Illuminate\Support\Facades\DB;
 use Modules\Vendor\Models\Vendor;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Modules\Vendor\Repositories\VendorRepository;
 
 class VendorService
@@ -64,11 +67,45 @@ class VendorService
             $data = array_filter($data, fn($value) => !blank($value));
             return $this->VendorRepository->update($id, $data);
         });
-
     }
 
     public function deleteVendor(int $id): bool
     {
         return $this->VendorRepository->delete($id);
+    }
+    public function login(array $data)
+    {
+        $vendor = $this->VendorRepository->firstWhere([
+            'email' => $data['email']
+        ]);
+        if (! $vendor || ! Hash::check($data['password'], $vendor->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+        $token = $vendor->createToken('vendor')->plainTextToken;
+        return [
+            'vendor' => $vendor,
+            'token' => $token
+        ];
+    }
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user && $user->currentAccessToken()) {
+            $user->currentAccessToken()->delete();
+        }
+
+        return true;
+    }
+    public function updatePassword(array $data)
+    {
+        $vendor = request()->user('vendor');
+        $vendor->update([
+            'password' => Hash::make($data['password'])
+        ]);
+
+        return $vendor;
     }
 }

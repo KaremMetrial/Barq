@@ -10,4 +10,8 @@ class AddressRepository extends BaseRepository implements AddressRepositoryInter
     {
         parent::__construct($model);
     }
+     public function all($relation = [],array $columns = ['*'], array $filters = [])
+    {
+        return $this->model->with($relation)->filter($filters)->get($columns);
+    }
 }

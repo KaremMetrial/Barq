@@ -15,7 +15,7 @@ class AddressService
 
     public function getAllAddresses(): Collection
     {
-        return $this->AddressRepository->all();
+        return $this->AddressRepository->all(['zone']);
     }
 
     public function createAddress(array $data): ?Address

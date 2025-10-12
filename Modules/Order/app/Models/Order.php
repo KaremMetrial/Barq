@@ -2,7 +2,6 @@
 
 namespace Modules\Order\Models;
 
-use App\Models\Review;
 use App\Enums\OrderStatus;
 use App\Enums\OrderTypeEnum;
 use App\Models\ShippingPrice;
@@ -13,6 +12,7 @@ use Modules\Admin\Models\Admin;
 use Modules\Store\Models\Store;
 use App\Enums\PaymentStatusEnum;
 use Modules\Couier\Models\Couier;
+use Modules\Review\Models\Review;
 use Modules\Address\Models\Address;
 use Modules\PosShift\Models\PosShift;
 use Illuminate\Database\Eloquent\Model;
@@ -102,7 +102,7 @@ class Order extends Model
 
     public function posShift()
     {
-       return $this->belongsTo(PosShift::class);
+        return $this->belongsTo(PosShift::class);
     }
 
     public function cart()
@@ -128,17 +128,24 @@ class Order extends Model
     }
     public function reviews()
     {
-        return $this->morphMany(Review::class,'reviewable');
+        return $this->morphMany(Review::class, 'reviewable');
     }
-        public function scopeFilter($query, $filters)
+    public function scopeFilter($query, $filters)
     {
-        if (isset($filters['search'])) {
+        $query->when(isset($filters['search']), function ($query) use ($filters) {
             $query->where('order_number', 'like', '%' . $filters['search'] . '%');
+        })
+        ->when(isset($filters['status']), function ($query) use ($filters) {
+            $query->where('status', $filters['status']);
+        });
+
+        if (request()->header('user') && request()->header('user') == 'vendor') {
+            $query->where('store_id', auth('vendor')->user()->id);
         }
 
         return $query->latest();
     }
-        public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
+    public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {
         $zoneId = $this->address?->zone_id;
         if (!$zoneId) {
@@ -165,5 +172,4 @@ class Order extends Model
 
         return round($fee, 2);
     }
-
 }
