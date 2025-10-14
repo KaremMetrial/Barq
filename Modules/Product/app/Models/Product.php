@@ -2,12 +2,14 @@
 
 namespace Modules\Product\Models;
 
-use App\Models\Review;
 use Modules\Tag\Models\Tag;
 use Modules\Unit\Models\Unit;
+use Modules\AddOn\Models\AddOn;
+use Modules\Offer\Models\Offer;
 use Modules\Store\Models\Store;
 use App\Enums\ProductStatusEnum;
 use Modules\Coupon\Models\Coupon;
+use Modules\Review\Models\Review;
 use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Favourite\Models\Favourite;
@@ -139,5 +141,9 @@ class Product extends Model implements TranslatableContract
     public function getAvgRateAttribute()
     {
         return $this->reviews()->avg('rating') ?? 0;
+    }
+    public function offers()
+    {
+        return $this->morphMany(Offer::class, 'offerable');
     }
 }

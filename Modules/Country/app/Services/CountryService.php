@@ -33,9 +33,9 @@ class CountryService
         Cache::forget('countries.codes');
     }
 
-    public function getAllCountries()
+    public function getAllCountries($filters = [])
     {
-        return $this->countryRepository->allWithTranslations();
+        return $this->countryRepository->allWithTranslations($filters);
     }
     public function createCountry(array $data): ?Country
     {

@@ -54,10 +54,12 @@ class Country extends Model implements TranslatableContract
     public function scopeFilter($query, $filters)
     {
         if (isset($filters['search'])) {
-            $query->whereTranslationLike('name', '%' . $filters['search'] . '%')
-                ->orWhere('code', 'like', '%' .$filters['search'] . '%');
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }
-
+        if(!auth('admin')->check())
+        {
+            $query->whereIsActive(true);
+        }
         return $query->latest();
     }
 }

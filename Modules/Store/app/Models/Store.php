@@ -2,12 +2,13 @@
 
 namespace Modules\Store\Models;
 
-use App\Models\Review;
 use App\Models\ShippingPrice;
 use Modules\Cart\Models\Cart;
 use App\Enums\StoreStatusEnum;
+use Modules\Offer\Models\Offer;
 use Modules\Order\Models\Order;
 use Modules\Coupon\Models\Coupon;
+use Modules\Review\Models\Review;
 use Modules\Vendor\Models\Vendor;
 use Modules\Address\Models\Address;
 use Modules\Balance\Models\Balance;
@@ -120,16 +121,88 @@ class Store extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
-        $query->withTranslation();
-        if (request()->header('agent') == 'user') {
-            $query->whereStatus(StoreStatusEnum::APPROVED)->whereIsActive(true);
+        $query->withTranslation()
+            ->whereStatus(StoreStatusEnum::APPROVED)
+            ->whereIsActive(true);
+
+        if (!empty($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }
-        if (request()->header('agent') == 'vendor') {
-            $query->where('user_id', auth('vendor')->user()->id);
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['section_id'])) {
+            $query->where('section_id', $filters['section_id']);
+        }
+
+        if (!empty($filters['category_id'])) {
+            $query->whereHas('section.categories', function ($query) use ($filters) {
+                $query->where('category_id', $filters['category_id']);
+            });
+        }
+
+        if (!empty($filters['has_offer']) && $filters['has_offer'] == 'true') {
+            $query->whereHas('offers', function ($query) {
+                $query->where('is_active', true);
+            });
+        }
+
+        if (!empty($filters['sort_by'])) {
+            switch ($filters['sort_by']) {
+                case 'delivery_time':
+                    $query->join('store_settings', 'stores.id', '=', 'store_settings.store_id')
+                        ->orderBy('store_settings.delivery_time', 'asc')
+                        ->select('stores.*');
+                    break;
+
+                case 'distance':
+                    $addressId = request()->header('address_id');
+
+                    if ($addressId) {
+                        $address = \DB::table('addresses')->where('id', $addressId)->first();
+
+                        if ($address) {
+                            $userLat = $address->latitude;
+                            $userLng = $address->longitude;
+
+                            $query->join('addresses', function ($join) {
+                                $join->on('stores.id', '=', 'addresses.addressable_id')
+                                    ->where('addresses.addressable_type', '=', 'store');
+                            })
+                                ->selectRaw('stores.*, addresses.id as address_id,
+                            (6371 * acos(
+                                cos(radians(?)) *
+                                cos(radians(addresses.latitude)) *
+                                cos(radians(addresses.longitude) - radians(?)) +
+                                sin(radians(?)) *
+                                sin(radians(addresses.latitude))
+                            )) AS distance', [$userLat, $userLng, $userLat])
+                                ->orderBy('distance', 'asc');
+                        } else {
+                            $query->latest();
+                        }
+                    } else {
+                        $query->latest();
+                    }
+                    break;
+
+                default:
+                    $query->latest();
+                    break;
+            }
+        } else {
+            if (!empty($filters['rating']) && $filters['rating'] == 'true') {
+                $query->orderBy('rating', 'desc');
+            } else {
+                $query->latest();
+            }
         }
 
         return $query;
     }
+
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {
         $zoneId = $this->address?->zone_id;
@@ -160,5 +233,9 @@ class Store extends Model implements TranslatableContract
     {
         return $this->morphOne(Favourite::class, 'favouriteable')
             ->where('user_id', auth()->id());
+    }
+    public function offers()
+    {
+        return $this->morphMany(Offer::class, 'offerable');
     }
 }

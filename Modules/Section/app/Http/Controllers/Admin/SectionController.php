@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Section\Http\Controllers;
+namespace Modules\Section\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -32,6 +32,17 @@ class SectionController extends Controller
     }
 
     /**
+     * Store a newly created resource in storage.
+     */
+    public function store(CreateSectionRequest $request): JsonResponse
+    {
+        $section = $this->sectionService->createSection($request->validated());
+        return $this->successResponse([
+            'section' => new SectionResource($section)
+        ], __('message.success'));
+    }
+
+    /**
      * Show the specified resource.
      */
     public function show(int $id): JsonResponse
@@ -40,6 +51,26 @@ class SectionController extends Controller
         return $this->successResponse([
             'section' => new SectionResource($section),
         ], __('message.success'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateSectionRequest $request, int $id): JsonResponse
+    {
+        $section = $this->sectionService->updateSection($id, $request->validated());
+        return $this->successResponse([
+            'section' => new SectionResource($section)
+        ], __('message.success'));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $isDeleted = $this->sectionService->deleteSection($id);
+        return $this->successResponse(null, __('message.success'));
     }
 }
 

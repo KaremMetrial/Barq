@@ -37,7 +37,8 @@ class OtpController extends Controller
 
         return $this->successResponse(
             [
-                'token' => $result['token']
+                'token' => $result['token'],
+                'user' => $result['user'],
             ],
             $result['message']
         );

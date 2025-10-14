@@ -2,6 +2,8 @@
 
 namespace Modules\Product\Services;
 
+use Carbon\Carbon;
+use App\Enums\SaleTypeEnum;
 use Illuminate\Support\Arr;
 use App\Traits\FileUploadTrait;
 use App\Enums\ProductStatusEnum;
@@ -266,5 +268,90 @@ class ProductService
             'grouped_products' => $grouped,
             'paginator' => $paginator,
         ];
+    }
+        public function getProductsWithOffersEndingSoon(array $filters = []): array
+    {
+        $days = Arr::get($filters, 'days', 2);
+        $perPage = Arr::get($filters, 'per_page', 15);
+        $storeId = Arr::get($filters, 'store_id');
+        $page = Arr::get($filters, 'page', 1);
+
+        $now = Carbon::now();
+        $endDateThreshold = $now->copy()->addDays($days);
+
+        $query = Product::with([
+            'store.storeSetting',
+            'category',
+            'images',
+            'price',
+            'availability',
+            'tags',
+            'offers' => function ($query) use ($now, $endDateThreshold) {
+                $query->where('is_active', true)
+                    ->where('status', 'active')
+                    ->whereNotNull('end_date')
+                    ->where('end_date', '>=', $now->toDateString())
+                    ->where('end_date', '<=', $endDateThreshold->toDateString())
+                    ->orderBy('end_date', 'asc');
+            }
+        ])
+        ->whereHas('offers', function ($query) use ($now, $endDateThreshold) {
+            $query->where('is_active', true)
+                ->where('status', 'active')
+                ->whereNotNull('end_date')
+                ->where('end_date', '>=', $now->toDateString())
+                ->where('end_date', '<=', $endDateThreshold->toDateString());
+        })
+        ->when($storeId, function ($query, $storeId) {
+            $query->where('store_id', $storeId);
+        })
+        ->where('is_active', true)
+        ->where('status', ProductStatusEnum::ACTIVE)
+        ->orderByRaw('(SELECT end_date FROM offers WHERE offerable_id = products.id AND offerable_type = ? AND is_active = 1 AND status = "active" ORDER BY end_date ASC LIMIT 1)', [Product::class]);
+        $total = $query->count();
+
+        $products = $query->paginate($perPage, ['*'], 'page', $page);
+        $products->getCollection()->transform(function ($product) {
+            $nearestOffer = $product->offers->sortBy('end_date')->first();
+            $product->nearest_offer = $nearestOffer ? [
+                'id' => $nearestOffer->id,
+                'discount_type' => $nearestOffer->discount_type,
+                'discount_amount' => $nearestOffer->discount_amount,
+                'start_date' => $nearestOffer->start_date,
+                'end_date' => $nearestOffer->end_date,
+                'is_flash_sale' => $nearestOffer->is_flash_sale,
+                'has_stock_limit' => $nearestOffer->has_stock_limit,
+                'stock_limit' => $nearestOffer->stock_limit,
+                'ends_in' => Carbon::parse($nearestOffer->end_date)->diffForHumans(),
+                'sale_price' => $this->calculateSalePrice(
+                    $product->price->first()->price ?? 0,
+                    $nearestOffer->discount_amount,
+                    $nearestOffer->discount_type->value
+                )
+            ] : null;
+
+            return $product;
+        });
+        return [
+            'products' => $products,
+            'meta' => [
+                'total_products' => $total,
+                'days_threshold' => (int)$days,
+                'timeframe' => "Next {$days} days",
+                'current_time' => $now->toDateTimeString(),
+            ]
+        ];
+    }
+
+    /**
+     * Calculate sale price based on discount
+     */
+    private function calculateSalePrice(float $basePrice, float $discountAmount, string $discountType): float
+    {
+        if ($discountType == SaleTypeEnum::PERCENTAGE->value) {
+            return $basePrice - ($basePrice * ($discountAmount / 100));
+        }
+
+        return max(0, $basePrice - $discountAmount);
     }
 }

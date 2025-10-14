@@ -49,4 +49,15 @@ class Zone extends Model implements TranslatableContract
     {
         return $this->hasMany(ShippingPrice::class);
     }
+       public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+        }
+        if(!auth('admin')->check())
+        {
+            $query->whereIsActive(true);
+        }
+        return $query->latest();
+    }
 }

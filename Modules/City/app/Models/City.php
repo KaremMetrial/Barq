@@ -53,12 +53,7 @@ class City extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
-        $agent = request()->header('agent');
-        if ($agent === 'admin') {
-            if (!auth('admin')->check()) {
-            throw new HttpException(403, 'Unauthorized: Admin access requires login.');
-            }
-        } else {
+        if (!auth('admin')->check()) {
             $query->whereIsActive(true);
         }
         return $query->latest();

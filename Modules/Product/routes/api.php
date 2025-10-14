@@ -5,6 +5,7 @@ use Modules\Product\Http\Controllers\ProductController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('products')->controller(ProductController::class)->group(function () {
+        Route::get('/offers-ending-soon',  'getOffersEndingSoon');
         Route::get('/home', 'home')->name('product.home');
         Route::get('stores/{store}/grouped-products', 'groupedProductsByStore')->name('product.groupedProductsByStore');
     });

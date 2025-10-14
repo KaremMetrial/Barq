@@ -13,9 +13,9 @@ class CityService
         protected CityRepository $CityRepository
     ) {}
 
-    public function getAllCitys(): Collection
+    public function getAllCitys($filters = []): Collection
     {
-        return $this->CityRepository->allWithTranslations();
+        return $this->CityRepository->allWithTranslations($filters);
     }
 
     public function createCity(array $data): ?City

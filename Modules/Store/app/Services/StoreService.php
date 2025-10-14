@@ -19,10 +19,10 @@ class StoreService
         protected StoreRepository $StoreRepository
     ) {}
 
-    public function getAllStores()
+    public function getAllStores($filters = [])
     {
         return $this->StoreRepository->paginate(
-            [],
+            $filters,
             15,
             [
                 'section.categories.translations',
@@ -31,11 +31,12 @@ class StoreService
                 'translations',
                 'section.translations',
                 'currentUserFavourite',
+                'offers'
             ]
         );
     }
 
-    public function createStore(array $data): ?Store
+    public function createStore(array $data)
     {
         return DB::transaction(function () use ($data) {
             $data['logo'] = $this->upload(
@@ -86,7 +87,7 @@ class StoreService
     }
     public function getHomeStores(array $filters = []): array
     {
-        $relation = ['section', 'section.categories', 'StoreSetting'];
+        $relation = ['section', 'section.categories', 'StoreSetting', 'offers'];
         return $this->StoreRepository->getHomeStores($relation, $filters);
     }
     public function stats()
@@ -139,7 +140,6 @@ class StoreService
             'average_order' => (string) $stats['average_order'],
             'latest_orders' => OrderResource::collection($latestOrders),
             'top_products' => $products,
-
         ];
     }
 }

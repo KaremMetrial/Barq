@@ -20,22 +20,12 @@ class CityController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $cities = $this->cityService->getAllCitys();
+        $filters = $request->only(['search']);
+        $cities = $this->cityService->getAllCitys($filters);
         return $this->successResponse([
             "cities" => CityResource::collection($cities),
-        ], __("message.success"));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CreateCityRequest $request)
-    {
-        $city = $this->cityService->createCity($request->all());
-        return $this->successResponse([
-            "city" => new CityResource($city),
         ], __("message.success"));
     }
 
@@ -48,25 +38,5 @@ class CityController extends Controller
         return $this->successResponse([
             "city" => new CityResource($city),
         ], __("message.success"));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCityRequest $request, $id)
-    {
-        $city = $this->cityService->updateCity($id, $request->all());
-        return $this->successResponse([
-            "city" => new CityResource($city),
-        ], __("message.success"));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        $deleted = $this->cityService->deleteCity($id);
-        return $this->successResponse(null, __("message.success"));
     }
 }

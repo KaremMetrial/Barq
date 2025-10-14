@@ -2,9 +2,10 @@
 
 namespace Modules\Section\Http\Resources;
 
-use App\Enums\SectionTypeEnum;
 use Illuminate\Http\Request;
+use App\Enums\SectionTypeEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Category\Http\Resources\CategoryResource;
 
 class SectionResource extends JsonResource
 {
@@ -23,6 +24,7 @@ class SectionResource extends JsonResource
             "is_active" => (bool) $this->is_active,
             "sort_order" => (int) $this->sort_order,
             "is_featured" => (bool) $this->is_featured,
+            'categories' => CategoryResource::collection($this->categories)
         ];
     }
 }

@@ -35,5 +35,8 @@
         'working_day.updated' => 'Working day has been updated successfully.',
         'working_day.index' => 'Working days retrieved successfully.',
 
-
+    'store' => [
+        'discount_banner_percentage' => 'Discounts up to :discount%🔥',
+        'discount_banner_fixed' => 'Discounts worth :amount🔥',
+    ],
 ];

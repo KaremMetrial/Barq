@@ -28,6 +28,7 @@ class StoreSettingResource extends JsonResource
             "free_delivery_enabled"=> (bool) $this->free_delivery_enabled,
             "minimum_order_amount"=> $this->minimum_order_amount,
             'delivery_time_max' => $this->delivery_time_max,
+            'delivery_time_min' => $this->delivery_time_min,
             'delivery_type_unit' => $this->delivery_type_unit->value,
             'delivery_type_unit_label'=> DeliveryTypeUnitEnum::label($this->delivery_type_unit->value),
             'tax_rate' => $this->tax_rate,

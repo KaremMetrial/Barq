@@ -19,6 +19,8 @@ class Offer extends Model
         'stock_limit',
         'is_active',
         'status',
+        'offerable_id',
+        'offerable_type',
     ];
     protected $casts = [
         'discount_amount' => 'decimal:3',

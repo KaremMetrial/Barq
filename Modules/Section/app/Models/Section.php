@@ -41,8 +41,12 @@ class Section extends Model implements TranslatableContract
     {
         return $this->belongsToMany(Category::class, 'category_section');
     }
-     public function scopeFilter($query, $filters)
+    public function scopeFilter($query, $filters)
     {
-        return $query->latest();
+        if (!auth('admin')->check()) {
+            $query->whereIsActive(true);
+        }
+
+        return $query->with('categories')->latest();
     }
 }

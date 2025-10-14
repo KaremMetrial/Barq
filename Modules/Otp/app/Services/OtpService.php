@@ -9,6 +9,7 @@ use Modules\Couier\Models\Couier;
 use Modules\Vendor\Models\Vendor;
 use Illuminate\Support\Facades\Hash;
 use Modules\Otp\Repositories\OtpRepository;
+use Modules\User\Http\Resources\UserResource;
 
 class OtpService
 {
@@ -88,6 +89,7 @@ class OtpService
             return [
                 'success' => true,
                 'token' => null,
+                'user' => null,
                 'message' => 'OTP verified, but user account does not exist.',
             ];
         }
@@ -97,6 +99,7 @@ class OtpService
         return [
             'success' => true,
             'token' => $token,
+            'user' => new UserResource($user),
             'message' => 'OTP verified and token generated.',
         ];
     }

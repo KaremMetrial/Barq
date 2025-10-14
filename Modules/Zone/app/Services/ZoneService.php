@@ -13,9 +13,9 @@ class ZoneService
         protected ZoneRepository $ZoneRepository
     ) {}
 
-    public function getAllZones(): Collection
+    public function getAllZones($filters = []): Collection
     {
-        return $this->ZoneRepository->all();
+        return $this->ZoneRepository->allWithTranslations($filters);;
     }
 
     public function createZone(array $data): ?Zone

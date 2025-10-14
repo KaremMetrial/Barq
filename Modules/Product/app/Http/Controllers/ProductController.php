@@ -96,4 +96,15 @@ class ProductController extends Controller
             'pagination' => new PaginationResource($result['paginator']),
         ], __("message.success"));
     }
+    public function getOffersEndingSoon(Request $request): JsonResponse
+    {
+        $filters = $request->only(['days', 'store_id', 'limit']);
+        $products = $this->productService->getProductsWithOffersEndingSoon($filters);
+
+        return $this->successResponse([
+            "products" => ProductResource::collection($products['products']),
+            "meta" => $products['meta'],
+            "pagination" => new PaginationResource($products['products']),
+        ], __("message.success"));
+    }
 }

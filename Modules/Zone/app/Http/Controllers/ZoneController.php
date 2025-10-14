@@ -21,22 +21,12 @@ class ZoneController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $zones = $this->zoneService->getAllZones();
+        $filters = $request->only(['search']);
+        $zones = $this->zoneService->getAllZones($filters);
         return $this->successResponse([
             "zones" => ZoneResource::collection($zones),
-        ], __("message.success"));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CreateZoneRequest $request)
-    {
-        $zone = $this->zoneService->createZone($request->all());
-        return $this->successResponse([
-            "zone" => new ZoneResource($zone),
         ], __("message.success"));
     }
 
@@ -51,23 +41,4 @@ class ZoneController extends Controller
         ], __("message.success"));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateZoneRequest $request, $id)
-    {
-        $zone = $this->zoneService->updateZone($id, $request->all());
-        return $this->successResponse([
-            "zone" => new ZoneResource($zone),
-        ], __("message.success"));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        $deleted = $this->zoneService->deleteZone($id);
-        return $this->successResponse(null, __("message.success"));
-    }
 }

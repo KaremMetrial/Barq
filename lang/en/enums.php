@@ -150,7 +150,7 @@ return [
         'audio' => 'Audio',
     ],
     'delivery_type_unit' => [
-        'minute' => 'Minute',
+        'minute' => 'Min',
         'hour' => 'Hour',
         'day' => 'Day',
     ],

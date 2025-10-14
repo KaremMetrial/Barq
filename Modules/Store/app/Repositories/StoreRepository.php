@@ -14,9 +14,10 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
     }
     public function getHomeStores(array $relations = [], array $filters = [])
     {
-        $featured = $this->model->with($relations)->filter($filters)->whereIsFeatured(true)->latest()->limit(5)->get();
+        $featured = $this->model->withTranslation()->with($relations)->filter($filters)->whereIsFeatured(true)->latest()->limit(5)->get();
 
         $topReviews = $this->model
+            ->withTranslation()
             ->with($relations)
             ->filter($filters)
             ->withCount('reviews')
@@ -26,7 +27,7 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             ->limit(10)
             ->get();
 
-        $newStore = $this->model->with($relations)->filter($filters)->latest()->limit(5)->get();
+        $newStore = $this->model->withTranslation()->with($relations)->filter($filters)->latest()->limit(5)->get();
 
         return [
             'topReviews' => $topReviews,
