@@ -39,8 +39,6 @@ class ProductResource extends JsonResource
             "price" => $this->whenLoaded('price', function () {
                 return [
                     "price" => $this->price->price,
-                    // "purchase_price" => $this->price->purchase_price,
-                    "sale_price" => $this->price->sale?->sale_price,
                 ];
             }),
             "store"      => $this->whenLoaded('store', function () {
@@ -73,6 +71,37 @@ class ProductResource extends JsonResource
             "pharmacyInfo" => PharmacyInfoResource::collection($this->whenLoaded("pharmacyInfo")),
             "watermarks" => new ProductWatermarksResource($this->whenLoaded("watermark")),
             "cart_quantity" => $this->getCartQuantity(),
+            "nearest_offer" => $this->whenLoaded('offers', function () {
+                $offer = $this->offers
+                    ->where('is_active', true)
+                    ->where('status', \App\Enums\OfferStatusEnum::ACTIVE->value)
+                    ->sortBy('end_date')
+                    ->first();
+
+                if (!$offer) {
+                    return null;
+                }
+
+                $price = $this->price->price ?? 0;
+
+                return [
+                    'id' => $offer->id,
+                    'discount_type' => $offer->discount_type->value,
+                    'discount_amount' => $offer->discount_amount,
+                    'start_date' => $offer->start_date,
+                    'end_date' => $offer->end_date,
+                    'is_flash_sale' => $offer->is_flash_sale,
+                    'has_stock_limit' => $offer->has_stock_limit,
+                    'stock_limit' => $offer->stock_limit,
+                    'ends_in' => \Carbon\Carbon::parse($offer->end_date)->diffForHumans(),
+                    'sale_price' => $this->calculateSalePrice(
+                        $price,
+                        $offer->discount_amount,
+                        $offer->discount_type->value
+                    ),
+                    'banner_text' => $this->getBannerTextFromOffer($offer),
+                ];
+            }),
         ];
     }
     protected function getCartQuantity(): int
@@ -111,5 +140,32 @@ class ProductResource extends JsonResource
         }
 
         return 0;
+    }
+    protected function calculateSalePrice($originalPrice, $discountAmount, $discountType)
+    {
+        if ($discountType === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
+            return round($originalPrice - ($originalPrice * $discountAmount / 100), 2);
+        }
+
+        if ($discountType === \App\Enums\SaleTypeEnum::FIXED->value) {
+            return round(max($originalPrice - $discountAmount, 0), 2);
+        }
+
+        return $originalPrice;
+    }
+    protected function getBannerTextFromOffer($offer): ?string
+    {
+        $discount = number_format($offer->discount_amount, 0);
+        $type = $offer->discount_type;
+
+        if ($type === \App\Enums\SaleTypeEnum::PERCENTAGE) {
+            return __("message.store.discount_banner_percentage", ['discount' => $discount]);
+        }
+
+        if ($type === \App\Enums\SaleTypeEnum::FIXED) {
+            return __("message.store.discount_banner_fixed", ['amount' => $discount]);
+        }
+
+        return null;
     }
 }

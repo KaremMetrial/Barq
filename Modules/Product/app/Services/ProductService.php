@@ -26,17 +26,19 @@ class ProductService
             $filters,
             15,
             [
+                'store.translations',
                 'store.storeSetting',
-                'category',
+                'category.translations',
                 'images',
                 'price',
                 'availability',
                 'tags',
-                'units',
+                'units.translations',
                 'ProductNutrition',
-                'productAllergen',
-                'pharmacyInfo',
-                'watermark'
+                'productAllergen.translations',
+                'pharmacyInfo.translations',
+                'watermark',
+                'offers',
             ]
         );
     }
@@ -70,17 +72,19 @@ class ProductService
     public function getProductById(int $id): ?Product
     {
         return $this->ProductRepository->find($id, [
-            'store',
-            'category',
-            'images',
-            'price',
-            'availability',
-            'tags',
-            'units',
-            'ProductNutrition',
-            'productAllergen',
-            'pharmacyInfo',
-            'watermark'
+                'store.translations',
+                'store.storeSetting',
+                'category.translations',
+                'images',
+                'price',
+                'availability',
+                'tags',
+                'units.translations',
+                'ProductNutrition',
+                'productAllergen.translations',
+                'pharmacyInfo.translations',
+                'watermark',
+                'offers',
         ]);
     }
 
@@ -230,7 +234,7 @@ class ProductService
     }
     public function getHomeProducts()
     {
-        $relation = ['store.storeSetting', 'category', 'images', 'price', 'availability'];
+        $relation = ['store.storeSetting', 'category', 'images', 'price', 'availability', 'offers'];
         return $this->ProductRepository->home($relation);
     }
 
@@ -238,7 +242,7 @@ class ProductService
     {
         $perPage = Arr::get($filters, 'per_page', 10);
 
-        $query = Product::with(['category', 'images', 'price', 'availability'])
+        $query = Product::with(['category', 'images', 'price', 'availability', 'offers'])
             ->where('store_id', $storeId)
             ->whereStatus(ProductStatusEnum::ACTIVE)
             ->latest();
@@ -269,14 +273,15 @@ class ProductService
             'paginator' => $paginator,
         ];
     }
-        public function getProductsWithOffersEndingSoon(array $filters = []): array
+
+    public function getProductsWithOffersEndingSoon(array $filters = []): array
     {
         $days = Arr::get($filters, 'days', 2);
         $perPage = Arr::get($filters, 'per_page', 15);
         $storeId = Arr::get($filters, 'store_id');
         $page = Arr::get($filters, 'page', 1);
 
-        $now = Carbon::now();
+        $now = now();
         $endDateThreshold = $now->copy()->addDays($days);
 
         $query = Product::with([
@@ -286,62 +291,47 @@ class ProductService
             'price',
             'availability',
             'tags',
-            'offers' => function ($query) use ($now, $endDateThreshold) {
-                $query->where('is_active', true)
-                    ->where('status', 'active')
-                    ->whereNotNull('end_date')
-                    ->where('end_date', '>=', $now->toDateString())
-                    ->where('end_date', '<=', $endDateThreshold->toDateString())
-                    ->orderBy('end_date', 'asc');
-            }
-        ])
-        ->whereHas('offers', function ($query) use ($now, $endDateThreshold) {
-            $query->where('is_active', true)
-                ->where('status', 'active')
+            'offers' => fn($query) => $query->where('is_active', true)
+                ->where('status', \App\Enums\OfferStatusEnum::ACTIVE->value)
                 ->whereNotNull('end_date')
-                ->where('end_date', '>=', $now->toDateString())
-                ->where('end_date', '<=', $endDateThreshold->toDateString());
-        })
-        ->when($storeId, function ($query, $storeId) {
-            $query->where('store_id', $storeId);
-        })
-        ->where('is_active', true)
-        ->where('status', ProductStatusEnum::ACTIVE)
-        ->orderByRaw('(SELECT end_date FROM offers WHERE offerable_id = products.id AND offerable_type = ? AND is_active = 1 AND status = "active" ORDER BY end_date ASC LIMIT 1)', [Product::class]);
-        $total = $query->count();
+                ->whereBetween('end_date', [$now->toDateString(), $endDateThreshold->toDateString()])
+                ->orderBy('end_date'),
+        ])
+            ->whereHas(
+                'offers',
+                fn($query) => $query
+                    ->where('is_active', true)
+                    ->where('status', \App\Enums\OfferStatusEnum::ACTIVE->value)
+                    ->whereNotNull('end_date')
+                    ->whereBetween('end_date', [$now->toDateString(), $endDateThreshold->toDateString()])
+            )
+            ->when($storeId, fn($query) => $query->where('store_id', $storeId))
+            ->where('is_active', true)
+            ->where('status', ProductStatusEnum::ACTIVE->value)
+            ->orderByRaw('(
+        SELECT end_date FROM offers
+        WHERE offerable_id = products.id
+        AND offerable_type = ?
+        AND is_active = 1
+        AND status = "active"
+        AND end_date IS NOT NULL
+        ORDER BY end_date ASC LIMIT 1
+    )', [Product::class]);
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);
-        $products->getCollection()->transform(function ($product) {
-            $nearestOffer = $product->offers->sortBy('end_date')->first();
-            $product->nearest_offer = $nearestOffer ? [
-                'id' => $nearestOffer->id,
-                'discount_type' => $nearestOffer->discount_type,
-                'discount_amount' => $nearestOffer->discount_amount,
-                'start_date' => $nearestOffer->start_date,
-                'end_date' => $nearestOffer->end_date,
-                'is_flash_sale' => $nearestOffer->is_flash_sale,
-                'has_stock_limit' => $nearestOffer->has_stock_limit,
-                'stock_limit' => $nearestOffer->stock_limit,
-                'ends_in' => Carbon::parse($nearestOffer->end_date)->diffForHumans(),
-                'sale_price' => $this->calculateSalePrice(
-                    $product->price->first()->price ?? 0,
-                    $nearestOffer->discount_amount,
-                    $nearestOffer->discount_type->value
-                )
-            ] : null;
+        $total = $products->total();
 
-            return $product;
-        });
         return [
             'products' => $products,
             'meta' => [
                 'total_products' => $total,
-                'days_threshold' => (int)$days,
+                'days_threshold' => (int) $days,
                 'timeframe' => "Next {$days} days",
                 'current_time' => $now->toDateTimeString(),
             ]
         ];
     }
+
 
     /**
      * Calculate sale price based on discount

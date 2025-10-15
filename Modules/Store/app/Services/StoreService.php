@@ -31,7 +31,7 @@ class StoreService
                 'translations',
                 'section.translations',
                 'currentUserFavourite',
-                'offers'
+                'offers',
             ]
         );
     }
@@ -87,7 +87,15 @@ class StoreService
     }
     public function getHomeStores(array $filters = []): array
     {
-        $relation = ['section', 'section.categories', 'StoreSetting', 'offers'];
+        $relation = [
+            'section.categories.translations',
+            'storeSetting',
+            'address',
+            'translations',
+            'section.translations',
+            'currentUserFavourite',
+            'offers',
+        ];
         return $this->StoreRepository->getHomeStores($relation, $filters);
     }
     public function stats()

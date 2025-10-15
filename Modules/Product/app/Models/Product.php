@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Models;
 
+use App\Models\Report;
 use Modules\Tag\Models\Tag;
 use Modules\Unit\Models\Unit;
 use Modules\AddOn\Models\AddOn;
@@ -10,6 +11,7 @@ use Modules\Store\Models\Store;
 use App\Enums\ProductStatusEnum;
 use Modules\Coupon\Models\Coupon;
 use Modules\Review\Models\Review;
+use Modules\Order\Models\OrderItem;
 use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Favourite\Models\Favourite;
@@ -132,6 +134,7 @@ class Product extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
+        $query->withTranslation();
         if (isset($filters['store_id'])) {
             $query->where('store_id', $filters['store_id']);
         }

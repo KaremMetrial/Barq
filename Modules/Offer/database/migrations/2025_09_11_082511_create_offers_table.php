@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('discount_type')->default(SaleTypeEnum::PERCENTAGE->value);
             $table->decimal('discount_amount', 8, 3);
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
+            $table->dateTime('start_date');
+            $table->dateTime('end_date')->nullable();
             $table->boolean('is_flash_sale')->default(false);
             $table->boolean('has_stock_limit')->default(false);
             $table->unsignedInteger('stock_limit')->nullable();

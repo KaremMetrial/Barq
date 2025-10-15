@@ -98,13 +98,13 @@ class ProductController extends Controller
     }
     public function getOffersEndingSoon(Request $request): JsonResponse
     {
-        $filters = $request->only(['days', 'store_id', 'limit']);
-        $products = $this->productService->getProductsWithOffersEndingSoon($filters);
+        $filters = $request->only(['days', 'store_id', 'per_page', 'page']);
+        $result = $this->productService->getProductsWithOffersEndingSoon($filters);
 
         return $this->successResponse([
-            "products" => ProductResource::collection($products['products']),
-            "meta" => $products['meta'],
-            "pagination" => new PaginationResource($products['products']),
+            "products" => ProductResource::collection($result['products']),
+            "meta" => $result['meta'],
+            "pagination" => new PaginationResource($result['products']),
         ], __("message.success"));
     }
 }

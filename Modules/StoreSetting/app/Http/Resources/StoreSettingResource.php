@@ -16,7 +16,7 @@ class StoreSettingResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+public function toArray(Request $request): array
     {
         return [
             "id"=> $this->id,
@@ -34,7 +34,7 @@ class StoreSettingResource extends JsonResource
             'tax_rate' => $this->tax_rate,
             'service_fee_percentage' => $this->service_fee_percentage,
             'order_interval_time' => $this->order_interval_time,
-            'store_id' => $this->store->id
+            // 'store_id' => $this->store->id
         ];
     }
 }
