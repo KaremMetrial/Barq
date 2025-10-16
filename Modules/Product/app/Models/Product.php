@@ -134,12 +134,27 @@ class Product extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
-        $query->withTranslation();
+        $query->withTranslation()
+            ->withAvg('reviews', 'rating');
+
+        $admin = auth('admin')->check();
+        $vendor = auth('vendor')->check() ? auth('vendor')->user() : null;
+
         if (isset($filters['store_id'])) {
             $query->where('store_id', $filters['store_id']);
         }
+
+        if ($admin) {
+            return $query->latest();
+        }
+
+        if ($vendor && $vendor->store_id) {
+            $query->where('store_id', $vendor->store_id);
+        }
+
         return $query->whereStatus(ProductStatusEnum::ACTIVE)->latest();
     }
+
 
     public function getAvgRateAttribute()
     {
@@ -148,5 +163,9 @@ class Product extends Model implements TranslatableContract
     public function offers()
     {
         return $this->morphMany(Offer::class, 'offerable');
+    }
+    public function requiredOptions()
+    {
+        return $this->hasMany(ProductOption::class)->where('is_required', true);
     }
 }

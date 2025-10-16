@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Favourite\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -13,9 +14,7 @@ class FavouriteController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected FavouriteService $favouriteService)
-    {
-    }
+    public function __construct(protected FavouriteService $favouriteService) {}
 
     /**
      * Display a listing of the resource.
@@ -24,7 +23,7 @@ class FavouriteController extends Controller
     {
         $favourites = $this->favouriteService->getAllFavourites();
         return $this->successResponse([
-            "favourites"=> $favourites
+            "favourites" => $favourites
         ], __("message.success"));
     }
 
@@ -33,29 +32,9 @@ class FavouriteController extends Controller
      */
     public function store(CreateFavouriteRequest $request): JsonResponse
     {
-        $favourite = $this->favouriteService->createFavourite($request->all());
+        $isFavourite = $this->favouriteService->toggleFavourite($request->all());
         return $this->successResponse([
-            "favourite" => new FavouriteResource($favourite),
+            'is_favourite' => $isFavourite
         ], __("message.success"));
-    }
-
-    /**
-     * Show the specified resource.
-     */
-    public function show(int $id): JsonResponse
-    {
-        $favourite = $this->favouriteService->getFavouriteById($id);
-        return $this->successResponse([
-            "favourite" => new FavouriteResource($favourite),
-        ], __("message.success"));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        $deleted = $this->favouriteService->deleteFavourite($id);
-        return $this->successResponse(null, __("message.success"));
     }
 }

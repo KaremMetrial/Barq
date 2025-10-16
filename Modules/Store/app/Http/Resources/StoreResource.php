@@ -46,7 +46,42 @@ class StoreResource extends JsonResource
                 return $this->getActiveOffers();
             }),
             "banner_text" => $this->getBannerText(),
+            // "cart_count" => $this->getCartCount()
         ];
+    }
+    private function getCartCount(): int
+    {
+        $cart = $this->resolveCart();
+
+        if (!$cart) {
+            return 0;
+        }
+
+        // Count items from this store in the cart
+        return $cart->items()
+            ->whereHas('product', function ($query) {
+                $query->where('store_id', $this->id);
+            })
+            ->sum('quantity');
+    }
+    private function resolveCart()
+    {
+        $token = request()->bearerToken();
+
+        // Try to get cart by user token
+        if ($token) {
+            [, $tokenHash] = explode('|', $token, 2);
+
+            $userId = \DB::table('personal_access_tokens')
+                ->where('token', hash('sha256', $tokenHash))
+                ->value('tokenable_id');
+
+            if ($userId) {
+                return \Modules\Cart\Models\Cart::with('items.product')
+                    ->where('user_id', $userId)
+                    ->first();
+            }
+        }
     }
     private function getProductBanners(): array
     {
@@ -133,7 +168,7 @@ class StoreResource extends JsonResource
             return null;
         }
 
-        $discount = number_format($activeOffer->discount_amount,0);
+        $discount = number_format($activeOffer->discount_amount, 0);
 
         $type = $activeOffer->discount_type;
 

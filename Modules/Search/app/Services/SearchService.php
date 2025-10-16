@@ -36,4 +36,14 @@ class SearchService
             'updated_at'   => now(),
         ]);
     }
+    public function getTopSearchLogs(int $limit = 10): array
+    {
+        return DB::table('category_search_logs')
+            ->select('search_term', DB::raw('COUNT(*) as count'))
+            ->groupBy('search_term')
+            ->orderByDesc('count')
+            ->limit($limit)
+            ->get()
+            ->toArray();
+    }
 }

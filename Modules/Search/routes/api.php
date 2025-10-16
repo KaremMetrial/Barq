@@ -7,5 +7,6 @@ Route::prefix('v1')->group(function () {
     Route::controller(SearchController::class)->prefix('search')->group(function () {
         Route::get('/autocomplete', 'autocomplete');
         Route::get('/',  'search');
+        Route::get('top-logs', 'getTopSearchLogs');
     });
 });

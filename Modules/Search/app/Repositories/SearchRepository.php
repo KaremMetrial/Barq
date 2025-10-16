@@ -64,7 +64,23 @@ class SearchRepository implements SearchRepositoryInterface
 
     private function getProductsWithSection(string $search)
     {
-        return Product::with('store.section')
+        return Product::with([
+            'store.translations',
+            'store.storeSetting',
+            'category.translations',
+            'images',
+            'price',
+            'availability',
+            'tags',
+            'units.translations',
+            'ProductNutrition',
+            'productAllergen.translations',
+            'pharmacyInfo.translations',
+            'watermark',
+            'offers',
+            'store.section.translations',
+        ])
+            ->withTranslation()
             ->whereTranslationLike('name', "%$search%")
             ->whereHas('store.section')
             ->get();

@@ -13,9 +13,15 @@ class CreateProductRequest extends FormRequest
 {
     public function prepareForValidation()
     {
+        $product = $this->filterArray($this->input('product', []));
+        if (auth('vendor')->check()) {
+            $vendor = auth('vendor')->user();
+            $product['store_id'] = $vendor->store_id;
+        }
+
         $this->merge([
-            'product' => $this->filterArray($this->input('product', [])),
-            'pharmacyInfo' => $this->filterArray($this->input('pharmacyInfo',[])),
+            'product' => $product,
+            'pharmacyInfo' => $this->filterArray($this->input('pharmacyInfo', [])),
             'productAllergen' => $this->filterArray($this->input('productAllergen', [])),
             'availability' => $this->filterArray($this->input('availability', [])),
             'productNutrition' => $this->filterArray($this->input('productNutrition', [])),
@@ -69,7 +75,7 @@ class CreateProductRequest extends FormRequest
             'availability.stock_quantity' => ['required', 'integer', 'min:0'],
             'availability.is_in_stock'   => ['required', 'boolean'],
             'availability.available_start_date' => ['nullable', 'date'],
-            'availability.available_end_date' => ['nullable', 'date','after_or_equal:availability.available_start_date'],
+            'availability.available_end_date' => ['nullable', 'date', 'after_or_equal:availability.available_start_date'],
 
             // Product Image Table
             'images' => ['required', 'array'],
@@ -93,7 +99,7 @@ class CreateProductRequest extends FormRequest
 
             // Product Tags Table
             'tags' => ['nullable', 'array'],
-            'tags.*'=> ['required', 'integer','exists:tags,id'],
+            'tags.*' => ['required', 'integer', 'exists:tags,id'],
 
             // Product Units Table
             'units' => ['nullable', 'array'],

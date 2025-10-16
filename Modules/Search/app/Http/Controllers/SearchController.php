@@ -36,4 +36,13 @@ class SearchController extends Controller
             'search' => $result,
         ], __('message.success'));
     }
+        public function getTopSearchLogs(Request $request)
+    {
+        $topSearchLogs = $this->searchService->getTopSearchLogs($request->get('limit', 10));
+
+        return $this->successResponse([
+            'topSearchLogs' => $topSearchLogs,
+        ], __('message.success'));
+    }
+
 }

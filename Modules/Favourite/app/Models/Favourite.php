@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Favourite extends Model
 {
-    public $fillable = ['user_id'];
+    public $fillable = ['user_id', 'favouriteable_id', 'favouriteable_type'];
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

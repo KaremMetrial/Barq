@@ -102,6 +102,8 @@ class ProductResource extends JsonResource
                     'banner_text' => $this->getBannerTextFromOffer($offer),
                 ];
             }),
+            "product_options" => ProductOptionResource::collection($this->whenLoaded("productOptions")),
+            "has_required_options" => $this->whenLoaded('requiredOptions', fn () => $this->requiredOptions->isNotEmpty(), false),
         ];
     }
     protected function getCartQuantity(): int
@@ -141,6 +143,7 @@ class ProductResource extends JsonResource
 
         return 0;
     }
+
     protected function calculateSalePrice($originalPrice, $discountAmount, $discountType)
     {
         if ($discountType === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {

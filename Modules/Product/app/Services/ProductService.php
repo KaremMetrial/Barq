@@ -25,21 +25,7 @@ class ProductService
         return $this->ProductRepository->paginate(
             $filters,
             15,
-            [
-                'store.translations',
-                'store.storeSetting',
-                'category.translations',
-                'images',
-                'price',
-                'availability',
-                'tags',
-                'units.translations',
-                'ProductNutrition',
-                'productAllergen.translations',
-                'pharmacyInfo.translations',
-                'watermark',
-                'offers',
-            ]
+            $this->defaultProductRelations()
         );
     }
 
@@ -71,26 +57,12 @@ class ProductService
 
     public function getProductById(int $id): ?Product
     {
-        return $this->ProductRepository->find($id, [
-                'store.translations',
-                'store.storeSetting',
-                'category.translations',
-                'images',
-                'price',
-                'availability',
-                'tags',
-                'units.translations',
-                'ProductNutrition',
-                'productAllergen.translations',
-                'pharmacyInfo.translations',
-                'watermark',
-                'offers',
-        ]);
+        return $this->ProductRepository->find($id, $this->defaultProductRelations());
     }
+
 
     public function updateProduct(int $id, array $data): ?Product
     {
-        dd($data);
         return DB::transaction(function () use ($data, $id) {
             $product = $this->ProductRepository->update($id, $data['product']);
             $this->syncPharmacyInfo($product, $data['pharmacyInfo'] ?? []);
@@ -234,8 +206,7 @@ class ProductService
     }
     public function getHomeProducts()
     {
-        $relation = ['store.storeSetting', 'category', 'images', 'price', 'availability', 'offers'];
-        return $this->ProductRepository->home($relation);
+        return $this->ProductRepository->home($this->defaultProductRelations());
     }
 
     public function getGroupedProductsByStore(int $storeId, array $filters = []): array
@@ -284,47 +255,36 @@ class ProductService
         $now = now();
         $endDateThreshold = $now->copy()->addDays($days);
 
-        $query = Product::with([
-            'store.storeSetting',
-            'category',
-            'images',
-            'price',
-            'availability',
-            'tags',
-            'offers' => fn($query) => $query->where('is_active', true)
-                ->where('status', \App\Enums\OfferStatusEnum::ACTIVE->value)
-                ->whereNotNull('end_date')
+        $offerConstraint = function ($query) use ($now, $endDateThreshold) {
+            $this->applyActiveOfferQuery($query)
                 ->whereBetween('end_date', [$now->toDateString(), $endDateThreshold->toDateString()])
-                ->orderBy('end_date'),
-        ])
-            ->whereHas(
-                'offers',
-                fn($query) => $query
-                    ->where('is_active', true)
-                    ->where('status', \App\Enums\OfferStatusEnum::ACTIVE->value)
-                    ->whereNotNull('end_date')
-                    ->whereBetween('end_date', [$now->toDateString(), $endDateThreshold->toDateString()])
-            )
-            ->when($storeId, fn($query) => $query->where('store_id', $storeId))
+                ->orderBy('end_date');
+        };
+
+        $query = Product::with(array_merge(
+            $this->defaultProductRelations(),
+            ['offers' => $offerConstraint]
+        ))
+            ->whereHas('offers', $offerConstraint)
+            ->when($storeId, fn($q) => $q->where('store_id', $storeId))
             ->where('is_active', true)
             ->where('status', ProductStatusEnum::ACTIVE->value)
             ->orderByRaw('(
-        SELECT end_date FROM offers
-        WHERE offerable_id = products.id
-        AND offerable_type = ?
-        AND is_active = 1
-        AND status = "active"
-        AND end_date IS NOT NULL
-        ORDER BY end_date ASC LIMIT 1
-    )', [Product::class]);
+            SELECT end_date FROM offers
+            WHERE offerable_id = products.id
+            AND offerable_type = ?
+            AND is_active = 1
+            AND status = "active"
+            AND end_date IS NOT NULL
+            ORDER BY end_date ASC LIMIT 1
+        )', [Product::class]);
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);
-        $total = $products->total();
 
         return [
             'products' => $products,
             'meta' => [
-                'total_products' => $total,
+                'total_products' => $products->total(),
                 'days_threshold' => (int) $days,
                 'timeframe' => "Next {$days} days",
                 'current_time' => $now->toDateTimeString(),
@@ -343,5 +303,34 @@ class ProductService
         }
 
         return max(0, $basePrice - $discountAmount);
+    }
+    private function defaultProductRelations(): array
+    {
+        return [
+            'store.translations',
+            'store.storeSetting',
+            'category.translations',
+            'images',
+            'price',
+            'availability',
+            'tags',
+            'units.translations',
+            'ProductNutrition',
+            'productAllergen.translations',
+            'pharmacyInfo.translations',
+            'watermark',
+            'offers',
+            'requiredOptions',
+            'productOptions.option.translations',
+            'productOptions.optionValues.productValue.translations',
+        ];
+    }
+
+    private function applyActiveOfferQuery($query)
+    {
+        return $query
+            ->where('is_active', true)
+            ->where('status', \App\Enums\OfferStatusEnum::ACTIVE->value)
+            ->whereNotNull('end_date');
     }
 }

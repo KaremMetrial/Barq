@@ -6,15 +6,21 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateFavouriteRequest extends FormRequest
 {
+    public function prepareForValidation()
+    {
+        $this->merge([
+            'user_id' => auth('user')->user()->id,
+        ]);
+    }
     /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id', 
+            'user_id' => 'required|exists:users,id',
             'favouriteable_id' => 'required|integer',
-            'favouriteable_type' => 'required|string',
+            'favouriteable_type' => 'required|string|in:store,product',
         ];
     }
 

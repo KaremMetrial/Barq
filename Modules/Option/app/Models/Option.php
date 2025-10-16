@@ -3,6 +3,7 @@
 namespace Modules\Option\Models;
 
 use App\Enums\OptionInputTypeEnum;
+use Modules\Order\Models\OrderItem;
 use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Product\Models\ProductValue;

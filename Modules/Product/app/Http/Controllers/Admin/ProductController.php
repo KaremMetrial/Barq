@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Product\Http\Controllers;
+namespace Modules\Product\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -30,6 +30,18 @@ class ProductController extends Controller
             "pagination" => new PaginationResource($products),
         ], __("message.success"));
     }
+
+    /**
+     * Store a newly created product.
+     */
+    public function store(CreateProductRequest $request): JsonResponse
+    {
+        $product = $this->productService->createProduct($request->validated());
+        return $this->successResponse([
+            "product" => new ProductResource($product),
+        ], __("message.success"));
+    }
+
     /**
      * Show a specific product.
      */
@@ -39,6 +51,26 @@ class ProductController extends Controller
         return $this->successResponse([
             "product" => new ProductResource($product),
         ], __("message.success"));
+    }
+
+    /**
+     * Update a specific product.
+     */
+    public function update(UpdateProductRequest $request, int $id): JsonResponse
+    {
+        $product = $this->productService->updateProduct($id, $request->all());
+        return $this->successResponse([
+            "product" => new ProductResource($product),
+        ], __("message.success"));
+    }
+
+    /**
+     * Delete a product.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $deleted = $this->productService->deleteProduct($id);
+        return $this->successResponse(null, __("message.success"));
     }
     public function home(): JsonResponse
     {

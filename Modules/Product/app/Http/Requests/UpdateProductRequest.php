@@ -11,9 +11,18 @@ class UpdateProductRequest extends FormRequest
 {
     public function prepareForValidation(): void
     {
-        // Filter input data before validation to clean up null or empty values
+        $product = $this->filterArray($this->input('product', []));
+        if (auth('vendor')->check()) {
+            $vendor = auth('vendor')->user();
+            if ($vendor && $vendor->store_id) {
+                $product['store_id'] = $vendor->store_id;
+            } else {
+                abort(422, 'Authenticated vendor does not have a store assigned.');
+            }
+        }
+
         $this->merge([
-            'product' => $this->filterArray($this->input('product', [])),
+            'product' => $product,
             'pharmacyInfo' => $this->filterArray($this->input('pharmacyInfo', [])),
             'productAllergen' => $this->filterArray($this->input('productAllergen', [])),
             'availability' => $this->filterArray($this->input('availability', [])),

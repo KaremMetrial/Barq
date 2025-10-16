@@ -51,13 +51,30 @@ class FavouriteService
     }
 
 
-
-    public function createFavourite(array $data): ?Favourite
+    public function toggleFavourite(array $data): bool
     {
-        return DB::transaction(function () use ($data) {
-            $data = array_filter($data, fn($value) => !blank($value));
-            return $this->favouriteRepository->create($data);
-        });
+        $data = array_filter($data, fn($value) => !blank($value));
+
+        $userId = $data['user_id'] ?? auth('user')->id();
+        $favouriteableId = $data['favouriteable_id'] ?? null;
+        $favouriteableType = $data['favouriteable_type'] ?? null;
+
+        if (!$userId || !$favouriteableId || !$favouriteableType) {
+            return false;
+        }
+
+        $query = Favourite::query()
+            ->where('user_id', $userId)
+            ->where('favouriteable_id', $favouriteableId)
+            ->where('favouriteable_type', $favouriteableType);
+
+        if ($query->exists()) {
+            $query->delete();
+            return false;
+        }
+
+        $this->favouriteRepository->create($data);
+        return true;
     }
 
     public function getFavouriteById(int $id): ?Favourite
