@@ -118,9 +118,24 @@ class OrderResource extends JsonResource
             return false;
         }
 
-        // Add your authorization logic here
-        return $user->id === $this->user_id ||
-            $user instanceof \Modules\Couier\Models\Couier ||
-            $user instanceof \Modules\Admin\Models\Admin;
+        // Check different auth guards
+        if (auth('admin')->check()) {
+            return true; // Admin can see all OTPs
+        }
+
+        if (auth('vendor')->check()) {
+            return $this->store_id === auth('vendor')->user()->store_id; // Vendor can see OTPs for their store orders
+        }
+
+        if (auth('user')->check()) {
+            return $user->id === $this->user_id; // User can see their own order OTPs
+        }
+
+        // Courier check (assuming courier uses sanctum guard)
+        if ($user instanceof \Modules\Couier\Models\Couier) {
+            return true; // Courier assigned to order can see OTP
+        }
+
+        return false;
     }
 }

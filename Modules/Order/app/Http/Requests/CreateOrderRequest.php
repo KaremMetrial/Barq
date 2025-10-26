@@ -132,7 +132,7 @@ class CreateOrderRequest extends FormRequest
                         $productId = $item['product_id'] ?? null;
 
                         if ($productId) {
-                            $optionValue = ProductOptionValue::whereHas('productOption', function($q) use ($productId) {
+                            $optionValue = ProductOptionValue::whereHas('productOption', function ($q) use ($productId) {
                                 $q->where('product_id', $productId);
                             })->find($value);
                             if (!$optionValue) {
@@ -201,6 +201,9 @@ class CreateOrderRequest extends FormRequest
             "address.zone_id" => ["nullable", "integer", "exists:zones,id"],
             "address.address_line_1" => ["required_with:address", "string", "max:255"],
             "address.address_line_2" => ["nullable", "string", "max:255"],
+            "city_id" => ["nullable", "integer", "exists:cities,id"],
+            "governorate_id" => ["nullable", "integer", "exists:governorates,id"],
+            "country_id" => ["nullable", "integer", "exists:countries,id"],
         ];
     }
 
@@ -260,21 +263,6 @@ class CreateOrderRequest extends FormRequest
             "address.longitude" => "longitude",
             "address.address_line_1" => "address",
         ];
-    }
-
-    /**
-     * Handle a failed validation attempt.
-     */
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
-    {
-        throw new \Illuminate\Validation\ValidationException(
-            $validator,
-            response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422)
-        );
     }
 
     /**

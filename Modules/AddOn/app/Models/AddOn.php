@@ -4,6 +4,8 @@ namespace Modules\AddOn\Models;
 
 use Modules\Cart\Models\CartItem;
 use Modules\Product\Models\Product;
+use Modules\Order\Models\Order;
+use Modules\Order\Models\OrderItem;
 use App\Enums\AddOnApplicableToEnum;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;

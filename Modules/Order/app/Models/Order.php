@@ -139,8 +139,15 @@ class Order extends Model
             $query->where('status', $filters['status']);
         });
 
-        if (request()->header('user') && request()->header('user') == 'vendor') {
-            $query->where('store_id', auth('vendor')->user()->id);
+        // Role-based filtering using proper authentication guards
+        if (auth('admin')->check()) {
+            // Admin sees all orders - no additional filtering
+        } elseif (auth('vendor')->check()) {
+            // Vendor sees only their store's orders
+            $query->where('store_id', auth('vendor')->user()->store_id);
+        } elseif (auth('user')->check()) {
+            // User sees only their own orders
+            $query->where('user_id', auth('user')->id());
         }
 
         return $query->latest();
@@ -172,4 +179,5 @@ class Order extends Model
 
         return round($fee, 2);
     }
+
 }

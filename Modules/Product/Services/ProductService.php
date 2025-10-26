@@ -254,48 +254,39 @@ class ProductService
         $storeId = Arr::get($filters, 'store_id');
         $page = Arr::get($filters, 'page', 1);
 
-        $sectionId = $filters['section_id'] ?? 0;
+        $sectionId = 0;
         if (array_key_exists('section_id', $filters) && (int)$filters['section_id'] == 0) {
             $latestSection = \Modules\Section\Models\Section::latest()->first();
             $sectionId = $latestSection?->id;
         }
 
         $now = now();
-        $endDateThreshold = $now->copy()->addDays($days)->endOfDay();
+        $endDateThreshold = $now->copy()->addDays($days);
 
         $offerConstraint = function ($query) use ($now, $endDateThreshold) {
-            return $query->where('is_active', true)
-                ->where('status', \App\Enums\OfferStatusEnum::ACTIVE->value)
-                ->whereNotNull('end_date')
-                ->where('end_date', '>=', $now)
-                ->where('end_date', '<=', $endDateThreshold)
-                ->orderBy('end_date', 'asc');
+            $this->applyActiveOfferQuery($query)
+                ->whereBetween('end_date', [$now->toDateString(), $endDateThreshold->toDateString()])
+                ->orderBy('end_date');
         };
 
         $query = Product::with(array_merge(
             $this->defaultProductRelations(),
             ['offers' => $offerConstraint]
         ))
-            ->whereHas('offers', $offerConstraint) // ✅ يتحقق من وجود عروض في النطاق
+            ->whereHas('offers', $offerConstraint)
             ->when($storeId, fn($q) => $q->where('store_id', $storeId))
             ->when($sectionId, fn($q) => $q->whereHas('store', fn($q2) => $q2->where('section_id', $sectionId)))
             ->where('is_active', true)
             ->where('status', ProductStatusEnum::ACTIVE->value)
-            // ✅ ORDER BY مصحح - استبعاد العروض المنتهية
             ->orderByRaw('(
-        SELECT MIN(end_date) FROM offers
-        WHERE offerable_id = products.id
-        AND offerable_type = ?
-        AND is_active = 1
-        AND status = "active"
-        AND end_date IS NOT NULL
-        AND end_date >= ?  -- 🔥 استبعاد العروض المنتهية
-        AND end_date <= ?  -- حتى نهاية اليوم المحدد
-    ) ASC', [
-                Product::class,
-                $now,
-                $endDateThreshold
-            ]);
+            SELECT end_date FROM offers
+            WHERE offerable_id = products.id
+            AND offerable_type = ?
+            AND is_active = 1
+            AND status = "active"
+            AND end_date IS NOT NULL
+            ORDER BY end_date ASC LIMIT 1
+        )', [Product::class]);
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);
 
@@ -310,6 +301,7 @@ class ProductService
             ]
         ];
     }
+
 
     /**
      * Calculate sale price based on discount
@@ -327,6 +319,7 @@ class ProductService
         return [
             'store.translations',
             'store.storeSetting',
+            'store.address.zone.city.governorate.country',
             'category.translations',
             'images',
             'price',
@@ -341,7 +334,7 @@ class ProductService
             'requiredOptions',
             'productOptions.option.translations',
             'productOptions.optionValues.productValue.translations',
-            'addOns'
+            'addOns.translations'
         ];
     }
 

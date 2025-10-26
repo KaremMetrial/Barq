@@ -9,6 +9,7 @@ use App\Enums\ProductStatusEnum;
 use Illuminate\Support\Facades\Auth;
 use Modules\Tag\Http\Resources\TagResource;
 use Modules\Unit\Http\Resources\UnitResource;
+use Modules\AddOn\Http\Resources\AddOnResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductResource extends JsonResource
@@ -21,14 +22,14 @@ class ProductResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            "id"         => $this->id,
-            "name"       => $this->name,
+            "id" => $this->id,
+            "name" => $this->name,
             "description" => $this->description,
-            "is_active"  => (bool) $this->is_active,
+            "is_active" => (bool) $this->is_active,
             "max_cart_quantity" => (int) $this->max_cart_quantity,
-            "status"     => $this->status?->value,
+            "status" => $this->status?->value,
             "status_label" => ProductStatusEnum::label($this->status->value),
-            "note"       => $this->note,
+            "note" => $this->note,
             "is_reviewed" => (bool) $this->is_reviewed,
             "is_vegetarian" => (bool) $this->is_vegetarian,
             "is_featured" => (bool) $this->is_featured,
@@ -37,10 +38,8 @@ class ProductResource extends JsonResource
             "barcode" => $this->barcode,
             "images" => ProductImageResource::collection($this->whenLoaded("images")),
             "price" => $this->whenLoaded('price', function () {
-                return [
-                    "price" => $this->price->price,
-                ];
-            }),
+                return number_format($this->price->price, 0);
+                }),
             "store"      => $this->whenLoaded('store', function () {
                 return [
                     "id"   => $this->store->id,
@@ -87,14 +86,14 @@ class ProductResource extends JsonResource
                 return [
                     'id' => $offer->id,
                     'discount_type' => $offer->discount_type->value,
-                    'discount_amount' => $offer->discount_amount,
+                    'discount_amount' => number_format($offer->discount_amount, 0),
                     'start_date' => $offer->start_date,
                     'end_date' => $offer->end_date,
                     'is_flash_sale' => $offer->is_flash_sale,
                     'has_stock_limit' => $offer->has_stock_limit,
                     'stock_limit' => $offer->stock_limit,
                     'ends_in' => \Carbon\Carbon::parse($offer->end_date)->diffForHumans(),
-                    'sale_price' => $this->calculateSalePrice(
+                    'sale_price' => (string) $this->calculateSalePrice(
                         $price,
                         $offer->discount_amount,
                         $offer->discount_type->value
@@ -104,6 +103,11 @@ class ProductResource extends JsonResource
             }),
             "product_options" => ProductOptionResource::collection($this->whenLoaded("productOptions")),
             "has_required_options" => $this->whenLoaded('requiredOptions', fn () => $this->requiredOptions->isNotEmpty(), false),
+            "add_ons" => AddOnResource::collection($this->whenLoaded("addOns")),
+            'symbol_currency' => $this->whenLoaded('store', function () {
+                return $this->store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP';
+            })
+
         ];
     }
     protected function getCartQuantity(): int
@@ -154,7 +158,7 @@ class ProductResource extends JsonResource
             return round(max($originalPrice - $discountAmount, 0), 2);
         }
 
-        return $originalPrice;
+        return number_format($originalPrice, 0);
     }
     protected function getBannerTextFromOffer($offer): ?string
     {

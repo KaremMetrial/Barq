@@ -28,6 +28,9 @@ class UpdateAddressRequest extends FormRequest
             'city_id' => ['nullable', 'exists:cities,id'],
             'governorate_id' => ['nullable', 'exists:governorates,id'],
             'country_id' => ['nullable', 'exists:countries,id'],
+            'apartment_number' =>  ['nullable', 'string'],
+            'house_number' =>  ['nullable', 'string'],
+            'street' =>  ['nullable', 'string'],
         ];
     }
 

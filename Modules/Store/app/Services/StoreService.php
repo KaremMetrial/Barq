@@ -23,7 +23,7 @@ class StoreService
     {
         return $this->StoreRepository->paginate(
             $filters,
-            15,
+            5,
             [
                 'section.categories.translations',
                 'storeSetting',
@@ -58,7 +58,7 @@ class StoreService
 
     public function getStoreById(int $id): ?Store
     {
-        return $this->StoreRepository->find($id, ['section.categories', 'storeSetting']);
+        return $this->StoreRepository->find($id, ['section.categories', 'storeSetting','section.categories.children.translations',]);
     }
 
     public function updateStore(int $id, array $data): ?Store

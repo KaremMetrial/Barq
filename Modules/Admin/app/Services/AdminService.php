@@ -2,11 +2,14 @@
 
 namespace Modules\Admin\Services;
 
+use Illuminate\Http\Request;
 use App\Traits\FileUploadTrait;
-use Illuminate\Database\Eloquent\Collection;
 use Modules\Admin\Models\Admin;
-use Modules\Admin\Repositories\AdminRepository;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
+use Modules\Admin\Repositories\AdminRepository;
 
 class AdminService
 {
@@ -57,4 +60,40 @@ class AdminService
     {
         return $this->AdminRepository->delete($id);
     }
+        public function login(array $data)
+    {
+        $admin = $this->AdminRepository->firstWhere([
+            'email' => $data['email']
+        ]);
+        if (! $admin || ! Hash::check($data['password'], $admin->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+        $token = $admin->createToken('admin')->plainTextToken;
+        return [
+            'admin' => $admin,
+            'token' => $token
+        ];
+    }
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user && $user->currentAccessToken()) {
+            $user->currentAccessToken()->delete();
+        }
+
+        return true;
+    }
+    public function updatePassword(array $data)
+    {
+        $admin = request()->user('admin');
+        $admin->update([
+            'password' => Hash::make($data['password'])
+        ]);
+
+        return $admin;
+    }
+
 }

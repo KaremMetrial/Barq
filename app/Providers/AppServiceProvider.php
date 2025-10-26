@@ -9,6 +9,7 @@ use Modules\Vendor\Models\Vendor;
 use Modules\Product\Models\Product;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Intervention\Image\Laravel\Facades\Image;
 
 class AppServiceProvider extends ServiceProvider
 {

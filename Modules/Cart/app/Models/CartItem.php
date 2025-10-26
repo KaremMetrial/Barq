@@ -19,7 +19,8 @@ class CartItem extends Model
         "cart_id",
         "product_id",
         "product_option_value_id",
-        "is_group_order"
+        "is_group_order",
+        "added_by_user_id",
     ];
     public function product(): BelongsTo
     {

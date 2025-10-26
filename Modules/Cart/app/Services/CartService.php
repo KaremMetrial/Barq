@@ -15,10 +15,17 @@ class CartService
 {
     public function __construct(protected CartRepository $cartRepository) {}
 
-    public function getAllCarts(): Collection
+    public function getCart()
     {
-        return $this->cartRepository->all();
+        $cartKey = request()->header('Cart-Key') ?? request('cart_key');
+
+        if ($cartKey) {
+            return $this->getCartByCartKey($cartKey);
+        }
+
+        return null;
     }
+
 
     public function createCart(array $data): ?Cart
     {
@@ -42,10 +49,19 @@ class CartService
                 'items.product',
                 'items.addOns',
                 'items.productOptionValue.productOption.values',
+                'items.addedBy',
                 'store',
                 'user',
+                'participants',
                 'posShift',
             ]
+        );
+    }
+
+    public function getCartByCartKey(string $cartKey): ?Cart
+    {
+        return $this->cartRepository->firstWhere(
+            ['cart_key' => $cartKey]
         );
     }
 
@@ -77,15 +93,18 @@ class CartService
             return;
         }
 
-        $productIds = collect($items)->pluck('product_id')->unique()->values()->all();
+        // Validate and collect IDs
+        $productIds = collect($items)->pluck('product_id')->unique()->filter()->values()->all();
         $optionValueIds = collect($items)->pluck('product_option_value_id')->filter()->unique()->values()->all();
         $addOnIds = collect($items)
             ->flatMap(fn($item) => $item['add_ons'] ?? [])
             ->pluck('id')
             ->unique()
+            ->filter()
             ->values()
             ->all();
 
+        // Load models with validation
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
         $options = ProductOptionValue::whereIn('id', $optionValueIds)->get()->keyBy('id');
         $addOnModels = AddOn::whereIn('id', $addOnIds)->get()->keyBy('id');
@@ -94,18 +113,14 @@ class CartService
             return $item->product_id . '-' . ($item->product_option_value_id ?? 'null');
         });
 
-        $incomingKeys = [];
-
         foreach ($items as $item) {
             $key = $item['product_id'] . '-' . ($item['product_option_value_id'] ?? 'null');
-            $incomingKeys[] = $key;
 
-            // لو كمية العنصر صفر، نحذفه إذا كان موجود
             if (($item['quantity'] ?? 1) == 0) {
                 if ($existingItems->has($key)) {
                     $existingItems->get($key)->delete();
                 }
-                continue; // ننتقل للعنصر التالي
+                continue;
             }
 
             $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels);
@@ -121,6 +136,7 @@ class CartService
                     $existingItem->addOns()->detach();
                 }
             } else {
+                $cartItemData['added_by_user_id'] = auth('user')->id();
                 $newCartItem = $cart->items()->create($cartItemData);
 
                 if (!empty($item['add_ons'])) {
@@ -139,17 +155,36 @@ class CartService
         Collection $options,
         Collection $addOnModels
     ): array {
-        $quantity = $item['quantity'] ?? 1;
+        // Validate required fields
+        if (!isset($item['product_id'])) {
+            throw new \InvalidArgumentException('Product ID is required for cart item');
+        }
+
+        $quantity = max(1, (int)($item['quantity'] ?? 1)); // Ensure positive quantity
         $product = $products[$item['product_id']] ?? null;
         $option = $options[$item['product_option_value_id'] ?? null] ?? null;
 
-        $productPrice = $product?->price->price ?? 0;
-        $optionPrice = $option?->price ?? 0;
+        // Validate product exists and is available
+        if (!$product) {
+            throw new \InvalidArgumentException("Product with ID {$item['product_id']} not found");
+        }
+
+        // Get product price safely
+        $productPrice = 0;
+        if ($product->price && isset($product->price->price)) {
+            $productPrice = (float) $product->price->price;
+        }
+
+        $optionPrice = $option ? (float) $option->price : 0;
 
         $addOnTotal = collect($item['add_ons'] ?? [])
-            ->sum(
-                fn($addOn) => ($addOnModels[$addOn['id']]->price ?? 0) * ($addOn['quantity'] ?? 1)
-            );
+            ->sum(function ($addOn) use ($addOnModels) {
+                $addOnModel = $addOnModels[$addOn['id']] ?? null;
+                if (!$addOnModel) {
+                    throw new \InvalidArgumentException("Add-on with ID {$addOn['id']} not found");
+                }
+                return (float) $addOnModel->price * max(1, (int)($addOn['quantity'] ?? 1));
+            });
 
         $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $quantity;
 
@@ -158,7 +193,7 @@ class CartService
             'product_option_value_id' => $item['product_option_value_id'] ?? null,
             'quantity' => $quantity,
             'note' => $item['note'] ?? null,
-            'total_price' => $totalPrice,
+            'total_price' => round($totalPrice, 2), // Round to 2 decimal places
         ];
     }
 
@@ -167,15 +202,15 @@ class CartService
         return collect($addOns)->mapWithKeys(function ($addOn) use ($addOnModels) {
             $model = $addOnModels[$addOn['id']] ?? null;
             if (!$model) {
-                return [];
+                throw new \InvalidArgumentException("Add-on with ID {$addOn['id']} not found");
             }
 
-            $quantity = $addOn['quantity'] ?? 1;
+            $quantity = max(1, (int)($addOn['quantity'] ?? 1));
 
             return [
                 $addOn['id'] => [
                     'quantity' => $quantity,
-                    'price_modifier' => $model->price * $quantity,
+                    'price_modifier' => round((float) $model->price * $quantity, 2),
                 ],
             ];
         })->toArray();
@@ -193,7 +228,45 @@ class CartService
     public function joinCart($cartKey)
     {
         $cart = $this->cartRepository->firstWhere(['cart_key' => $cartKey]);
+
+        if (!$cart) {
+            return null;
+        }
+
+        // Check if user is already a participant
+        if ($cart->participants()->where('user_id', auth()->id())->exists()) {
+            return $cart; // Already joined
+        }
+
         $cart->participants()->attach(auth()->id());
+        $cart->save();
+        return $cart;
+    }
+
+    public function removeParticipant(string $cartKey, int $userId): ?Cart
+    {
+        $cart = $this->cartRepository->firstWhere(['cart_key' => $cartKey]);
+
+        if (!$cart) {
+            return null;
+        }
+
+        // Check if the current user is the owner of the cart
+        if ($cart->user_id !== auth('user')->id()) {
+            throw new \Illuminate\Auth\Access\AuthorizationException('Only the cart owner can remove participants.');
+        }
+
+        // Check if the user to remove is a participant
+        if (!$cart->participants()->where('user_id', $userId)->exists()) {
+            throw new \InvalidArgumentException('User is not a participant in this cart.');
+        }
+
+        // Cannot remove the owner themselves
+        if ($userId === $cart->user_id) {
+            throw new \InvalidArgumentException('Cannot remove the cart owner from participants.');
+        }
+
+        $cart->participants()->detach($userId);
         $cart->save();
         return $cart;
     }

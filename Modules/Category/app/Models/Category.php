@@ -2,6 +2,10 @@
 
 namespace Modules\Category\Models;
 
+use Modules\Coupon\Models\Coupon;
+use Modules\Product\Models\Product;
+use Modules\Section\Models\Section;
+use Modules\Interest\Models\Interest;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Cviebrock\EloquentSluggable\Sluggable;
@@ -62,5 +66,15 @@ class Category extends Model implements TranslatableContract
     public function interests(): HasMany
     {
         return $this->hasMany(Interest::class);
+    }
+    public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+        }
+        if (!auth('admin')->check()) {
+            $query->whereIsActive(true);
+        }
+        return $query->latest();
     }
 }

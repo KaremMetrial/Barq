@@ -23,7 +23,7 @@ class ProductController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only('store_id');
+        $filters = $request->only('store_id', 'category_id', 'search');
         $products = $this->productService->getAllProducts($filters);
         return $this->successResponse([
             "products" => ProductResource::collection($products),
@@ -66,12 +66,14 @@ class ProductController extends Controller
     }
     public function getOffersEndingSoon(Request $request): JsonResponse
     {
-        $filters = $request->only(['days', 'store_id', 'per_page', 'page']);
+        $filters = $request->only(['days', 'store_id', 'per_page', 'page', 'section_id']);
         $result = $this->productService->getProductsWithOffersEndingSoon($filters);
 
         return $this->successResponse([
-            "products" => ProductResource::collection($result['products']),
-            "meta" => $result['meta'],
+            "products" => $result['products']->isEmpty()
+                ? []
+                : ProductResource::collection($result['products']),
+            "meta" => $result['products']->isEmpty() ? null : $result['meta'],
             "pagination" => new PaginationResource($result['products']),
         ], __("message.success"));
     }

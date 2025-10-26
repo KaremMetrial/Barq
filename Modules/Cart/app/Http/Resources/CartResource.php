@@ -35,6 +35,15 @@ class CartResource extends JsonResource
                     "name" => $this->user->name,
                 ] : null;
             }),
+
+            "participants" => $this->whenLoaded('participants', function () {
+                return $this->participants->map(function ($participant) {
+                    return [
+                        "id" => $participant->id,
+                        "name" => $participant->first_name . ' ' . $participant->last_name,
+                    ];
+                })->toArray();
+            }, []),
             "items" => CartItemResource::collection($this->whenLoaded('items')),
         ];
     }

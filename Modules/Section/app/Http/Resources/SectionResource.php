@@ -24,7 +24,9 @@ class SectionResource extends JsonResource
             "is_active" => (bool) $this->is_active,
             "sort_order" => (int) $this->sort_order,
             "is_featured" => (bool) $this->is_featured,
-            'categories' => CategoryResource::collection($this->categories)
+            'categories' => CategoryResource::collection($this->categories),
+            'type' => $this->type?->value,
+            'type_label' => SectionTypeEnum::label($this->type?->value),
         ];
     }
 }

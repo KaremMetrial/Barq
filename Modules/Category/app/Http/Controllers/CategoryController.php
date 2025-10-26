@@ -21,11 +21,12 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        $filters = $request->only('search','getParent');
         $categories = $this->categoryService->getAllCountries();
         return $this->successResponse([
-            "categories"=> CategoryResource::collection($categories),
+            "categories"=> CategoryResource::collection($categories->load('children')),
         ],__("message.success"));
     }
 
@@ -48,6 +49,7 @@ class CategoryController extends Controller
         $category = $this->categoryService->getCategoryById($id);
         return $this->successResponse([
             "category"=> new CategoryResource($category),
+            // 'subcategories' => CategoryResource::collection($category->children),
         ], __("message.success"));
     }
 

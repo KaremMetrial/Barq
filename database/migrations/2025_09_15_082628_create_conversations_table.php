@@ -23,7 +23,7 @@ return new class extends Migration
             $table->foreignId('vendor_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('admin_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('couier_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('order_id')->nullable()->constrained()->cascadeOnDelete();
+            // $table->foreignId('order_id')->nullable()->constrained()->cascadeOnDelete();
         });
     }
 

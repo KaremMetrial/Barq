@@ -23,6 +23,7 @@ class CategoryResource extends JsonResource
             "is_active" => (bool) $this->is_active,
             "sort_order" => (int) $this->sort_order,
             "is_featured" => (bool) $this->is_featured,
+            'subcategories' => CategoryResource::collection($this->whenLoaded('children')),
         ];
     }
 }

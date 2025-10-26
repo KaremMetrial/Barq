@@ -2,13 +2,16 @@
 
 namespace Modules\Admin\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Modules\Admin\Services\AdminService;
+use Modules\Admin\Http\Requests\LoginRequest;
+use Modules\Admin\Http\Resources\AdminResource;
 use Modules\Admin\Http\Requests\CreateAdminRequest;
 use Modules\Admin\Http\Requests\UpdateAdminRequest;
-use Modules\Admin\Http\Resources\AdminResource;
-use Modules\Admin\Services\AdminService;
+use Modules\Admin\Http\Requests\UpdatePasswordRequest;
 
 class AdminController extends Controller
 {
@@ -72,5 +75,25 @@ class AdminController extends Controller
         $this->adminService->deleteAdmin($id);
 
         return $this->successResponse(null, __("message.success"));
+    }
+
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $admin = $this->adminService->login($request->validated());
+        return $this->successResponse([
+            'admin' => new AdminResource($admin['admin']),
+            'token' => $admin['token'],
+        ], __('message.success'));
+    }
+    public function logout(Request $request): JsonResponse
+    {
+        $vendor = $this->adminService->logout($request);
+
+        return $this->successResponse(null, __('message.success'));
+    }
+    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
+    {
+        $vendor = $this->adminService->updatePassword($request->validated());
+        return $this->successResponse(null, __('message.success'));
     }
 }

@@ -28,7 +28,10 @@ class Address extends Model implements TranslatableContract
         'addressable_id',
         'city_id',
         'governorate_id',
-        'country_id'
+        'country_id',
+        'apartment_number',
+        'house_number',
+        'street'
     ];
     protected $casts = [
         'is_default' => 'boolean',

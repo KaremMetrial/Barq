@@ -13,9 +13,9 @@ class CategoryService
         protected CategoryRepository $CategoryRepository
     ) {}
 
-    public function getAllCountries(): Collection
+    public function getAllCountries($filters = []): Collection
     {
-        return $this->CategoryRepository->all();
+        return $this->CategoryRepository->allWithTranslations($filters);
     }
 
     public function createCategory(array $data): ?Category
@@ -28,7 +28,7 @@ class CategoryService
 
     public function getCategoryById(int $id): ?Category
     {
-        return $this->CategoryRepository->find($id);
+        return $this->CategoryRepository->find($id, ['children']);
     }
 
     public function updateCategory(int $id, array $data): ?Category

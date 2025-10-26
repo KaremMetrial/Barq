@@ -16,12 +16,14 @@ class CountrySeeder extends Seeder
         $countries = [
             [
                 'code' => 'EG',
+                'currency_symbol' => 'EGP',
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'code' => 'SA',
+                'currency_symbol' => 'SAR',
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),

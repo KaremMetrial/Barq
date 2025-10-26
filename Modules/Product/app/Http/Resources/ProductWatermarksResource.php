@@ -16,7 +16,7 @@ class ProductWatermarksResource extends JsonResource
     {
         return [
             "id"=> $this->id,
-            "image_url" => asset('storage/' . $this->image_url),
+            "image_url" => $this->image_url ? asset('storage/' . $this->image_url) : null,
             "position" => $this->position,
             "opacity" => (int) $this->opacity,
         ];

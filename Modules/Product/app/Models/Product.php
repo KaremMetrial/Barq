@@ -136,6 +136,11 @@ class Product extends Model implements TranslatableContract
     {
         $query->withTranslation()
             ->withAvg('reviews', 'rating');
+        if (isset($filters['search'])) {
+            $searchTerm = $filters['search'];
+            $query->whereTranslationLike('name', '%' . $searchTerm . '%')
+                ->orWhereTranslationLike('description', '%' . $searchTerm . '%');
+        }
 
         $admin = auth('admin')->check();
         $vendor = auth('vendor')->check() ? auth('vendor')->user() : null;
@@ -143,19 +148,22 @@ class Product extends Model implements TranslatableContract
         if (isset($filters['store_id'])) {
             $query->where('store_id', $filters['store_id']);
         }
+        if (isset($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id'])->orWhereHas('category', function ($q) use ($filters) {
+                $q->where('parent_id', $filters['category_id']);
+            });
+        }
 
         if ($admin) {
             return $query->latest();
         }
 
         if ($vendor && $vendor->store_id) {
-            $query->where('store_id', $vendor->store_id);
+            return  $query->where('store_id', $vendor->store_id);
         }
 
         return $query->whereStatus(ProductStatusEnum::ACTIVE)->latest();
     }
-
-
     public function getAvgRateAttribute()
     {
         return $this->reviews()->avg('rating') ?? 0;

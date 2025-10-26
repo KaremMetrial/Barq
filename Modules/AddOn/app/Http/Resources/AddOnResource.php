@@ -20,7 +20,7 @@ class AddOnResource extends JsonResource
             "id"=> $this->id,
             "name"=> $this->name,
             "description"=> $this->description,
-            "price"=> $this->price,
+            "price"=> number_format($this->price,0),
             "is_active"=> (bool) $this->is_active,
             "applicable_to"=> $this->applicable_to->value,
             "applicable_to_label"=> AddOnApplicableToEnum::label($this->applicable_to->value),

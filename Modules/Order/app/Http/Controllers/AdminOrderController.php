@@ -13,14 +13,14 @@ use Modules\Order\Http\Requests\CreateOrderRequest;
 use Modules\Order\Http\Requests\UpdateOrderRequest;
 use Modules\Order\Http\Resources\OrderCollectionResource;
 
-class OrderController extends Controller
+class AdminOrderController extends Controller
 {
     use ApiResponse;
 
     public function __construct(protected OrderService $orderService) {}
 
     /**
-     * Display a listing of the orders.
+     * Display a listing of all orders (admin sees all).
      */
     public function index(Request $request): JsonResponse
     {
@@ -34,7 +34,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Store a newly created order.
+     * Store a newly created order (admin can create orders).
      */
     public function store(CreateOrderRequest $request): JsonResponse
     {

@@ -5,7 +5,6 @@ namespace App\Traits;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
 
 trait FileUploadTrait
 {
@@ -28,32 +27,85 @@ trait FileUploadTrait
     ): ?string {
         if ($request->hasFile($fieldName)) {
             $file = $request->file($fieldName);
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $filename = Str::uuid() . '.webp';  // Save as .webp format
             $path = $directory . '/' . $filename;
 
+            // Handle resizing if dimensions are provided
             if ($resize) {
-                // Resize using Intervention
-                $image = Image::make($file);
-                $image->resize(
-                    $resize[0] ?? null,
-                    $resize[1] ?? null,
-                    function ($constraint) {
-                        $constraint->aspectRatio();
-                        $constraint->upsize();
-                    }
-                );
-
-                // Save the image to the disk
-                Storage::disk($disk)->put($path, (string) $image->encode());
+                $image = $this->resizeImage($file, $resize[0], $resize[1]);
+                // Save the resized image to WebP format
+                Storage::disk($disk)->put($path, (string) $image);
             } else {
-                // Just store the original file
-                $file->storeAs($directory, $filename, $disk);
+                // Just store the original file as WebP (convert to WebP format)
+                $image = $this->convertToWebP($file);
+                Storage::disk($disk)->put($path, (string) $image);
             }
 
             return $path;
         }
 
         return null;
+    }
+
+    /**
+     * Resize image and convert to WebP format without using Intervention Image.
+     *
+     * @param \Illuminate\Http\UploadedFile $file
+     * @param int|null $width
+     * @param int|null $height
+     * @return resource
+     */
+    private function resizeImage($file, ?int $width, ?int $height)
+    {
+        $image = imagecreatefromstring(file_get_contents($file));
+
+        // Get original dimensions
+        $originalWidth = imagesx($image);
+        $originalHeight = imagesy($image);
+
+        // If one of the dimensions is null, maintain aspect ratio
+        if ($width && !$height) {
+            $height = ($width / $originalWidth) * $originalHeight;
+        } elseif ($height && !$width) {
+            $width = ($height / $originalHeight) * $originalWidth;
+        }
+
+        // Resize the image
+        $resizedImage = imagescale($image, $width, $height);
+
+        // Convert the resized image to WebP format
+        ob_start();
+        imagewebp($resizedImage, null, 80); // 80 is the quality of the WebP (scale 0-100)
+        $imageData = ob_get_contents();
+        ob_end_clean();
+
+        // Free memory
+        imagedestroy($image);
+        imagedestroy($resizedImage);
+
+        return $imageData;
+    }
+
+    /**
+     * Convert an image to WebP format without using Intervention Image.
+     *
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return resource
+     */
+    private function convertToWebP($file)
+    {
+        $image = imagecreatefromstring(file_get_contents($file));
+
+        // Convert the image to WebP format
+        ob_start();
+        imagewebp($image, null, 80); // 80 is the quality of the WebP (scale 0-100)
+        $imageData = ob_get_contents();
+        ob_end_clean();
+
+        // Free memory
+        imagedestroy($image);
+
+        return $imageData;
     }
 
     /**

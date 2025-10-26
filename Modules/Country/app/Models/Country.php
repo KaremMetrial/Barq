@@ -20,6 +20,7 @@ class Country extends Model implements TranslatableContract
     public $translatedAttributes = ['name'];
     protected $fillable = [
         'code',
+        'currency_symbol',
         'is_active',
     ];
     protected $casts = [

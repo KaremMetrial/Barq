@@ -10,21 +10,23 @@ use Modules\Cart\Services\CartService;
 use Modules\Cart\Http\Resources\CartResource;
 use Modules\Cart\Http\Requests\CreateCartRequest;
 use Modules\Cart\Http\Requests\UpdateCartRequest;
+use Modules\Cart\Http\Requests\RemoveParticipantRequest;
 
 class CartController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected CartService $cartService)
-    {
-    }
+    public function __construct(protected CartService $cartService) {}
 
     /**
      * Display a listing of the resource.
      */
     public function index(): JsonResponse
     {
-        $carts = $this->cartService->getAllCarts();
+        $carts = $this->cartService->getCart();
+        if (!$carts) {
+            return $this->successResponse(null, __("message.success"));
+        }
         return $this->successResponse([
             "carts" => CartResource::collection($carts),
         ], __("message.success"));
@@ -44,11 +46,23 @@ class CartController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show(int $id): JsonResponse
+    public function show(string $key): JsonResponse
     {
-        $cart = $this->cartService->getCartById($id);
+        $cart = $this->cartService->getCartByCartKey($key);
+        if (!$cart) {
+            return $this->errorResponse(null, __("message.not_found"), 404);
+        }
         return $this->successResponse([
-            "cart" => new CartResource($cart),
+            "cart" => new CartResource($cart->load(
+                'items.product',
+                'items.addOns',
+                'items.productOptionValue.productOption.values',
+                'items.addedBy',
+                'store',
+                'user',
+                'participants',
+                'posShift',
+            )),
         ], __("message.success"));
     }
 
@@ -58,6 +72,9 @@ class CartController extends Controller
     public function update(UpdateCartRequest $request, int $id): JsonResponse
     {
         $cart = $this->cartService->updateCart($id, $request->all());
+        if (!$cart) {
+            return $this->errorResponse(null, __("message.not_found"), 404);
+        }
         return $this->successResponse([
             "cart" => new CartResource($cart),
         ], __("message.success"));
@@ -80,9 +97,39 @@ class CartController extends Controller
     }
     public function joinCart(Request $request): JsonResponse
     {
-        $cart = $this->cartService->joinCart($request->all());
+        $cartKey = $request->route('cart_key');
+        if (!$cartKey) {
+            return $this->errorResponse(null, __("message.invalid_request"), 400);
+        }
+
+        $cart = $this->cartService->joinCart($cartKey);
+        if (!$cart) {
+            return $this->errorResponse(null, __("message.not_found"), 404);
+        }
         return $this->successResponse([
             "cart" => new CartResource($cart),
         ], __("message.success"));
+    }
+
+    public function removeParticipant(RemoveParticipantRequest $request): JsonResponse
+    {
+        $cartKey = $request->route('cart_key');
+        if (!$cartKey) {
+            return $this->errorResponse(null, __("message.invalid_request"), 400);
+        }
+
+        try {
+            $cart = $this->cartService->removeParticipant($cartKey, $request->user_id);
+            if (!$cart) {
+                return $this->errorResponse(null, __("message.not_found"), 404);
+            }
+            return $this->successResponse([
+                "cart" => new CartResource($cart),
+            ], __("message.success"));
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return $this->errorResponse(null, $e->getMessage(), 403);
+        } catch (\InvalidArgumentException $e) {
+            return $this->errorResponse(null, $e->getMessage(), 400);
+        }
     }
 }

@@ -121,6 +121,13 @@ class Store extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
+        if (empty($filters['section_id']) || $filters['section_id'] == 0) {
+            $firstSection = Section::latest()->first();
+            if ($firstSection) {
+                $filters['section_id'] = $firstSection->id;
+            }
+        }
+
         $query->withTranslation()
             ->whereStatus(StoreStatusEnum::APPROVED)
             ->whereIsActive(true);
@@ -137,7 +144,7 @@ class Store extends Model implements TranslatableContract
             $query->where('section_id', $filters['section_id']);
         }
 
-        if (!empty($filters['category_id'])) {
+        if (!empty($filters['category_id']) && $filters['category_id'] != 0) {
             $query->whereHas('section.categories', function ($query) use ($filters) {
                 $query->where('category_id', $filters['category_id']);
             });
@@ -199,7 +206,6 @@ class Store extends Model implements TranslatableContract
                 $query->latest();
             }
         }
-
         return $query;
     }
 
@@ -231,9 +237,31 @@ class Store extends Model implements TranslatableContract
     }
     public function currentUserFavourite()
     {
-        return $this->morphOne(Favourite::class, 'favouriteable')
-            ->where('user_id', auth()->id());
+        $token = request()->bearerToken();
+        $userId = null;
+
+        if ($token) {
+            [, $tokenHash] = explode('|', $token, 2);
+            if ($tokenHash) {
+                $userId = \DB::table('personal_access_tokens')
+                    ->where('token', hash('sha256', $tokenHash))
+                    ->value('tokenable_id');
+            }
+        }
+
+        if (!$userId && auth('user')->check()) {
+            $userId = auth('user')->id();
+        }
+
+        $relation = $this->morphOne(Favourite::class, 'favouriteable');
+
+        if (!$userId) {
+            return $relation->whereRaw('0 = 1');
+        }
+
+        return $relation->where('user_id', $userId);
     }
+
     public function offers()
     {
         return $this->morphMany(Offer::class, 'offerable');

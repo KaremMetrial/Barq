@@ -24,7 +24,6 @@ class SectionService
     public function createSection(array $data): ?Section
     {
         return DB::transaction(function () use ($data) {
-
             if ($icon = $this->uploadIcon(request(), 'icon')) {
                 $data['icon'] = $icon;
             }
@@ -73,6 +72,7 @@ class SectionService
     }
     private function uploadIcon($request, string $fileKey): ?string
     {
+
         if ($request->hasFile($fileKey) && $request->file($fileKey)->isValid()) {
             return $this->upload(
                 $request,

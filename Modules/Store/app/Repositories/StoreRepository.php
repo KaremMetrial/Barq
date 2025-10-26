@@ -2,9 +2,11 @@
 
 namespace Modules\Store\Repositories;
 
+use App\Enums\SectionTypeEnum;
 use Modules\Store\Models\Store;
-use Modules\Store\Repositories\Contracts\StoreRepositoryInterface;
+use Modules\Section\Models\Section;
 use App\Repositories\BaseRepository;
+use Modules\Store\Repositories\Contracts\StoreRepositoryInterface;
 
 class StoreRepository extends BaseRepository implements StoreRepositoryInterface
 {
@@ -14,7 +16,21 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
     }
     public function getHomeStores(array $relations = [], array $filters = [])
     {
-        $featured = $this->model->withTranslation()->with($relations)->filter($filters)->whereIsFeatured(true)->latest()->limit(5)->get();
+        if (empty($filters['section_id']) || $filters['section_id'] == 0) {
+            $firstSection = Section::latest()->first();
+            if ($firstSection) {
+                $filters['section_id'] = $firstSection->id;
+            }
+        }
+
+        $featured = $this->model
+            ->withTranslation()
+            ->with($relations)
+            ->filter($filters)
+            ->whereIsFeatured(true)
+            ->latest()
+            ->limit(5)
+            ->get();
 
         $topReviews = $this->model
             ->withTranslation()
@@ -27,12 +43,31 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             ->limit(10)
             ->get();
 
-        $newStore = $this->model->withTranslation()->with($relations)->filter($filters)->latest()->limit(5)->get();
+        $newStore = $this->model
+            ->withTranslation()
+            ->with($relations)
+            ->filter($filters)
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $sectionType = null;
+        $sectionLabel = null;
+
+        if (!empty($filters['section_id'])) {
+            $section = Section::find($filters['section_id']);
+            if ($section && $section->type) {
+                $sectionType = $section->type->value;
+                $sectionLabel = SectionTypeEnum::label($section->type->value);
+            }
+        }
 
         return [
             'topReviews' => $topReviews,
             'featured' => $featured,
-            'newStores' => $newStore
+            'newStores' => $newStore,
+            'section_type' => $sectionType,
+            'section_label' => $sectionLabel,
         ];
     }
 }

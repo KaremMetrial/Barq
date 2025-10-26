@@ -30,6 +30,7 @@ class CreateProductRequest extends FormRequest
             'units' => $this->filterArray($this->input('units', [])),
             'watermarks' => $this->filterArray($this->input('watermarks', [])),
             'productOptions' => $this->filterArray($this->input('productOptions', [])),
+            'add_ons' => $this->filterArray($this->input('add_ons', [])),
         ]);
     }
     private function filterArray(array $data): array
@@ -126,6 +127,8 @@ class CreateProductRequest extends FormRequest
             'productOptions.*.values.*.stock' => ['nullable', 'integer', 'min:0'],
             'productOptions.*.values.*.is_default' => ['nullable', 'boolean'],
 
+            'add_ons' => ['nullable', 'array'],
+            'add_ons.*' => ['required', 'integer', 'exists:add_ons,id'],
         ];
     }
 

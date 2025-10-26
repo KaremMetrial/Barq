@@ -13,14 +13,14 @@ use Modules\Order\Http\Requests\CreateOrderRequest;
 use Modules\Order\Http\Requests\UpdateOrderRequest;
 use Modules\Order\Http\Resources\OrderCollectionResource;
 
-class OrderController extends Controller
+class VendorOrderController extends Controller
 {
     use ApiResponse;
 
     public function __construct(protected OrderService $orderService) {}
 
     /**
-     * Display a listing of the orders.
+     * Display a listing of orders for the vendor's store.
      */
     public function index(Request $request): JsonResponse
     {
@@ -34,7 +34,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Store a newly created order.
+     * Store a newly created order (vendors can create orders for their store).
      */
     public function store(CreateOrderRequest $request): JsonResponse
     {
@@ -45,7 +45,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Display the specified order.
+     * Display the specified order (only if it belongs to vendor's store).
      */
     public function show(int $id): JsonResponse
     {
@@ -58,7 +58,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Update the specified order.
+     * Update the specified order (only if it belongs to vendor's store).
      */
     public function update(UpdateOrderRequest $request, int $id): JsonResponse
     {
@@ -70,7 +70,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Remove the specified order from storage.
+     * Remove the specified order from storage (only if it belongs to vendor's store).
      */
     public function destroy(int $id): JsonResponse
     {

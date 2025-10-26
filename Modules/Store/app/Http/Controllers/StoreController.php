@@ -97,6 +97,8 @@ class StoreController extends Controller
             "topReviews" => StoreResource::collection($stores['topReviews']),
             "featured" => StoreResource::collection($stores['featured']),
             "new" => StoreResource::collection($stores['newStores']),
+            "section_type" => $stores['section_type'],
+            "section_label" => $stores['section_label'],
         ], __("message.success"));
     }
     public function stats()

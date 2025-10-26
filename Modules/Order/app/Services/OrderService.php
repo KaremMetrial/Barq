@@ -134,7 +134,6 @@ class OrderService
         }
 
         $this->currentStore = Store::with('StoreSetting')->find($storeId);
-
         if (!$this->currentStore) {
             throw new \Exception('Store not found');
         }
@@ -164,7 +163,6 @@ class OrderService
     {
         $currentDay = now()->dayOfWeek;
         $currentTime = now()->format('H:i:s');
-
         $workingDay = $this->currentStore->workingDays()
             ->where('day_of_week', $currentDay)
             ->first();

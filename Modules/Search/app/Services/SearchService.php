@@ -36,7 +36,7 @@ class SearchService
             'updated_at'   => now(),
         ]);
     }
-    public function getTopSearchLogs(int $limit = 10): array
+    public function getTopSearchLogs(int $limit = 5): array
     {
         return DB::table('category_search_logs')
             ->select('search_term', DB::raw('COUNT(*) as count'))

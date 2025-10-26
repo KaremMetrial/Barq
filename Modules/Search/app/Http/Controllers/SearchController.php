@@ -38,7 +38,7 @@ class SearchController extends Controller
     }
         public function getTopSearchLogs(Request $request)
     {
-        $topSearchLogs = $this->searchService->getTopSearchLogs($request->get('limit', 10));
+        $topSearchLogs = $this->searchService->getTopSearchLogs($request->get('limit', 5));
 
         return $this->successResponse([
             'topSearchLogs' => $topSearchLogs,
