@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Option\Http\Controllers;
+namespace Modules\Option\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -26,6 +26,18 @@ class OptionController extends Controller
             'options' => OptionResource::collection($options),
         ], __('message.success'));
     }
+
+    /**
+     * Store a newly created option in storage.
+     */
+    public function store(CreateOptionRequest $request)
+    {
+        $option = $this->optionService->createOption($request->validated());
+        return $this->successResponse([
+            'option' => new OptionResource($option),
+        ], __('message.success'));
+    }
+
     /**
      * Display the specified option.
      */
@@ -37,4 +49,23 @@ class OptionController extends Controller
         ], __('message.success'));
     }
 
+    /**
+     * Update the specified option in storage.
+     */
+    public function update(UpdateOptionRequest $request, $id)
+    {
+        $option = $this->optionService->updateOption($id, $request->all());
+        return $this->successResponse([
+            'option' => new OptionResource($option),
+        ], __('message.success'));
+    }
+
+    /**
+     * Remove the specified option from storage.
+     */
+    public function destroy($id)
+    {
+        $this->optionService->deleteOption($id);
+        return $this->successResponse(null, __('message.success'));
+    }
 }

@@ -39,7 +39,15 @@ class CartController extends Controller
     {
         $cart = $this->cartService->createCart($request->all());
         return $this->successResponse([
-            "cart" => new CartResource($cart),
+            "cart" => new CartResource($cart->load(
+                'items.product',
+                'items.addOns',
+                'items.addedBy',
+                'store',
+                'user',
+                'participants',
+                'posShift',
+            )),
         ], __("message.success"));
     }
 
@@ -56,7 +64,6 @@ class CartController extends Controller
             "cart" => new CartResource($cart->load(
                 'items.product',
                 'items.addOns',
-                'items.productOptionValue.productOption.values',
                 'items.addedBy',
                 'store',
                 'user',
@@ -69,14 +76,21 @@ class CartController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCartRequest $request, int $id): JsonResponse
+    public function update(UpdateCartRequest $request, string $key): JsonResponse
     {
-        $cart = $this->cartService->updateCart($id, $request->all());
+        $cart = $this->cartService->updateCart($key, $request->all());
         if (!$cart) {
             return $this->errorResponse(null, __("message.not_found"), 404);
         }
         return $this->successResponse([
-            "cart" => new CartResource($cart),
+            "cart" => new CartResource($cart->load(
+                'items.product',
+                'items.addOns',
+                'items.addedBy',
+                'store',
+                'user',
+                'participants',
+                'posShift')),
         ], __("message.success"));
     }
 

@@ -72,7 +72,8 @@ class UserController extends Controller
     {
         $user = $this->userService->registerUser($request->all());
         return $this->successResponse([
-            "user" => new UserResource($user)
+            "user" => new UserResource($user),
+            'token' => $user->generateToken(),
         ], __("message.success"));
     }
 }

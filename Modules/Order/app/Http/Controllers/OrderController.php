@@ -24,7 +24,7 @@ class OrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $filter = $request->only('search','status');
+        $filter = $request->only('search', 'status');
         $orders = $this->orderService->getAllOrders($filter);
 
         return $this->successResponse([
@@ -38,9 +38,10 @@ class OrderController extends Controller
      */
     public function store(CreateOrderRequest $request): JsonResponse
     {
-        $order = $this->orderService->createOrder($request->all());
+        $order = $this->orderService->createOrder($request->validated());
+        // dd($order->load('items.product', 'items.addOns', 'store', 'user', 'courier', 'statusHistories'));
         return $this->successResponse([
-            'order' => new OrderResource($order)
+            'order' => new OrderResource($order->load('items', 'items.product', 'items.addOns', 'store', 'user', 'courier', 'statusHistories')),
         ], __('message.success'));
     }
 
@@ -50,8 +51,7 @@ class OrderController extends Controller
     public function show(int $id): JsonResponse
     {
         $order = $this->orderService->getOrderById($id);
-        $order->load('items.product', 'items.productOptionValue', 'items.addOns', 'store', 'user', 'courier', 'statusHistories');
-
+        $order->load('items', 'items.product', 'items.addOns', 'store', 'user', 'courier', 'statusHistories');
         return $this->successResponse([
             'order' => new OrderResource($order),
         ], __('message.success'));

@@ -27,15 +27,20 @@ class CartItemResource extends JsonResource
                 return new ProductResource($this->product);
             }),
 
-            "product_option_value" => $this->whenLoaded('productOptionValue', function () {
-                return new ProductOptionValueResource($this->productOptionValue);
-
-                // return $this->productOptionValue ? [
-                //     "id" => $this->productOptionValue->id,
-                //     "price" => $this->productOptionValue->price,
-                //     "name" => optional($this->productOptionValue->productValue)->name,
-                // ] : null;
-            }),
+            "product_option_values" => $this->when(is_array($this->product_option_value_id), function () {
+                $optionIds = $this->product_option_value_id;
+                if (is_array($optionIds)) {
+                    $options = \Modules\Product\Models\ProductOptionValue::whereIn('id', $optionIds)->get();
+                    return $options->map(function ($option) {
+                        return [
+                            "id" => $option->id,
+                            "price" => $option->price,
+                            "name" => optional($option->productValue)->name,
+                        ];
+                    })->toArray();
+                }
+                return [];
+            }, []),
 
             "add_ons" => $this->whenLoaded('addOns', function () {
 

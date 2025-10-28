@@ -17,6 +17,7 @@ class CartResource extends JsonResource
     {
         return [
             "id" => $this->id,
+           "cart_quantity" => $this->items->sum('quantity'),
             "cart_key" => $this->cart_key,
             "pos_shift" => $this->whenLoaded('posShift', function () {
                 return $this->posShift ? [

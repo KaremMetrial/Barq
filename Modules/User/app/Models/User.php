@@ -125,4 +125,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Cart::class, 'cart_user');
     }
+    public function generateToken()
+    {
+        return $this->createToken('api-user-token')->plainTextToken;
+    }
 }

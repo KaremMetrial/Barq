@@ -18,10 +18,25 @@ class OrderItem extends Model
         'option_id',
         'product_option_value_id'
     ];
+
+    protected $casts = [
+        'product_option_value_id' => 'array',
+    ];
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
+    // Note: This relationship requires a pivot table 'order_item_option_values'
+    // For now, we'll handle options through the JSON field instead
+    // public function productOptionValues(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(ProductOptionValue::class, 'order_item_option_values', 'order_item_id', 'product_option_value_id');
+    // }
+
+    // Keep the old method for backward compatibility but mark as deprecated
+    /**
+     * @deprecated Use productOptionValues() for multiple options
+     */
     public function productOptionValue(): BelongsTo
     {
         return $this->belongsTo(ProductOptionValue::class);

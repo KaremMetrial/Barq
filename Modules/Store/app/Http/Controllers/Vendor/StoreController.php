@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Store\Http\Controllers;
+namespace Modules\Store\Http\Controllers\Vendor;
 
 use App\Traits\ApiResponse;
 use Modules\Store\Models\Store;
@@ -80,26 +80,6 @@ class StoreController extends Controller
     {
         $isDeleted = $this->StoreService->deleteStore($id);
         return $this->successResponse(null, __('message.success'));
-    }
-    public function home(Request $request): JsonResponse
-    {
-        $filters = $request->only([
-            'search',
-            'status',
-            'section_id',
-            'category_id',
-            'has_offer',
-            'sort_by',
-            'rating'
-        ]);
-        $stores = $this->StoreService->getHomeStores($filters);
-        return $this->successResponse([
-            "topReviews" => StoreResource::collection($stores['topReviews']),
-            "featured" => StoreResource::collection($stores['featured']),
-            "new" => StoreResource::collection($stores['newStores']),
-            "section_type" => $stores['section_type'],
-            "section_label" => $stores['section_label'],
-        ], __("message.success"));
     }
     public function stats()
     {

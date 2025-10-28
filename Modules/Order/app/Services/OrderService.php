@@ -36,7 +36,6 @@ class OrderService
     {
         return $this->orderRepository->find($id, [
             'orderItems.product.images',
-            'orderItems.productOptionValue',
             'orderItems.addOns',
             'store',
             'user'
@@ -117,8 +116,10 @@ class OrderService
                 $this->incrementCouponUsage($coupon, $orderData['user_id']);
             }
 
-            // Decrease product stock
-            $this->decreaseProductStock($orderItems);
+            // Decrease product stock (wrapped in transaction for safety)
+            DB::transaction(function () use ($orderItems) {
+                $this->decreaseProductStock($orderItems);
+            });
 
             return $order->refresh();
         });
@@ -282,10 +283,17 @@ class OrderService
      */
     private function incrementCouponUsage(Coupon $coupon, ?int $userId): void
     {
-        // This would typically be in a CouponUsage table
-        // For now, you might track in a separate table or cache
+        // Increment global coupon usage count
+        $coupon->increment('usage_count');
+
+        // Track per-user usage if user is authenticated
         if ($userId) {
             Cache::increment("coupon_{$coupon->id}_user_{$userId}_usage");
+
+            // Also store in database if you have a CouponUsage table
+            // For now, using cache with a longer TTL for persistence
+            $currentUsage = Cache::get("coupon_{$coupon->id}_user_{$userId}_usage", 0);
+            Cache::put("coupon_{$coupon->id}_user_{$userId}_usage", $currentUsage, now()->addDays(30));
         }
     }
 
@@ -295,7 +303,7 @@ class OrderService
     private function createOrderItems(Order $order, array $orderItems): void
     {
         $productIds = collect($orderItems)->pluck('product_id')->unique();
-        $optionIds = collect($orderItems)->pluck('product_option_value_id')->filter()->unique();
+        $optionIds = collect($orderItems)->pluck('product_option_value_id')->filter()->flatten()->unique();
 
         $products = Product::with(['price', 'availability'])
             ->whereIn('id', $productIds)
@@ -328,12 +336,22 @@ class OrderService
                 throw new \Exception("Maximum quantity for product {$product->id} is {$product->max_cart_quantity}");
             }
 
-            $option = isset($item['product_option_value_id'])
-                ? ($options[$item['product_option_value_id']] ?? null)
-                : null;
+            $optionPrice = 0;
+
+            // Always treat product_option_value_id as an array (JSON field)
+            $optionIds = $item['product_option_value_id'] ?? [];
+            if (!is_array($optionIds)) {
+                $optionIds = $optionIds ? [$optionIds] : [];
+            }
+
+            foreach ($optionIds as $optionId) {
+                $opt = $options[$optionId] ?? null;
+                if ($opt) {
+                    $optionPrice += (float) $opt->price;
+                }
+            }
 
             $productPrice = $product->price?->price ?? 0;
-            $optionPrice = $option?->price ?? 0;
             $addOns = $item['add_ons'] ?? [];
 
             $addOnTotal = collect($addOns)->sum(function ($ao) {
@@ -342,9 +360,10 @@ class OrderService
 
             $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $quantity;
 
+            // Store option IDs as JSON array
             $orderItem = $order->orderItems()->create([
                 'product_id' => $product->id,
-                'product_option_value_id' => $option?->id,
+                'product_option_value_id' => !empty($optionIds) ? $optionIds : null,
                 'quantity' => $quantity,
                 'total_price' => round($totalPrice, 3),
             ]);
@@ -373,7 +392,14 @@ class OrderService
         foreach ($orderItems as $item) {
             $product = Product::find($item['product_id']);
             if ($product && $product->availability) {
-                $product->availability->decrement('stock_quantity', $item['quantity'] ?? 1);
+                $quantity = $item['quantity'] ?? 1;
+
+                // Check if sufficient stock is available before decrementing
+                if ($product->availability->stock_quantity < $quantity) {
+                    throw new \Exception("Insufficient stock for product {$product->id}. Available: {$product->availability->stock_quantity}, Requested: {$quantity}");
+                }
+
+                $product->availability->decrement('stock_quantity', $quantity);
 
                 // Mark as out of stock if needed
                 if ($product->availability->stock_quantity <= 0) {
@@ -400,12 +426,17 @@ class OrderService
 
         // Get delivery zone if address provided
         if (isset($orderData['delivery_address'])) {
-            // Here you would calculate based on zone
-            // For now, return a default
-            return 10.00;
+            // Use the Order model's getDeliveryFee method for proper zone-based calculation
+            $order = new Order($orderData);
+            $deliveryFee = $order->getDeliveryFee();
+
+            if ($deliveryFee !== null) {
+                return round($deliveryFee, 3);
+            }
         }
 
-        return 10.00;
+        // Fallback to store default delivery fee
+        return round($this->storeSettings?->delivery_fee ?? 10.00, 3);
     }
 
     /**
@@ -451,12 +482,22 @@ class OrderService
             $quantity = $item['quantity'] ?? 1;
 
             $product = Product::with('price')->find($item['product_id']);
-            $option = isset($item['product_option_value_id'])
-                ? ProductOptionValue::find($item['product_option_value_id'])
-                : null;
+            $optionPrice = 0;
+
+            // Always treat product_option_value_id as an array (JSON field)
+            $optionIds = $item['product_option_value_id'] ?? [];
+            if (!is_array($optionIds)) {
+                $optionIds = $optionIds ? [$optionIds] : [];
+            }
+
+            foreach ($optionIds as $optionId) {
+                $opt = ProductOptionValue::find($optionId);
+                if ($opt) {
+                    $optionPrice += (float) $opt->price;
+                }
+            }
 
             $productPrice = $product?->price?->price ?? 0;
-            $optionPrice = $option?->price ?? 0;
 
             $addOnTotal = collect($item['add_ons'] ?? [])->sum(function ($ao) {
                 return ($ao['price'] ?? 0) * ($ao['quantity'] ?? 1);

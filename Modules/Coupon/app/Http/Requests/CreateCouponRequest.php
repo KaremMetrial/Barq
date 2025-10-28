@@ -12,6 +12,14 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateCouponRequest extends FormRequest
 {
+    protected function prepareForValidation()
+    {
+        if (auth('vendor')->check()) {
+            $this->merge([
+                'store_ids' => [auth('vendor')->user()->store_id],
+            ]);
+        }
+    }
     /**
      * Get the validation rules that apply to the request.
      */

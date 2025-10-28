@@ -21,7 +21,7 @@ class CouponResource extends JsonResource
         return [
             'id' => $this->id,
             'code' => $this->code,
-            'discount_amount' => $this->discount_amount,
+            'discount_amount' => number_format($this->discount_amount,0),
             'discount_type' => $this->discount_type->value,
             'discount_type_label' => SaleTypeEnum::label($this->discount_type->value),
             'usage_limit' => (int) $this->usage_limit,

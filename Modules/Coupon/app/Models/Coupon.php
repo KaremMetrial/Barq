@@ -64,4 +64,24 @@ class Coupon extends Model implements TranslatableContract
 
         return min($orderAmount, $this->discount_amount);
     }
+    public function scopeFilter($query, $filters)
+    {
+        if (auth('vendor')->check()) {
+            $query->whereHas('stores', function ($q) {
+                $q->where('stores.id', auth('vendor')->user()->store_id);
+            });
+        }
+        if (isset($filters['search']) && $filters['search'] != '')
+        {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%$search%")
+                  ->orWhereHas('translations', function ($qt) use ($search) {
+                      $qt->where('name', 'like', "%$search%");
+                  });
+            });
+        }
+        return $query->latest();
+    }
+
 }

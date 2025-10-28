@@ -2,6 +2,8 @@
 
 namespace Modules\Governorate\Models;
 
+use Modules\City\Models\City;
+use Modules\Country\Models\Country;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Builder;
@@ -9,7 +11,6 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
-use Modules\Country\Models\Country;
 
 class Governorate extends Model implements TranslatableContract
 {

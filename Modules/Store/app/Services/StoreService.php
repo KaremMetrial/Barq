@@ -25,7 +25,9 @@ class StoreService
             $filters,
             5,
             [
-                'section.categories.translations',
+                'section.categories' => function ($query) {
+                    $query->whereNull('parent_id')->with('translations');
+                },
                 'storeSetting',
                 'address',
                 'translations',
@@ -58,7 +60,13 @@ class StoreService
 
     public function getStoreById(int $id): ?Store
     {
-        return $this->StoreRepository->find($id, ['section.categories', 'storeSetting','section.categories.children.translations',]);
+        return $this->StoreRepository->find($id, [
+            'section.categories' => function ($query) {
+                $query->whereNull('parent_id')->with('translations');
+            },
+            'storeSetting',
+            'section.categories.children.translations',
+        ]);
     }
 
     public function updateStore(int $id, array $data): ?Store

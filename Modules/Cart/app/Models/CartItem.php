@@ -22,6 +22,10 @@ class CartItem extends Model
         "is_group_order",
         "added_by_user_id",
     ];
+
+    protected $casts = [
+        'product_option_value_id' => 'array',
+    ];
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

@@ -65,17 +65,19 @@ class CartService
         );
     }
 
-    public function updateCart(int $id, array $data): ?Cart
+    public function updateCart(string $key, array $data): ?Cart
     {
-        return DB::transaction(function () use ($id, $data) {
-            $cart = $this->cartRepository->find($id);
-
+        return DB::transaction(function () use ($key, $data) {
+            $cart = $this->getCartByCartKey($key);
+            if (!$cart) {
+                $cart = $this->getCartByCartKey(request()->header('Cart-Key') ?? request('cart_key'));
+            }
             if (!$cart) {
                 return null;
             }
             $filteredCartData = array_filter($data['cart'] ?? [], fn($value) => !blank($value));
 
-            $this->cartRepository->update($id, $filteredCartData);
+            $this->cartRepository->update($cart->id, $filteredCartData);
 
             $this->syncCartItems($cart, $data['items'] ?? []);
 
@@ -95,7 +97,9 @@ class CartService
 
         // Validate and collect IDs
         $productIds = collect($items)->pluck('product_id')->unique()->filter()->values()->all();
-        $optionValueIds = collect($items)->pluck('product_option_value_id')->filter()->unique()->values()->all();
+        $optionValueIds = collect($items)->pluck('product_option_value_id')->filter(function ($value) {
+            return !is_null($value) && $value !== '';
+        })->flatten()->unique()->values()->all();
         $addOnIds = collect($items)
             ->flatMap(fn($item) => $item['add_ons'] ?? [])
             ->pluck('id')
@@ -103,45 +107,109 @@ class CartService
             ->filter()
             ->values()
             ->all();
-
         // Load models with validation
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
         $options = ProductOptionValue::whereIn('id', $optionValueIds)->get()->keyBy('id');
         $addOnModels = AddOn::whereIn('id', $addOnIds)->get()->keyBy('id');
 
         $existingItems = $cart->items()->get()->keyBy(function ($item) {
-            return $item->product_id . '-' . ($item->product_option_value_id ?? 'null');
+            $optionKey = is_array($item->product_option_value_id) ? json_encode($item->product_option_value_id) : ($item->product_option_value_id ?? 'null');
+            return $item->product_id . '-' . $optionKey;
         });
-
         foreach ($items as $item) {
-            $key = $item['product_id'] . '-' . ($item['product_option_value_id'] ?? 'null');
+            $optionValueId = $item['product_option_value_id'] ?? null;
+            $key = $item['product_id'] . '-' . (is_array($optionValueId) ? json_encode($optionValueId) : ($optionValueId ?? 'null'));
+            if (isset($item['quantity']) && (int) $item['quantity'] == 0) {
+                // If product_option_value_id is null, delete all items with this product_id
+                if (is_null($optionValueId)) {
+                    $productId = $item['product_id'];
+                    $itemsToDelete = $existingItems->filter(function ($cartItem) use ($productId) {
+                        return $cartItem->product_id == $productId;
+                    });
 
-            if (($item['quantity'] ?? 1) == 0) {
-                if ($existingItems->has($key)) {
-                    $existingItems->get($key)->delete();
+                    foreach ($itemsToDelete as $itemToDelete) {
+                        $itemToDelete->delete();
+                    }
+                } else {
+                    $found = false;
+
+                    if ($existingItems->has($key)) {
+                        $existingItems->get($key)->delete();
+                        $found = true;
+                    }
+
+                    if (!$found) {
+                        $altKeys = [
+                            $item['product_id'] . '-' . json_encode([$optionValueId]),
+                            $item['product_id'] . '-["' . (is_array($optionValueId) ? implode('","', $optionValueId) : $optionValueId) . '"]',
+                            $item['product_id'] . '-' . (is_array($optionValueId) ? '[' . implode(',', $optionValueId) . ']' : $optionValueId),
+                        ];
+
+                        foreach ($altKeys as $altKey) {
+                            if ($existingItems->has($altKey)) {
+                                $existingItems->get($altKey)->delete();
+                                $found = true;
+                                break;
+                            }
+                        }
+                    }
                 }
+
                 continue;
             }
 
-            $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels);
-
+            // Check if item exists with exact key match
             if ($existingItems->has($key)) {
+                // Update existing item - keep existing options if not provided
                 $existingItem = $existingItems->get($key);
+                $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels, $existingItem);
                 $existingItem->update($cartItemData);
 
-                if (!empty($item['add_ons'])) {
-                    $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
-                    $existingItem->addOns()->sync($addOnPivotData);
-                } else {
-                    $existingItem->addOns()->detach();
+                // Only update add-ons if explicitly provided in the request
+                if (isset($item['add_ons'])) {
+                    if (!empty($item['add_ons'])) {
+                        $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
+                        $existingItem->addOns()->sync($addOnPivotData);
+                    } else {
+                        $existingItem->addOns()->detach();
+                    }
                 }
+                // If add_ons not provided, keep existing add-ons (like options)
             } else {
-                $cartItemData['added_by_user_id'] = auth('user')->id();
-                $newCartItem = $cart->items()->create($cartItemData);
+                // If no exact match and no options specified, try to find existing item with same product_id
+                $existingItemWithProduct = null;
+                if (is_null($optionValueId)) {
+                    $productId = $item['product_id'];
+                    $existingItemWithProduct = $existingItems->first(function ($cartItem) use ($productId) {
+                        return $cartItem->product_id == $productId;
+                    });
+                }
 
-                if (!empty($item['add_ons'])) {
-                    $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
-                    $newCartItem->addOns()->sync($addOnPivotData);
+                if ($existingItemWithProduct) {
+                    // Update the existing item with the same product (regardless of options) - keep existing options
+                    $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels, $existingItemWithProduct);
+                    $existingItemWithProduct->update($cartItemData);
+
+                    // Only update add-ons if explicitly provided in the request
+                    if (isset($item['add_ons'])) {
+                        if (!empty($item['add_ons'])) {
+                            $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
+                            $existingItemWithProduct->addOns()->sync($addOnPivotData);
+                        } else {
+                            $existingItemWithProduct->addOns()->detach();
+                        }
+                    }
+                    // If add_ons not provided, keep existing add-ons (like options)
+                } else {
+                    // Create new item
+                    $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels);
+                    $cartItemData['added_by_user_id'] = auth('user')->id();
+                    $newCartItem = $cart->items()->create($cartItemData);
+
+                    if (!empty($item['add_ons'])) {
+                        $addOnPivotData = $this->prepareAddOnPivotData($item['add_ons'], $addOnModels);
+                        $newCartItem->addOns()->sync($addOnPivotData);
+                    }
                 }
             }
         }
@@ -153,7 +221,8 @@ class CartService
         array $item,
         Collection $products,
         Collection $options,
-        Collection $addOnModels
+        Collection $addOnModels,
+        $existingItem = null
     ): array {
         // Validate required fields
         if (!isset($item['product_id'])) {
@@ -162,7 +231,8 @@ class CartService
 
         $quantity = max(1, (int)($item['quantity'] ?? 1)); // Ensure positive quantity
         $product = $products[$item['product_id']] ?? null;
-        $option = $options[$item['product_option_value_id'] ?? null] ?? null;
+        $option = null; // Since it's now an array, we can't directly assign a single option
+        // Note: If multiple options are selected, pricing logic needs to be updated accordingly
 
         // Validate product exists and is available
         if (!$product) {
@@ -175,13 +245,37 @@ class CartService
             $productPrice = (float) $product->price->price;
         }
 
-        $optionPrice = $option ? (float) $option->price : 0;
+        // Use existing item's options if no options provided in update
+        $optionValueId = $item['product_option_value_id'] ?? ($existingItem ? $existingItem->product_option_value_id : null);
 
-        $addOnTotal = collect($item['add_ons'] ?? [])
+        $optionPrice = 0; // Initialize to 0 since options are now an array
+        if (is_array($optionValueId)) {
+            foreach ($optionValueId as $optionId) {
+                $opt = $options[$optionId] ?? null;
+                if ($opt) {
+                    $optionPrice += (float) $opt->price;
+                }
+            }
+        } elseif ($optionValueId) {
+            $opt = $options[$optionValueId] ?? null;
+            $optionPrice = $opt ? (float) $opt->price : 0;
+        }
+
+        // Use existing item's add-ons if no add-ons provided in update
+        $itemAddOns = $item['add_ons'] ?? ($existingItem ? $existingItem->addOns->map(function ($addOn) {
+            return [
+                'id' => $addOn->id,
+                'quantity' => $addOn->pivot->quantity ?? 1,
+                'price' => $addOn->pivot->price_modifier ?? $addOn->price
+            ];
+        })->toArray() : []);
+
+        $addOnTotal = collect($itemAddOns)
             ->sum(function ($addOn) use ($addOnModels) {
                 $addOnModel = $addOnModels[$addOn['id']] ?? null;
                 if (!$addOnModel) {
-                    throw new \InvalidArgumentException("Add-on with ID {$addOn['id']} not found");
+                    // Skip add-ons that are not found in the loaded models (might be deleted or inactive)
+                    return 0;
                 }
                 return (float) $addOnModel->price * max(1, (int)($addOn['quantity'] ?? 1));
             });
@@ -190,7 +284,7 @@ class CartService
 
         return [
             'product_id' => $item['product_id'],
-            'product_option_value_id' => $item['product_option_value_id'] ?? null,
+            'product_option_value_id' => $optionValueId,
             'quantity' => $quantity,
             'note' => $item['note'] ?? null,
             'total_price' => round($totalPrice, 2), // Round to 2 decimal places
@@ -215,6 +309,48 @@ class CartService
             ];
         })->toArray();
     }
+
+    private function recalculateCartItemTotalPrice($cartItem, Collection $products, Collection $options, Collection $addOnModels): void
+    {
+        $product = $products[$cartItem->product_id] ?? null;
+        if (!$product) {
+            return;
+        }
+
+        // Get product price safely
+        $productPrice = 0;
+        if ($product->price && isset($product->price->price)) {
+            $productPrice = (float) $product->price->price;
+        }
+
+        // Calculate option price
+        $optionPrice = 0;
+        $optionValueId = $cartItem->product_option_value_id;
+        if (is_string($optionValueId)) {
+            $optionValueId = json_decode($optionValueId, true);
+        }
+
+        if (is_array($optionValueId)) {
+            foreach ($optionValueId as $optionId) {
+                $opt = $options[$optionId] ?? null;
+                if ($opt) {
+                    $optionPrice += (float) $opt->price;
+                }
+            }
+        } elseif ($optionValueId) {
+            $opt = $options[$optionValueId] ?? null;
+            $optionPrice = $opt ? (float) $opt->price : 0;
+        }
+
+        // Calculate add-on total
+        $addOnTotal = $cartItem->addOns->sum(function ($addOn) {
+            return (float) $addOn->pivot->price_modifier;
+        });
+
+        $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $cartItem->quantity;
+
+        $cartItem->update(['total_price' => round($totalPrice, 2)]);
+    }
     public function getShareById(int $id)
     {
         $cart = $this->getCartById($id);
@@ -234,11 +370,11 @@ class CartService
         }
 
         // Check if user is already a participant
-        if ($cart->participants()->where('user_id', auth()->id())->exists()) {
+        if ($cart->participants()->where('user_id', auth('user')->id())->exists()) {
             return $cart; // Already joined
         }
 
-        $cart->participants()->attach(auth()->id());
+        $cart->participants()->attach(auth('user')->id());
         $cart->save();
         return $cart;
     }

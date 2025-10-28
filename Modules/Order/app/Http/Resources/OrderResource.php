@@ -92,7 +92,7 @@ class OrderResource extends JsonResource
                 ] : null;
             }),
 
-            'items' => OrderItemResource::collection($this->whenLoaded('items')->load('product', 'productOptionValue', 'addOns')),
+            'items' => OrderItemResource::collection($this->whenLoaded('items')),
 
             'coupon' => $this->when($this->relationLoaded('coupon'), function () {
                 return $this->coupon ? [

@@ -14,30 +14,17 @@ use Illuminate\Http\Request;
 class CategoryController extends Controller
 {
     use ApiResponse;
-    public function __construct(protected CategoryService $categoryService)
-    {
-    }
+    public function __construct(protected CategoryService $categoryService) {}
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only('search','getParent');
+        $filters = $request->only('search', 'getParent');
         $categories = $this->categoryService->getAllCountries();
         return $this->successResponse([
-            "categories"=> CategoryResource::collection($categories->load('children')),
-        ],__("message.success"));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CreateCategoryRequest $request): JsonResponse
-    {
-        $category = $this->categoryService->createCategory($request->all());
-        return $this->successResponse([
-            "category"=> new CategoryResource($category),
+            "categories" => CategoryResource::collection($categories->load('children')),
         ], __("message.success"));
     }
 
@@ -48,28 +35,8 @@ class CategoryController extends Controller
     {
         $category = $this->categoryService->getCategoryById($id);
         return $this->successResponse([
-            "category"=> new CategoryResource($category),
+            "category" => new CategoryResource($category),
             // 'subcategories' => CategoryResource::collection($category->children),
         ], __("message.success"));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCategoryRequest $request, int $id): JsonResponse
-    {
-        $category = $this->categoryService->updateCategory($id, $request->all());
-        return $this->successResponse([
-            "category"=> new CategoryResource($category),
-        ], __("message.success"));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        $deleted = $this->categoryService->deleteCategory($id);
-        return $this->successResponse(null, __("message.success"));
     }
 }

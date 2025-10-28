@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Coupon\Http\Controllers;
+namespace Modules\Coupon\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
@@ -30,6 +30,16 @@ class CouponController extends Controller
         ], __("message.success"));
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(CreateCouponRequest $request): JsonResponse
+    {
+        $coupon = $this->couponService->createCoupon($request->all());
+        return $this->successResponse([
+            "coupon" => new CouponResource($coupon),
+        ], __("message.success"));
+    }
 
     /**
      * Show the specified resource.
@@ -40,5 +50,25 @@ class CouponController extends Controller
         return $this->successResponse([
             "coupon" => new CouponResource($coupon),
         ], __("message.success"));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateCouponRequest $request, int $id): JsonResponse
+    {
+        $coupon = $this->couponService->updateCoupon($id, $request->all());
+        return $this->successResponse([
+            "coupon" => new CouponResource($coupon),
+        ], __("message.success"));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $deleted = $this->couponService->deleteCoupon($id);
+        return $this->successResponse(null, __("message.success"));
     }
 }

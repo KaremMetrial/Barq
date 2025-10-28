@@ -7,12 +7,12 @@ use Modules\Order\Http\Controllers\VendorOrderController;
 
 // Admin routes - full access to all orders
 Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
-    Route::apiResource('orders', AdminOrderController::class)->names('order');
+    Route::apiResource('orders', AdminOrderController::class)->only(['index', 'show', 'update'])->names('order');
 });
 
 // Vendor routes - access to their store orders only
 Route::prefix('vendor')->middleware('auth:vendor')->name('vendor.')->group(function () {
-    Route::apiResource('orders', VendorOrderController::class)->names('order');
+    Route::apiResource('orders', VendorOrderController::class)->only(['index', 'show', 'update'])->names('order');
 });
 
 // User routes - access to their orders only

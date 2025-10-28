@@ -69,13 +69,4 @@ class AdminOrderController extends Controller
         ], __('message.success'));
     }
 
-    /**
-     * Remove the specified order from storage.
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        $this->orderService->deleteOrder($id);
-
-        return $this->successResponse(null, __('message.success'));
-    }
 }

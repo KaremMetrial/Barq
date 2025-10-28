@@ -39,7 +39,8 @@ class UpdateCartRequest extends FormRequest
             "items.*.product_id" => ["required", "integer", "exists:products,id"],
             "items.*.quantity" => ["required", "integer", "min:0"],
             "items.*.note" => ["nullable", "string"],
-            "items.*.product_option_value_id" => ["nullable", "integer", "exists:product_option_values,id"],
+            "items.*.product_option_value_id" => ["nullable", "array"],
+            "items.*.product_option_value_id.*" => ["integer", "exists:product_option_values,id"],
             "items.*.total_price" => ["nullable", "numeric", "min:0"],
 
             // Add On Pivot Table

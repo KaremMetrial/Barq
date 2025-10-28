@@ -47,6 +47,8 @@ class StoreResource extends JsonResource
             }),
             "banner_text" => $this->getBannerText(),
             // "cart_count" => $this->getCartCount()
+            // "cart_total_price" => $this->getCartTotalPrice(),
+            // "cart_item_count" => $this->getCartItemCount()
         ];
     }
     private function getCartCount(): int
@@ -64,23 +66,35 @@ class StoreResource extends JsonResource
             })
             ->sum('quantity');
     }
+    private function getCartTotalPrice(): float
+    {
+        $cart = $this->resolveCart();
+
+        if (!$cart) {
+            return 0.0;
+        }
+
+        // Sum total_price of all items in the cart
+        return $cart->items()->sum('total_price');
+    }
+    private function getCartItemCount(): int
+    {
+        $cart = $this->resolveCart();
+
+        if (!$cart) {
+            return 0;
+        }
+
+        // Sum quantity of all items in the cart
+        return $cart->items()->sum('quantity');
+    }
     private function resolveCart()
     {
-        $token = request()->bearerToken();
-
-        // Try to get cart by user token
-        if ($token) {
-            [, $tokenHash] = explode('|', $token, 2);
-
-            $userId = \DB::table('personal_access_tokens')
-                ->where('token', hash('sha256', $tokenHash))
-                ->value('tokenable_id');
-
-            if ($userId) {
-                return \Modules\Cart\Models\Cart::with('items.product')
-                    ->where('user_id', $userId)
-                    ->first();
-            }
+        $cartKey = request()->header('Cart-Key') ?? request('cart_key');
+        if ($cartKey) {
+            return \Modules\Cart\Models\Cart::with('items.product')
+                ->where('cart_key', $cartKey)
+                ->first();
         }
     }
     private function getProductBanners(): array

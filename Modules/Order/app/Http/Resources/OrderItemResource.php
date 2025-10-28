@@ -3,6 +3,7 @@ namespace Modules\Order\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Product\Models\ProductOptionValue;
 
 class OrderItemResource extends JsonResource
 {
@@ -26,7 +27,9 @@ class OrderItemResource extends JsonResource
                     'price' => (float) ($this->product->price?->price ?? 0),
                 ];
             }),
+            'options' => $this->getOptionsData(),
 
+            // Keep backward compatibility for single option
             'option' => $this->when($this->relationLoaded('productOptionValue'), function() {
                 if (!$this->productOptionValue) {
                     return null;
@@ -39,18 +42,61 @@ class OrderItemResource extends JsonResource
                 ];
             }),
 
-            'add_ons' => $this->when($this->relationLoaded('addOns'), function() {
-                return $this->addOns->map(function($addOn) {
-                    return [
-                        'id' => $addOn->id,
-                        'name' => $addOn->translations->first()?->name ?? 'N/A',
-                        'quantity' => $addOn->pivot->quantity,
-                        'price_modifier' => (float) $addOn->pivot->price_modifier,
-                        'unit_price' => (float) ($addOn->pivot->price_modifier / $addOn->pivot->quantity),
-                    ];
-                });
-            }),
+            'add_ons' => $this->getAddOnsData(),
         ];
+    }
+
+    /**
+     * Get options data safely
+     */
+    private function getOptionsData(): array
+    {
+        $optionIds = $this->product_option_value_id;
+
+        // Ensure it's always an array
+        if (!is_array($optionIds)) {
+            $optionIds = $optionIds ? [$optionIds] : [];
+        }
+
+        // Filter out null/empty values
+        $optionIds = array_filter($optionIds);
+
+        if (empty($optionIds)) {
+            return [];
+        }
+
+        return collect($optionIds)->map(function($optionId) {
+            $option = ProductOptionValue::find($optionId);
+            if (!$option) {
+                return null;
+            }
+
+            return [
+                'id' => $option->id,
+                'name' => $option->productValue?->translations->first()?->name ?? 'N/A',
+                'price' => (float) $option->price,
+            ];
+        })->filter()->values()->toArray();
+    }
+
+    /**
+     * Get add-ons data safely
+     */
+    private function getAddOnsData(): array
+    {
+        if (!$this->relationLoaded('addOns')) {
+            return [];
+        }
+
+        return $this->addOns->map(function($addOn) {
+            return [
+                'id' => $addOn->id,
+                'name' => $addOn->translations->first()?->name ?? 'N/A',
+                'quantity' => $addOn->pivot->quantity,
+                'price_modifier' => (float) $addOn->pivot->price_modifier,
+                'unit_price' => (float) ($addOn->pivot->price_modifier / $addOn->pivot->quantity),
+            ];
+        })->toArray();
     }
 }
 

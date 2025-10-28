@@ -117,18 +117,16 @@ class CreateOrderRequest extends FormRequest
                     }
                 }
             ],
-            "items.*.product_option_value_id" => [
-                "nullable",
+            "items.*.product_option_value_id" => ["nullable", "array"],
+            "items.*.product_option_value_id.*" => [
                 "integer",
                 "exists:product_option_values,id",
                 function ($attribute, $value, $fail) {
-                    if (!$value) return;
+                    preg_match('/items\.(\d+)\.product_option_value_id\.(\d+)/', $attribute, $matches);
+                    $itemIndex = $matches[1] ?? null;
 
-                    preg_match('/items\.(\d+)\./', $attribute, $matches);
-                    $index = $matches[1] ?? null;
-
-                    if ($index !== null && isset($this->input('items')[$index])) {
-                        $item = $this->input('items')[$index];
+                    if ($itemIndex !== null && isset($this->input('items')[$itemIndex])) {
+                        $item = $this->input('items')[$itemIndex];
                         $productId = $item['product_id'] ?? null;
 
                         if ($productId) {
