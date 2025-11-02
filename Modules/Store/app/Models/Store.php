@@ -10,6 +10,7 @@ use Modules\Order\Models\Order;
 use Modules\Coupon\Models\Coupon;
 use Modules\Review\Models\Review;
 use Modules\Vendor\Models\Vendor;
+use Illuminate\Support\Facades\Log;
 use Modules\Address\Models\Address;
 use Modules\Balance\Models\Balance;
 use Modules\Product\Models\Product;
@@ -47,6 +48,8 @@ class Store extends Model implements TranslatableContract
         'is_closed',
         'avg_rate',
         'section_id',
+        'parent_id',
+        'branch_type',
     ];
     protected $casts = [
         'is_featured' => 'boolean',
@@ -121,16 +124,7 @@ class Store extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
-        if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-            $firstSection = Section::latest()->first();
-            if ($firstSection) {
-                $filters['section_id'] = $firstSection->id;
-            }
-        }
-
-        $query->withTranslation()
-            ->whereStatus(StoreStatusEnum::APPROVED)
-            ->whereIsActive(true);
+        $query->withTranslation();
 
         if (!empty($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
@@ -138,10 +132,6 @@ class Store extends Model implements TranslatableContract
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
-        }
-
-        if (!empty($filters['section_id'])) {
-            $query->where('section_id', $filters['section_id']);
         }
 
         if (!empty($filters['category_id']) && $filters['category_id'] != 0) {
@@ -206,11 +196,31 @@ class Store extends Model implements TranslatableContract
                 $query->latest();
             }
         }
+
+        if (!auth('admin')->check()) {
+            if (empty($filters['section_id']) || $filters['section_id'] == 0) {
+                $firstSection = Section::latest()->first();
+                if ($firstSection) {
+                    $filters['section_id'] = $firstSection->id;
+                }
+            }
+            $query->where('status', StoreStatusEnum::APPROVED)
+            ->where('is_active', true);
+        }
+        if (!empty($filters['section_id'])) {
+            $query->where('section_id', $filters['section_id']);
+        }
+
+
         return $query;
     }
 
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {
+        if($this->storeSetting->free_delivery_enabled)
+        {
+            return 0;
+        }
         $zoneId = $this->address?->zone_id;
         if (!$zoneId) {
             return null;
@@ -221,14 +231,12 @@ class Store extends Model implements TranslatableContract
             $shippingPriceQuery->where('vehicle_id', $vehicleId);
         }
         $shippingPrice = $shippingPriceQuery->first();
-
         if (!$shippingPrice) {
             return null;
         }
         $distanceKm = $distanceKm ?? 0;
 
         $fee = $shippingPrice->base_price + ($shippingPrice->per_km_price * $distanceKm);
-
         if ($shippingPrice->max_price && $fee > $shippingPrice->max_price) {
             $fee = $shippingPrice->max_price;
         }
@@ -265,5 +273,34 @@ class Store extends Model implements TranslatableContract
     public function offers()
     {
         return $this->morphMany(Offer::class, 'offerable');
+    }
+    public function getTaxAmount(): float
+    {
+        return $this->storeSetting->tax_rate ?? 0.0;
+    }
+    public function getAddressPlaceAttribute(): ?string
+    {
+        return $this->address ? $this->address->getFullAddressAttribute() : null;
+    }
+    public function scopeMainBranches($query)
+    {
+        return $query->where('branch_type', 'main');
+    }
+    public function scopeSubBranches($query)
+    {
+        return $query->where('branch_type', 'branch');
+    }
+    public function branches(): HasMany
+    {
+        return $this->hasMany(Store::class, 'parent_id');
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Store::class, 'parent_id');
+    }
+    public function countBranches(): int
+    {
+        return $this->branches()->count();
     }
 }

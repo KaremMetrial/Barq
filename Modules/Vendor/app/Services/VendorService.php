@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Vendor\Repositories\VendorRepository;
+use App\Models\Role;
 
 class VendorService
 {
@@ -19,9 +20,13 @@ class VendorService
         protected VendorRepository $VendorRepository
     ) {}
 
-    public function getAllVendors(): Collection
+    public function getAllVendors($filters = [])
     {
-        return $this->VendorRepository->all();
+        return $this->VendorRepository->paginate($filters, $perPage = 10,[
+            'store.translations',
+            'store.address.translations',
+            'store.address.zone.translations',
+        ]);
     }
 
     public function createVendor(array $data): ?Vendor
@@ -44,7 +49,7 @@ class VendorService
         });
     }
 
-    public function getVendorById(int $id): ?Vendor
+    public function getVendorById(int $id)
     {
         return $this->VendorRepository->find($id);
     }
@@ -76,7 +81,8 @@ class VendorService
     public function login(array $data)
     {
         $vendor = $this->VendorRepository->firstWhere([
-            'email' => $data['email']
+            'email' => $data['email'],
+            'is_active' => true,
         ]);
         if (! $vendor || ! Hash::check($data['password'], $vendor->password)) {
             throw ValidationException::withMessages([

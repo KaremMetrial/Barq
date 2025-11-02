@@ -13,9 +13,9 @@ class CouponService
         protected CouponRepository $CouponRepository
     ) {}
 
-    public function getAllCoupons(): Collection
+    public function getAllCoupons($filters = [])
     {
-        return $this->CouponRepository->all();
+        return $this->CouponRepository->getAllActive();
     }
 
     public function createCoupon(array $data): ?Coupon

@@ -22,9 +22,10 @@ class CouponController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $coupons = $this->couponService->getAllCoupons();
+        $filters = $request->only('search');
+        $coupons = $this->couponService->getAllCoupons($filters);
         return $this->successResponse([
             "coupons" => CouponResource::collection($coupons),
         ], __("message.success"));

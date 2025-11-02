@@ -19,9 +19,10 @@ Route::prefix('v1')->group(function () {
     });
 
     // Admin
-    Route::prefix('admin')->middleware('auth:admin')->controller(AdminStoreController::class)->group(function () {
-        Route::prefix('stores')->group(function () {
-            Route::apiResource('stores', StoreController::class)->names('store');
+    Route::prefix('admin')->middleware('auth:admin')->group(function () {
+        Route::prefix('stores')->name('stores.')->group(function () {
+            Route::get('/stats', [AdminStoreController::class, 'stats'])->name('status');
         });
+        Route::apiResource('stores', AdminStoreController::class)->names('store');
     });
 });

@@ -24,7 +24,7 @@ class CartItemResource extends JsonResource
             "total_price" => $this->total_price,
 
             "product" => $this->whenLoaded('product', function () {
-                return new ProductResource($this->product);
+                return new ProductResource($this->product->load('store'));
             }),
 
             "product_option_values" => $this->when(is_array($this->product_option_value_id), function () {
@@ -43,18 +43,7 @@ class CartItemResource extends JsonResource
             }, []),
 
             "add_ons" => $this->whenLoaded('addOns', function () {
-
                 return AddOnResource::collection($this->addOns);
-
-            //     return $this->addOns->map(function ($addOn) {
-            //         return [
-            //             "id" => $addOn->id,
-            //             "name" => $addOn->name,
-            //             "price" => $addOn->price,
-            //             "quantity" => optional($addOn->pivot)->quantity ?? 1,
-            //             "price_modifier" => optional($addOn->pivot)->price_modifier ?? 0,
-            //         ];
-            //     })->toArray();
             }, []),
 
             "added_by" => $this->whenLoaded('addedBy', function () {

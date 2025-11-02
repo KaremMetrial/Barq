@@ -15,9 +15,16 @@ class CartResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $cartQuantity = $this->items->sum('quantity');
+        $subtotal = $this->items->sum('total_price');
+
+        $store = $this->store;
+        $storeName = $store ? $store->name : null;
+        $deliveryFee = $store ? $store->getDeliveryFee() : 0;
+        $tax = $store ? $store->getTaxAmount() : 0;
         return [
             "id" => $this->id,
-           "cart_quantity" => $this->items->sum('quantity'),
+            "cart_quantity" => $this->items->sum('quantity'),
             "cart_key" => $this->cart_key,
             "pos_shift" => $this->whenLoaded('posShift', function () {
                 return $this->posShift ? [
@@ -33,7 +40,7 @@ class CartResource extends JsonResource
             "user" => $this->whenLoaded('user', function () {
                 return $this->user ? [
                     "id" => $this->user->id,
-                    "name" => $this->user->name,
+                    'name' => $this->user->first_name . ' ' . $this->user->last_name,
                 ] : null;
             }),
 
@@ -46,6 +53,12 @@ class CartResource extends JsonResource
                 })->toArray();
             }, []),
             "items" => CartItemResource::collection($this->whenLoaded('items')),
+            'price_summary' => [
+                'subtotal' => $subtotal,
+                'delivery_fee' => $deliveryFee,
+                'tax' => $tax,
+                'symbol_currency' => $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'
+            ],
         ];
     }
 }

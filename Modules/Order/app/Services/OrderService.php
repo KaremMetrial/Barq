@@ -121,6 +121,17 @@ class OrderService
                 $this->decreaseProductStock($orderItems);
             });
 
+            // Award loyalty points after successful order
+            if ($order->user_id) {
+                $loyaltyService = app(\Modules\User\Services\LoyaltyService::class);
+                $loyaltyService->awardPoints(
+                    $order->user_id,
+                    $orderData['total_amount'],
+                    "Points earned from order #{$order->order_number}",
+                    $order
+                );
+            }
+
             return $order->refresh();
         });
     }

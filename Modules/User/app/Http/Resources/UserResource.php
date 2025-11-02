@@ -25,6 +25,9 @@ class UserResource extends JsonResource
             "status" => $this->status->value,
             "status_label" => UserStatusEnum::label($this->status->value),
             "balance" => $this->balance,
+            'loyalty_points' => $this->loyalty_points,
+            'available_loyalty_points' => $this->getAvailablePoints(),
+            'points_expire_at' => $this->points_expire_at,
             'address_id' => (int) $this->addresses()->first()->id,
         ];
     }

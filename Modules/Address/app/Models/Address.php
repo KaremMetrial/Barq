@@ -3,9 +3,12 @@
 namespace Modules\Address\Models;
 
 use Modules\Zone\Models\Zone;
+use Modules\City\Models\City;
 use App\Enums\AddressTypeEnum;
+use Modules\Country\Models\Country;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
+use Modules\Governorate\Models\Governorate;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
@@ -45,6 +48,18 @@ class Address extends Model implements TranslatableContract
     {
         return $this->belongsTo(Zone::class);
     }
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+    public function governorate(): BelongsTo
+    {
+        return $this->belongsTo(Governorate::class);
+    }
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
     public function scopeFilter($query, $filters)
     {
         $user = auth('user')->user();
@@ -53,5 +68,20 @@ class Address extends Model implements TranslatableContract
                 ->where('addressable_type', 'user');
         }
         return $query->latest();
+    }
+
+    public function getFullAddressAttribute(): ?string
+    {
+        $parts = [];
+        if ($this->address_line_1) $parts[] = $this->address_line_1;
+        if ($this->address_line_2) $parts[] = $this->address_line_2;
+        if ($this->street) $parts[] = $this->street;
+        if ($this->house_number) $parts[] = $this->house_number;
+        if ($this->apartment_number) $parts[] = $this->apartment_number;
+        if ($this->zone && $this->zone->name) $parts[] = $this->zone->name;
+        if ($this->city && $this->city->name) $parts[] = $this->city->name;
+        if ($this->governorate && $this->governorate->name) $parts[] = $this->governorate->name;
+        if ($this->country && $this->country->name) $parts[] = $this->country->name;
+        return implode(', ', $parts) ?: null;
     }
 }

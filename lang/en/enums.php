@@ -190,5 +190,12 @@ return [
         'pharmacy' => 'Pharmacy',
         'regular_store' => 'Regular Store',
         'other' => 'Other',
+    ],
+        'loyalty_transaction_type' => [
+        'earned' => 'Earned',
+        'redeemed' => 'Redeemed',
+        'expired' => 'Expired',
+        'adjusted' => 'Adjusted',
     ]
+
 ];

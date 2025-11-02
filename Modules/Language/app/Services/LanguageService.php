@@ -30,9 +30,9 @@ class LanguageService
     {
         Cache::forget('languages.codes');
     }
-    public function getAllLanguages(): Collection
+    public function getAllLanguages($filters = []): Collection
     {
-        return $this->languageRepository->all();
+        return $this->languageRepository->allWithTranslations();
     }
     public function createLanguage(array $data): ?Language
     {

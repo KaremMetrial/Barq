@@ -13,9 +13,9 @@ class AddressService
         protected AddressRepository $AddressRepository
     ) {}
 
-    public function getAllAddresses(): Collection
+    public function getAllAddresses($filters = []): Collection
     {
-        return $this->AddressRepository->all(['zone']);
+        return $this->AddressRepository->all(['zone'], ['*'], $filters);
     }
 
     public function createAddress(array $data): ?Address

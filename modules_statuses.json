@@ -40,5 +40,6 @@
     "Search": true,
     "Review": true,
     "ContactUs": true,
-    "Conversation": true
+    "Conversation": true,
+    "Setting": true
 }

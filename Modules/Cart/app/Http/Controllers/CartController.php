@@ -4,6 +4,7 @@ namespace Modules\Cart\Http\Controllers;
 
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Modules\Cart\Models\Cart;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Modules\Cart\Services\CartService;
@@ -37,18 +38,22 @@ class CartController extends Controller
      */
     public function store(CreateCartRequest $request): JsonResponse
     {
-        $cart = $this->cartService->createCart($request->all());
-        return $this->successResponse([
-            "cart" => new CartResource($cart->load(
-                'items.product',
-                'items.addOns',
-                'items.addedBy',
-                'store',
-                'user',
-                'participants',
-                'posShift',
-            )),
-        ], __("message.success"));
+        try {
+            $cart = $this->cartService->createCart($request->all());
+            return $this->successResponse([
+                "cart" => new CartResource($cart->load(
+                    'items.product',
+                    'items.addOns',
+                    'items.addedBy',
+                    'store',
+                    'user',
+                    'participants',
+                    'posShift',
+                )),
+            ], __("message.success"));
+        } catch (\InvalidArgumentException $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
     }
 
     /**
@@ -58,17 +63,18 @@ class CartController extends Controller
     {
         $cart = $this->cartService->getCartByCartKey($key);
         if (!$cart) {
-            return $this->errorResponse(null, __("message.not_found"), 404);
+            return $this->errorResponse(__("message.not_found"), 404);
         }
         return $this->successResponse([
             "cart" => new CartResource($cart->load(
-                'items.product',
+                'items.product.images',
+                'items.product.offers',
                 'items.addOns',
                 'items.addedBy',
                 'store',
                 'user',
                 'participants',
-                'posShift',
+                'posShift'
             )),
         ], __("message.success"));
     }
@@ -78,20 +84,25 @@ class CartController extends Controller
      */
     public function update(UpdateCartRequest $request, string $key): JsonResponse
     {
-        $cart = $this->cartService->updateCart($key, $request->all());
-        if (!$cart) {
-            return $this->errorResponse(null, __("message.not_found"), 404);
+        try {
+            $cart = $this->cartService->updateCart($key, $request->all());
+            if (!$cart) {
+                return $this->errorResponse(null, __("message.not_found"), 404);
+            }
+            return $this->successResponse([
+                "cart" => new CartResource($cart->load(
+                    'items.product',
+                    'items.addOns',
+                    'items.addedBy',
+                    'store',
+                    'user',
+                    'participants',
+                    'posShift'
+                )),
+            ], __("message.success"));
+        } catch (\InvalidArgumentException $e) {
+            return $this->errorResponse($e->getMessage(), 400);
         }
-        return $this->successResponse([
-            "cart" => new CartResource($cart->load(
-                'items.product',
-                'items.addOns',
-                'items.addedBy',
-                'store',
-                'user',
-                'participants',
-                'posShift')),
-        ], __("message.success"));
     }
 
     /**
@@ -143,7 +154,7 @@ class CartController extends Controller
         } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
             return $this->errorResponse(null, $e->getMessage(), 403);
         } catch (\InvalidArgumentException $e) {
-            return $this->errorResponse(null, $e->getMessage(), 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 }

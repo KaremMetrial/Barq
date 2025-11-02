@@ -158,4 +158,9 @@ class StoreService
             'top_products' => $products,
         ];
     }
+    public function adminStats()
+    {
+        return $this->StoreRepository->stats();
+    }
+    
 }

@@ -6,7 +6,9 @@ use App\Enums\SectionTypeEnum;
 use Modules\Store\Models\Store;
 use Modules\Section\Models\Section;
 use App\Repositories\BaseRepository;
+use Modules\PosTerminal\Models\PosTerminal;
 use Modules\Store\Repositories\Contracts\StoreRepositoryInterface;
+use Modules\Vendor\Models\Vendor;
 
 class StoreRepository extends BaseRepository implements StoreRepositoryInterface
 {
@@ -68,6 +70,17 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             'newStores' => $newStore,
             'section_type' => $sectionType,
             'section_label' => $sectionLabel,
+        ];
+    }
+    public function stats()
+    {
+        $vendorCount = Vendor::count();
+        $storeCount = Store::count();
+        $posCount = PosTerminal::count();
+        return [
+            'vendorCount' => $vendorCount,
+            'storeCount' => $storeCount,
+            'posCount' => $posCount,
         ];
     }
 }

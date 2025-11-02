@@ -67,4 +67,22 @@ class CreateCartRequest extends FormRequest
 
         $this->replace($validated);
     }
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $items = $this->input('items', []);
+            if (empty($items)) return;
+
+            $productIds = collect($items)->pluck('product_id')->unique()->filter()->values();
+            $products = \Modules\Product\Models\Product::whereIn('id', $productIds)
+                ->with('store:id')
+                ->get();
+
+            $storeIds = $products->pluck('store_id')->unique()->filter();
+
+            if ($storeIds->count() > 1) {
+                $validator->errors()->add('items', 'Cannot add products from different stores to the same cart');
+            }
+        });
+    }
 }

@@ -11,6 +11,12 @@ use Illuminate\Foundation\Http\FormRequest;
 class CreateAddressRequest extends FormRequest
 {
     use FileUploadTrait;
+    public function prepareForValidation()
+    {
+        $this->merge([
+            'addressable_id' => auth('user')->check() ? auth('user')->user()->id : null,
+        ]);
+    }
     /**
      * Get the validation rules that apply to the request.
      */
@@ -33,6 +39,7 @@ class CreateAddressRequest extends FormRequest
             'apartment_number' =>  ['nullable', 'string'],
             'house_number' =>  ['nullable', 'string'],
             'street' =>  ['nullable', 'string'],
+            'phone' => ['nullable', 'string', 'max:20'],
         ];
     }
 

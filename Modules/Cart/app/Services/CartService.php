@@ -15,6 +15,44 @@ class CartService
 {
     public function __construct(protected CartRepository $cartRepository) {}
 
+    private function validateStoreConsistency(Cart $cart, array $items): void
+    {
+        // Get all product IDs from the request
+        $productIds = collect($items)->pluck('product_id')->unique()->filter()->values()->all();
+
+        // Get products with their store information
+        $products = Product::whereIn('id', $productIds)
+            ->with('store:id')
+            ->get()
+            ->keyBy('id');
+
+        // Get the cart's current store (from existing items or cart.store_id)
+        $cartStoreId = $cart->store_id;
+
+        if (!$cartStoreId && $cart->items->count() > 0) {
+            // Get store from first item if cart doesn't have store_id set
+            $firstItem = $cart->items->first();
+            if ($firstItem && $firstItem->product) {
+                $cartStoreId = $firstItem->product->store_id;
+            }
+        }
+
+        // Check if all products belong to the same store
+        $storeIds = $products->pluck('store_id')->unique()->filter()->values();
+
+        if ($storeIds->count() > 1) {
+            throw new \InvalidArgumentException('validation_store');
+        }
+
+        // If cart already has a store, ensure new products match
+        if ($cartStoreId && $storeIds->count() > 0) {
+            $newStoreId = $storeIds->first();
+            if ($newStoreId !== $cartStoreId) {
+                throw new \InvalidArgumentException('validation_store');
+            }
+        }
+    }
+
     public function getCart()
     {
         $cartKey = request()->header('Cart-Key') ?? request('cart_key');
@@ -32,9 +70,23 @@ class CartService
         return DB::transaction(function () use ($data) {
             $cartData = $data['cart'] ?? [];
             $cartData['cart_key'] = Str::uuid()->toString();
+            $cartData['user_id'] = auth('user')->id();
+            if (empty($cartData['store_id']) && !empty($data['items'])) {
+                $firstProductId = collect($data['items'])->pluck('product_id')->first();
+                if ($firstProductId) {
+                    $product = Product::find($firstProductId);
+                    if ($product) {
+                        $cartData['store_id'] = $product->store_id;
+                    }
+                }
+            }
 
             $filteredCartData = array_filter($cartData, fn($value) => !blank($value));
             $cart = $this->cartRepository->create($filteredCartData);
+
+            if (!empty($data['items'] ?? [])) {
+                $this->validateStoreConsistency($cart, $data['items']);
+            }
 
             $this->syncCartItems($cart, $data['items'] ?? []);
             return $cart->refresh();
@@ -75,6 +127,10 @@ class CartService
             if (!$cart) {
                 return null;
             }
+            if (!empty($data['items'] ?? [])) {
+                $this->validateStoreConsistency($cart, $data['items']);
+            }
+
             $filteredCartData = array_filter($data['cart'] ?? [], fn($value) => !blank($value));
 
             $this->cartRepository->update($cart->id, $filteredCartData);
@@ -94,6 +150,21 @@ class CartService
         if (empty($items)) {
             return;
         }
+
+        // Deduplicate items based on product_id, product_option_value_id, and add_ons
+        $items = collect($items)->groupBy(function ($item) {
+            $optionKey = is_array($item['product_option_value_id'] ?? null)
+                ? json_encode($item['product_option_value_id'])
+                : ($item['product_option_value_id'] ?? 'null');
+            $addOnKey = json_encode(collect($item['add_ons'] ?? [])->sortBy('id')->pluck('id')->values()->all());
+            return $item['product_id'] . '-' . $optionKey . '-' . $addOnKey;
+        })->map(function ($group) {
+            $first = $group->first();
+            $totalQuantity = $group->sum('quantity');
+            return $first + ['quantity' => $totalQuantity];
+        })->values()->all();
+
+        $this->validateStoreConsistency($cart, $items);
 
         // Validate and collect IDs
         $productIds = collect($items)->pluck('product_id')->unique()->filter()->values()->all();

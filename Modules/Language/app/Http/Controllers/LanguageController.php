@@ -28,46 +28,4 @@ class LanguageController extends Controller
         ], __("message.success"));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CreateLanguageRequest $request)
-    {
-        $language = $this->service->createLanguage($request->validated());
-
-        return $this->successResponse([
-            "language" => new LanguageResource($language),
-        ], __("message.success"));
-    }
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        $language = $this->service->getLanguageById($id);
-        return $this->successResponse([
-            "language" => new LanguageResource($language),
-        ], __("message.success"));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateLanguageRequest $request, $id)
-    {
-        $language = $this->service->updateLanguage($id, $request->validated());
-        return $this->successResponse([
-            "language" => new LanguageResource($language),
-        ], __("message.success"));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        $language = $this->service->deleteLanguage($id);
-        return $this->successResponse(null, __("message.success"));
-    }
 }

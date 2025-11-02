@@ -4,6 +4,7 @@ namespace Modules\User\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Models\Transaction;
 use App\Enums\UserStatusEnum;
 use Modules\Cart\Models\Cart;
 use Laravel\Sanctum\HasApiTokens;
@@ -44,6 +45,8 @@ class User extends Authenticatable
         'referral_code',
         'referral_id',
         'password',
+        'loyalty_points',
+        'points_expire_at'
     ];
 
     /**
@@ -128,5 +131,94 @@ class User extends Authenticatable
     public function generateToken()
     {
         return $this->createToken('api-user-token')->plainTextToken;
+    }
+
+    /**
+     * Get loyalty transactions for the user
+     */
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(\App\Models\LoyaltyTransaction::class);
+    }
+
+    /**
+     * Award loyalty points to user
+     */
+    public function awardPoints(float $points, string $description = null, $referenceable = null): bool
+    {
+        $settings = \App\Models\LoyaltySetting::getSettings();
+
+        if (!$settings->isEnabled()) {
+            return false;
+        }
+
+        $this->increment('loyalty_points', $points);
+
+        // Update expiry date if needed
+        if (!$this->points_expire_at || $this->points_expire_at->isPast()) {
+            $this->points_expire_at = now()->addDays($settings->points_expiry_days);
+            $this->save();
+        }
+
+        // Create transaction record
+        $this->loyaltyTransactions()->create([
+            'type' => 'earned',
+            'points' => $points,
+            'points_balance_after' => $this->loyalty_points,
+            'description' => $description,
+            'referenceable_type' => $referenceable ? get_class($referenceable) : null,
+            'referenceable_id' => $referenceable ? $referenceable->id : null,
+            'expires_at' => $this->points_expire_at,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Redeem loyalty points
+     */
+    public function redeemPoints(float $points, string $description = null, $referenceable = null): bool
+    {
+        if ($this->loyalty_points < $points) {
+            return false;
+        }
+
+        $this->decrement('loyalty_points', $points);
+
+        // Create transaction record
+        $this->loyaltyTransactions()->create([
+            'type' => 'redeemed',
+            'points' => -$points, // Negative for redemption
+            'points_balance_after' => $this->loyalty_points,
+            'description' => $description,
+            'referenceable_type' => $referenceable ? get_class($referenceable) : null,
+            'referenceable_id' => $referenceable ? $referenceable->id : null,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Get available loyalty points (non-expired)
+     */
+    public function getAvailablePoints(): float
+    {
+        if (!$this->points_expire_at || $this->points_expire_at->isPast()) {
+            return 0;
+        }
+
+        return $this->loyalty_points;
+    }
+
+    /**
+     * Check if user has enough points for redemption
+     */
+    public function hasEnoughPoints(float $points): bool
+    {
+        return $this->getAvailablePoints() >= $points;
+    }
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
     }
 }

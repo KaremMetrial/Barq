@@ -28,20 +28,9 @@ class VendorController extends Controller
      */
     public function index(): JsonResponse
     {
-        $vendors = $this->vendorService->getAllVendors();
+        $vendors = $this->vendorService->getAllVendors([]);
         return $this->successResponse([
             "vendors" => VendorResource::collection($vendors)
-        ], __('message.success'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CreateVendorRequest $request): JsonResponse
-    {
-        $vendor = $this->vendorService->createVendor($request->validated());
-        return $this->successResponse([
-            'vendor' => new VendorResource($vendor)
         ], __('message.success'));
     }
 
@@ -56,25 +45,6 @@ class VendorController extends Controller
         ], __('message.success'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateVendorRequest $request, int $id): JsonResponse
-    {
-        $vendor = $this->vendorService->updateVendor($id, $request->validated());
-        return $this->successResponse([
-            'vendor' => new VendorResource($vendor)
-        ], __('message.success'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        $isDeleted = $this->vendorService->deleteVendor($id);
-        return $this->successResponse(null, __('message.success'));
-    }
     public function login(LoginRequest $request): JsonResponse
     {
         $vendor = $this->vendorService->login($request->validated());

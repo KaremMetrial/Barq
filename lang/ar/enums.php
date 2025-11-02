@@ -196,5 +196,12 @@ return [
         'pharmacy' => 'صيدلية',
         'regular_store' => 'متجر عادي',
         'other' => 'أخرى',
+    ],
+        'loyalty_transaction_type' => [
+        'earned' => 'مكتسب',
+        'redeemed' => 'مستبدل',
+        'expired' => 'منتهي الصلاحية',
+        'adjusted' => 'معدل',
     ]
+
 ];

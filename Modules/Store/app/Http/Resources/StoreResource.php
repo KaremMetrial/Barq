@@ -41,7 +41,7 @@ class StoreResource extends JsonResource
             "banners" => $this->getProductBanners(),
             "categories" => $this->getCategoriesString(),
             'store_setting' => new StoreSettingResource($this->whenLoaded('storeSetting')),
-            "delivery_fee" => $this->getDeliveryFee(),
+            "delivery_fee" => $this->getDeliveryFee() ? (string) $this->getDeliveryFee() : null,
             "active_sale" => $this->whenLoaded('offers', function () {
                 return $this->getActiveOffers();
             }),

@@ -10,4 +10,12 @@ class CouponRepository extends BaseRepository implements CouponRepositoryInterfa
     {
         parent::__construct($model);
     }
+    public function getAllActive()
+    {
+        return $this->model->where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->where('is_active', true)
+            ->get();
+    }
 }
