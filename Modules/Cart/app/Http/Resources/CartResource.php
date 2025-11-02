@@ -17,7 +17,7 @@ class CartResource extends JsonResource
     {
         $cartQuantity = $this->items->sum('quantity');
         $subtotal = $this->items->sum('total_price');
-
+        
         $store = $this->store;
         $storeName = $store ? $store->name : null;
         $deliveryFee = $store ? $store->getDeliveryFee() : 0;

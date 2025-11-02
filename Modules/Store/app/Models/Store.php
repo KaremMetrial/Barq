@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Favourite\Models\Favourite;
 use Astrotomic\Translatable\Translatable;
 use Modules\WorkingDay\Models\WorkingDay;
+use Modules\PosTerminal\Models\PosTerminal;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\StoreSetting\Models\StoreSetting;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -50,6 +51,7 @@ class Store extends Model implements TranslatableContract
         'section_id',
         'parent_id',
         'branch_type',
+        'active_status',
     ];
     protected $casts = [
         'is_featured' => 'boolean',
@@ -81,6 +83,10 @@ class Store extends Model implements TranslatableContract
     public function vendors(): HasMany
     {
         return $this->hasMany(Vendor::class);
+    }
+    public function owner()
+    {
+        return $this->hasOne(Vendor::class)->where('is_owner', true);
     }
     public function couiers(): HasMany
     {
@@ -197,7 +203,11 @@ class Store extends Model implements TranslatableContract
             }
         }
 
-        if (!auth('admin')->check()) {
+        if (auth('admin')->check()) {
+            if(!empty($filters['main']) && $filters['main'] == 'true') {
+                $query->where('parent_id', null);
+            }
+        } else {
             if (empty($filters['section_id']) || $filters['section_id'] == 0) {
                 $firstSection = Section::latest()->first();
                 if ($firstSection) {

@@ -162,5 +162,19 @@ class StoreService
     {
         return $this->StoreRepository->stats();
     }
-    
+     public function getAdminAllStores($filters = [])
+    {
+        return $this->StoreRepository->paginate(
+            $filters,
+            5,
+            [
+                'section' => function ($query) {
+                    $query->withTranslation();
+                },
+                'translations',
+                'owner'
+            ]
+        );
+    }
+
 }

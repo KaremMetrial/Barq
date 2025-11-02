@@ -24,7 +24,7 @@ class CartItemResource extends JsonResource
             "total_price" => $this->total_price,
 
             "product" => $this->whenLoaded('product', function () {
-                return new ProductResource($this->product->load('store'));
+                return new ProductResource($this->product->load('store', 'translations', 'images', 'price', 'offers'));
             }),
 
             "product_option_values" => $this->when(is_array($this->product_option_value_id), function () {

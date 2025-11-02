@@ -3,15 +3,16 @@
 namespace Modules\Store\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Modules\Store\Models\Store;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Modules\Store\Services\StoreService;
 use App\Http\Resources\PaginationResource;
-use Illuminate\Http\Request;
 use Modules\Store\Http\Resources\StoreResource;
 use Modules\Store\Http\Requests\CreateStoreRequest;
 use Modules\Store\Http\Requests\UpdateStoreRequest;
+use Modules\Store\Http\Resources\Admin\StoreCollectionResource;
 
 class StoreController extends Controller
 {
@@ -29,13 +30,11 @@ class StoreController extends Controller
             'status',
             'section_id',
             'category_id',
-            'has_offer',
-            'sort_by',
             'rating'
         ]);
-        $Stores = $this->StoreService->getAllStores($filters);
+        $Stores = $this->StoreService->getAdminAllStores($filters);
         return $this->successResponse([
-            "Stores" => StoreResource::collection($Stores),
+            "Stores" => StoreCollectionResource::collection($Stores),
             "pagination" => new PaginationResource($Stores)
         ], __('message.success'));
     }

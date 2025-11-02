@@ -353,6 +353,17 @@ class CartService
 
         $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $quantity;
 
+        // Apply product offers
+        $offers = $product->offers()->where('is_active', true)->where('start_date', '<=', now())->where('end_date', '>=', now())->get();
+        if ($offers->count() > 0) {
+            $offer = $offers->first(); // Take the first active offer
+            if ($offer->discount_type->value === 'percentage') {
+                $totalPrice = $totalPrice * (1 - $offer->discount_amount / 100);
+            } else {
+                $totalPrice = max(0, $totalPrice - $offer->discount_amount);
+            }
+        }
+
         return [
             'product_id' => $item['product_id'],
             'product_option_value_id' => $optionValueId,
@@ -419,6 +430,17 @@ class CartService
         });
 
         $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $cartItem->quantity;
+
+        // Apply product offers
+        $offers = $product->offers()->where('is_active', true)->where('start_date', '<=', now())->where('end_date', '>=', now())->get();
+        if ($offers->count() > 0) {
+            $offer = $offers->first(); // Take the first active offer
+            if ($offer->discount_type->value === 'percentage') {
+                $totalPrice = $totalPrice * (1 - $offer->discount_amount / 100);
+            } else {
+                $totalPrice = max(0, $totalPrice - $offer->discount_amount);
+            }
+        }
 
         $cartItem->update(['total_price' => round($totalPrice, 2)]);
     }
