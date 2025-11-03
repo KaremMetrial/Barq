@@ -78,7 +78,19 @@ class ProductResource extends JsonResource
                     ->first();
 
                 if (!$offer) {
-                    return null;
+                    return [
+                    'id' => null,
+                    'discount_type' => null,
+                    'discount_amount' => null,
+                    'start_date' => null,
+                    'end_date' => null,
+                    'is_flash_sale' => null,
+                    'has_stock_limit' =>null,
+                    'stock_limit' => null,
+                    'ends_in' => null,
+                    'sale_price' => null,
+                    'banner_text' => null,
+                    ];
                 }
 
                 $price = $this->price->price ?? 0;

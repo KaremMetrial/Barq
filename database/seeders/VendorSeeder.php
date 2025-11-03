@@ -31,16 +31,16 @@ class VendorSeeder extends Seeder
             ]);
 
             // Assign store_owner role to the vendor
-            $storeOwnerRole = Role::where('name', 'store_owner')->first();
+            $storeOwnerRole = Role::where('name', 'store_owner')->where('guard_name', 'vendor')->first();
             if ($storeOwnerRole) {
                 $vendor->assignRole($storeOwnerRole);
             }
         }
 
         // Create additional vendors with different roles
-        $storeOwnerRole = Role::where('name', 'store_owner')->first();
-        $storeEmployeeRole = Role::where('name', 'store_employee')->first();
-        $cashierRole = Role::where('name', 'cashier')->first();
+        $storeOwnerRole = Role::where('name', 'store_owner')->where('guard_name', 'vendor')->first();
+        $storeEmployeeRole = Role::where('name', 'store_employee')->where('guard_name', 'vendor')->first();
+        $cashierRole = Role::where('name', 'cashier')->where('guard_name', 'vendor')->first();
 
         // Create a store employee
         $employee = Vendor::create([

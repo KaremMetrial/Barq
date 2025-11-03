@@ -19,6 +19,9 @@ class OtpService
         'couier' => Couier::class,
     ];
 
+    // Static Kuwait phone number for testing
+    const TEST_PHONE_KWT = '96512345678';
+
     public function __construct(protected OtpRepository $otpRepository) {}
 
     /**
@@ -26,22 +29,24 @@ class OtpService
      */
     public function sendOtp(array $data): array
     {
-        $otpCode = $this->generateOtpCode();
+        $otpCode = $data['phone'] == self::TEST_PHONE_KWT ? 1111 : $this->generateOtpCode();
 
         $modelTypeClass = $this->getModelTypeClass($data['model_type']);
         if (!$modelTypeClass) {
             throw new \InvalidArgumentException('Invalid model_type.');
         }
+        $phone = $data['phone'] == self::TEST_PHONE_KWT ? self::TEST_PHONE_KWT : $data['phone'];
+
         $otp = $this->otpRepository->updateOrCreate(
             [
-                'phone'        => $data['phone'],
+                'phone'        => $phone,
                 'model_type'   => $modelTypeClass,
                 'otp_verified' => false,
             ],
             [
-                'otp_hash'       => Hash::make($otpCode),
+                'otp_hash'       => Hash::make( $otpCode),
                 'otp_expires_at' => Carbon::now()->addMinutes(30),
-                'otp'            => app()->environment('local', 'testing') ? $otpCode : null,
+                'otp'            => $otpCode,
             ]
         );
 

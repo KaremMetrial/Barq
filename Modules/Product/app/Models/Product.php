@@ -174,6 +174,6 @@ class Product extends Model implements TranslatableContract
     }
     public function requiredOptions()
     {
-        return $this->hasMany(ProductOption::class)->where('is_required', true);
+        return $this->hasMany(ProductOption::class);
     }
 }

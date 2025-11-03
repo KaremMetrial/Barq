@@ -41,5 +41,8 @@
     "Review": true,
     "ContactUs": true,
     "Conversation": true,
-    "Setting": true
+    "Setting": true,
+    "Role": true,
+    "DeliveryCompany": true,
+    "PaymentMethod": true
 }

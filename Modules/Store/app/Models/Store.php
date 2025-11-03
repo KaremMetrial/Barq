@@ -2,6 +2,7 @@
 
 namespace Modules\Store\Models;
 
+use App\Models\Report;
 use App\Models\ShippingPrice;
 use Modules\Cart\Models\Cart;
 use App\Enums\StoreStatusEnum;
@@ -312,5 +313,9 @@ class Store extends Model implements TranslatableContract
     public function countBranches(): int
     {
         return $this->branches()->count();
+    }
+    public function countOrders(): int
+    {
+        return $this->orders()->count();
     }
 }

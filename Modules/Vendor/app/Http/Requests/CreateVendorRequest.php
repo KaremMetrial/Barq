@@ -15,7 +15,7 @@ class CreateVendorRequest extends FormRequest
         return [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'unique:Vendors,email'],
+            'email' => ['required', 'string', 'email', 'unique:vendors,email'],
             'phone' => ['required', 'string', 'unique:Vendors,phone'],
             'password' => [
                 'required',
@@ -30,6 +30,7 @@ class CreateVendorRequest extends FormRequest
             'is_owner' => ['required', 'boolean'],
             'is_active' => ['required', 'boolean'],
             'store_id' => ['required', 'integer', 'exists:stores,id'],
+            'role_ids' => ['required','string', 'exists:roles,id']
         ];
     }
 

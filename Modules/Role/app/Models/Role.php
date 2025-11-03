@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Role\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Models\Role as ModelsRole;

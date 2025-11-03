@@ -16,9 +16,9 @@ class PosTerminalService
         protected PosTerminalRepository $PosTerminalRepository
     ) {}
 
-    public function getAllPosTerminals(): Collection
+    public function getAllPosTerminals($filters = [])
     {
-        return $this->PosTerminalRepository->all();
+        return $this->PosTerminalRepository->paginate($filters,  10, ['store.translations' ,'store.address.translations', 'store.address.zone.translations']);
     }
 
     public function createPosTerminal(array $data): ?PosTerminal

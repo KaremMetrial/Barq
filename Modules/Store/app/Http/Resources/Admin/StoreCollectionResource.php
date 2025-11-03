@@ -35,6 +35,9 @@ class StoreCollectionResource extends JsonResource
             "owner_name" => $this->owner?->first_name . ' ' . $this->owner?->last_name,
             'section_name' => $this->section?->name,
             'active_status' => $this->active_status,
+            'count_branches' => $this->countBranches(),
+            'count_orders' => $this->countOrders(),
+            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
         ];
     }
 }

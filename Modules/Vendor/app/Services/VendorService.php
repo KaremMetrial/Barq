@@ -45,7 +45,14 @@ class VendorService
                 'public'
             );
             $data = array_filter($data, fn($value) => !blank($value));
-            return $this->VendorRepository->create($data);
+            $vendor = $this->VendorRepository->create($data);
+            if (isset($data['role_ids'])) {
+                $roleIds = explode(',', $data['role_ids']);
+                $vendor->roles()->sync($roleIds);
+            } else {
+                $vendor->assignRole('vendor');
+            }
+            return $vendor;
         });
     }
 
@@ -70,7 +77,9 @@ class VendorService
                 'public'
             );
             $data = array_filter($data, fn($value) => !blank($value));
-            return $this->VendorRepository->update($id, $data);
+            $vendor = $this->VendorRepository->update($id, $data);
+
+            return $vendor;
         });
     }
 
