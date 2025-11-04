@@ -28,8 +28,6 @@ class PaymentMethodResource extends JsonResource
             'is_active' => $this->is_active,
             'is_cod' => $this->is_cod,
             'sort_order' => $this->sort_order,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
         ];
     }
 }

@@ -20,7 +20,6 @@ class CreateOrderRequest extends FormRequest
         $this->merge([
             "order" => $this->filterArray($this->input("order", [])),
             "items" => $this->filterArray($this->input("items", [])),
-            "address" => $this->filterArray($this->input("address", [])),
         ]);
     }
 
@@ -60,11 +59,19 @@ class CreateOrderRequest extends FormRequest
             "order.type" => ["required", Rule::in(OrderTypeEnum::values())],
             "order.note" => ["nullable", "string", "max:1000"],
             "order.requires_otp" => ["nullable", "boolean"],
-            "order.delivery_address" => [
-                "nullable",
-                "string",
-                "max:500",
-                "required_if:order.type,delivery"
+            "order.delivery_address_id" => [
+                "required",
+                "integer",
+                "exists:addresses,id",
+                function ($attribute, $value, $fail) {
+                    $storeId = $this->input('order.store_id');
+                    if ($storeId && $value) {
+                        $store = Store::find($storeId);
+                        if ($store && !$store->canDeliverTo($value)) {
+                            $fail('Store does not deliver to this address');
+                        }
+                    }
+                }
             ],
             "order.tip_amount" => ["nullable", "numeric", "min:0", "max:1000"],
             "order.coupon_code" => [
@@ -176,32 +183,7 @@ class CreateOrderRequest extends FormRequest
             "items.*.add_ons.*.quantity" => ["required", "integer", "min:1", "max:10"],
             "items.*.add_ons.*.price" => ["required", "numeric", "min:0"],
 
-            // Address validation (for delivery orders)
-            "address" => [
-                "nullable",
-                "array"
-            ],
-            "address.latitude" => [
-                "required_with:address",
-                "string"
-            ],
-            "address.longitude" => [
-                "required_with:address",
-                "string"
-            ],
-            "address.name" => ["nullable", "string", "max:255"],
-            "address.phone" => ["nullable", "string", "max:20"],
-            "address.type" => [
-                "nullable",
-                "string",
-                Rule::in(['home', 'work', 'other'])
-            ],
-            "address.zone_id" => ["nullable", "integer", "exists:zones,id"],
-            "address.address_line_1" => ["required_with:address", "string", "max:255"],
-            "address.address_line_2" => ["nullable", "string", "max:255"],
-            "city_id" => ["nullable", "integer", "exists:cities,id"],
-            "governorate_id" => ["nullable", "integer", "exists:governorates,id"],
-            "country_id" => ["nullable", "integer", "exists:countries,id"],
+
         ];
     }
 
@@ -216,7 +198,8 @@ class CreateOrderRequest extends FormRequest
             "order.store_id.exists" => "The selected store does not exist.",
             "order.type.required" => "Order type is required.",
             "order.type.in" => "Invalid order type selected.",
-            "order.delivery_address.required_if" => "Delivery address is required for delivery orders.",
+            "order.delivery_address_id.required_if" => "Delivery address is required for delivery orders.",
+            "order.delivery_address_id.exists" => "The selected delivery address does not exist.",
             "order.coupon_code.exists" => "Invalid coupon code.",
 
             "items.required" => "At least one item is required.",
@@ -250,7 +233,7 @@ class CreateOrderRequest extends FormRequest
         return [
             "order.store_id" => "store",
             "order.type" => "order type",
-            "order.delivery_address" => "delivery address",
+            "order.delivery_address_id" => "delivery address",
             "order.coupon_code" => "coupon code",
             "items.*.product_id" => "product",
             "items.*.quantity" => "quantity",
@@ -283,7 +266,6 @@ class CreateOrderRequest extends FormRequest
             return [
                 'order' => $validated['order'] ?? [],
                 'items' => $validated['items'] ?? [],
-                'address' => $validated['address'] ?? null,
             ];
         }
 

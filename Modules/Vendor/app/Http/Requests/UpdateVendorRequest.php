@@ -18,8 +18,8 @@ class UpdateVendorRequest extends FormRequest
         return [
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'string', 'email', 'unique:Vendors,email'],
-            'phone' => ['nullable', 'string', 'unique:Vendors,phone'],
+            'email' => ['nullable', 'string', 'email', 'unique:vendors,email'],
+            'phone' => ['nullable', 'string', 'unique:vendors,phone'],
             'password' => [
                 'nullable',
                 'string',

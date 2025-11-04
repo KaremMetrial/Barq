@@ -228,10 +228,10 @@ class Store extends Model implements TranslatableContract
 
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {
-        if($this->storeSetting->free_delivery_enabled)
-        {
-            return 0;
+        if ($this->storeSetting && $this->storeSetting->free_delivery_enabled) {
+            return 0.0;
         }
+
         $zoneId = $this->address?->zone_id;
         if (!$zoneId) {
             return null;
@@ -252,7 +252,43 @@ class Store extends Model implements TranslatableContract
             $fee = $shippingPrice->max_price;
         }
 
-        return round($fee, 2);
+        return round($fee, 3);
+    }
+
+    /**
+     * Check if store can deliver to a specific address
+     */
+    public function canDeliverTo(int $addressId): bool
+    {
+        $address = Address::find($addressId);
+        if (!$address || !$address->zone_id) {
+            return false;
+        }
+
+        // Check if any shipping prices are configured in the system
+        if (!ShippingPrice::exists()) {
+            return false;
+        }
+
+        // Check if store has shipping prices for this zone
+        // This works for both main stores and branches since shipping prices are configured per zone
+        return ShippingPrice::where('zone_id', $address->zone_id)->exists();
+    }
+
+    /**
+     * Get delivery zones for this store
+     */
+    public function getDeliveryZones()
+    {
+        $storeZoneId = $this->address?->zone_id;
+        if (!$storeZoneId) {
+            return collect();
+        }
+
+        // Get all zones that have shipping prices (delivery areas)
+        return \Modules\Zone\Models\Zone::whereHas('shippingPrices')
+            ->with(['shippingPrices', 'city'])
+            ->get();
     }
     public function currentUserFavourite()
     {

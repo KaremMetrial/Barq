@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProductAvailability extends Model
 {
     protected $fillable = [
+        'product_id',
+        'store_id',
         'stock_quantity',
         'is_in_stock',
         'available_start_date',
@@ -22,5 +24,10 @@ class ProductAvailability extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Store\Models\Store::class);
     }
 }

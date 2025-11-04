@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Cache;
 use Modules\StoreSetting\Models\StoreSetting;
 use Modules\Product\Models\ProductOptionValue;
 use Modules\Order\Repositories\OrderRepository;
+use Modules\Address\Models\Address;
+use App\Models\ShippingPrice;
 
 class OrderService
 {
@@ -38,7 +40,8 @@ class OrderService
             'orderItems.product.images',
             'orderItems.addOns',
             'store',
-            'user'
+            'user',
+            'deliveryAddress'
         ]);
     }
 
@@ -48,8 +51,12 @@ class OrderService
             $orderData = $data['order'] ?? [];
             $orderItems = $data['items'] ?? [];
 
+            // Find optimal branch for fulfilling the order
+            $optimalBranch = $this->findOptimalBranch($orderData, $orderItems);
+            $orderData['store_id'] = $optimalBranch->id;
+
             // Validate store exists and is operational
-            $this->validateStoreAvailability($orderData['store_id'] ?? null);
+            $this->validateStoreAvailability($orderData['store_id']);
 
             $orderData['order_number'] = $this->generateOrderNumber();
             $orderData['reference_code'] = $this->generateReferenceCode();
@@ -90,11 +97,10 @@ class OrderService
                 : null;
 
             // Estimated delivery time
-            $orderData['estimated_delivery_time'] = $this->calculateEstimatedDeliveryTime();
+            $orderData['estimated_delivery_time'] = $this->calculateEstimatedDeliveryTime($orderData['delivery_address_id'] ?? null);
 
-            // Set user and store
+            // Set user and store (store_id is already set by findOptimalBranch)
             $orderData['user_id'] = auth('user')->id() ?? $orderData['user_id'] ?? null;
-            $orderData['store_id'] = $this->currentStore->id;
 
             // Validate minimum order amount
             if ($this->storeSettings && $this->storeSettings->minimum_order_amount) {
@@ -396,26 +402,33 @@ class OrderService
     }
 
     /**
-     * Decrease product stock after order
+     * Decrease product stock after order from the specific branch
      */
     private function decreaseProductStock(array $orderItems): void
     {
         foreach ($orderItems as $item) {
-            $product = Product::find($item['product_id']);
-            if ($product && $product->availability) {
-                $quantity = $item['quantity'] ?? 1;
+            $productId = $item['product_id'];
+            $quantity = $item['quantity'] ?? 1;
 
-                // Check if sufficient stock is available before decrementing
-                if ($product->availability->stock_quantity < $quantity) {
-                    throw new \Exception("Insufficient stock for product {$product->id}. Available: {$product->availability->stock_quantity}, Requested: {$quantity}");
-                }
+            // Get availability for this product in the current store/branch
+            $availability = \Modules\Product\Models\ProductAvailability::where('product_id', $productId)
+                ->where('store_id', $this->currentStore->id)
+                ->first();
 
-                $product->availability->decrement('stock_quantity', $quantity);
+            if (!$availability) {
+                throw new \Exception("Product {$productId} is not available in this store branch");
+            }
 
-                // Mark as out of stock if needed
-                if ($product->availability->stock_quantity <= 0) {
-                    $product->availability->update(['is_in_stock' => false]);
-                }
+            // Check if sufficient stock is available before decrementing
+            if (!$availability->is_in_stock || $availability->stock_quantity < $quantity) {
+                throw new \Exception("Insufficient stock for product {$productId}. Available: {$availability->stock_quantity}, Requested: {$quantity}");
+            }
+
+            $availability->decrement('stock_quantity', $quantity);
+
+            // Mark as out of stock if needed
+            if ($availability->stock_quantity <= 0) {
+                $availability->update(['is_in_stock' => false]);
             }
         }
     }
@@ -435,19 +448,108 @@ class OrderService
             return 0.0;
         }
 
-        // Get delivery zone if address provided
-        if (isset($orderData['delivery_address'])) {
-            // Use the Order model's getDeliveryFee method for proper zone-based calculation
-            $order = new Order($orderData);
-            $deliveryFee = $order->getDeliveryFee();
+        // Check if any shipping prices are configured in the system
+        if (!ShippingPrice::exists()) {
+            // If no shipping prices configured, use store default or throw error
+            if ($this->storeSettings?->delivery_fee) {
+                return round($this->storeSettings->delivery_fee, 3);
+            }
+            throw new \Exception('Delivery service is not configured for this store. Please contact store support.');
+        }
 
-            if ($deliveryFee !== null) {
-                return round($deliveryFee, 3);
+        // Get delivery zone if address provided
+        if (isset($orderData['delivery_address_id'])) {
+            // Validate that store can deliver to this address
+            $this->validateDeliveryAddress($orderData['delivery_address_id']);
+
+            // Get delivery address to determine zone
+            $deliveryAddress = Address::find($orderData['delivery_address_id']);
+            if ($deliveryAddress && $deliveryAddress->zone_id) {
+                // Calculate delivery fee based on zone and distance
+                $zoneId = $deliveryAddress->zone_id;
+                $shippingPrice = ShippingPrice::where('zone_id', $zoneId)->first();
+
+                if ($shippingPrice) {
+                    // Calculate distance between store and delivery address
+                    $storeAddress = $this->currentStore->address;
+                    if ($storeAddress && $deliveryAddress->latitude && $deliveryAddress->longitude) {
+                        $distanceKm = $this->calculateDistance(
+                            $storeAddress->latitude,
+                            $storeAddress->longitude,
+                            $deliveryAddress->latitude,
+                            $deliveryAddress->longitude
+                        );
+
+                        $fee = $shippingPrice->base_price + ($shippingPrice->per_km_price * $distanceKm);
+                        if ($shippingPrice->max_price && $fee > $shippingPrice->max_price) {
+                            $fee = $shippingPrice->max_price;
+                        }
+
+                        return round($fee, 3);
+                    }
+                }
             }
         }
 
         // Fallback to store default delivery fee
         return round($this->storeSettings?->delivery_fee ?? 10.00, 3);
+    }
+
+    /**
+     * Validate if store can deliver to the given address
+     */
+    private function validateDeliveryAddress(int $addressId): void
+    {
+        $deliveryAddress = Address::find($addressId);
+        if (!$deliveryAddress) {
+            throw new \Exception('Delivery address not found');
+        }
+
+        if (!$deliveryAddress->zone_id) {
+            throw new \Exception('Delivery address does not have a valid zone');
+        }
+
+        // Check if store has any shipping prices configured
+        $storeHasShippingPrices = ShippingPrice::exists();
+        if (!$storeHasShippingPrices) {
+            throw new \Exception('Store delivery service is not configured. Please contact store support.');
+        }
+
+        // Check if store has shipping prices for this specific zone
+        $shippingPriceExists = ShippingPrice::where('zone_id', $deliveryAddress->zone_id)->exists();
+        if (!$shippingPriceExists) {
+            throw new \Exception('Store does not deliver to this address location');
+        }
+
+        // Ensure store has an address with coordinates for distance calculation
+        $storeAddress = $this->currentStore->address;
+        if (!$storeAddress || !$storeAddress->latitude || !$storeAddress->longitude) {
+            throw new \Exception('Store address is not properly configured for delivery calculations');
+        }
+
+        // Ensure delivery address has coordinates
+        if (!$deliveryAddress->latitude || !$deliveryAddress->longitude) {
+            throw new \Exception('Delivery address coordinates are missing');
+        }
+    }
+
+    /**
+     * Calculate distance between two points using Haversine formula
+     */
+    private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371; // Radius of the earth in km
+
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lonDelta = deg2rad($lon2 - $lon1);
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($lonDelta / 2) * sin($lonDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
     }
 
     /**
@@ -522,17 +624,56 @@ class OrderService
     }
 
     /**
-     * Calculate estimated delivery time
+     * Calculate estimated delivery time dynamically based on distance and store load
      */
-    private function calculateEstimatedDeliveryTime(): string
+    private function calculateEstimatedDeliveryTime(?int $deliveryAddressId = null): string
     {
-        $minTime = $this->storeSettings?->delivery_time_min ?? 30;
-        $maxTime = $this->storeSettings?->delivery_time_max ?? 45;
-        $unit = $this->storeSettings?->delivery_type_unit ?? 'minute';
+        $unit = $this->storeSettings?->delivery_type_unit ?? \App\Enums\DeliveryTypeUnitEnum::MINUTE;
 
-        $estimatedTime = ($minTime + $maxTime) / 2;
+        // Calculate distance in km (0 if no delivery address)
+        $distanceKm = 0;
+        if ($deliveryAddressId) {
+            $deliveryAddress = Address::find($deliveryAddressId);
+            if ($deliveryAddress && $deliveryAddress->latitude && $deliveryAddress->longitude) {
+                $storeAddress = $this->currentStore->address;
+                if ($storeAddress && $storeAddress->latitude && $storeAddress->longitude) {
+                    $distanceKm = $this->calculateDistance(
+                        $storeAddress->latitude,
+                        $storeAddress->longitude,
+                        $deliveryAddress->latitude,
+                        $deliveryAddress->longitude
+                    );
+                }
+            }
+        }
 
-        return match ($unit) {
+        // Count pending orders for the store
+        $pendingOrdersCount = Order::where('store_id', $this->currentStore->id)
+            ->where('status', 'pending')
+            ->count();
+
+        // Calculate dynamic min and max in minutes
+        $baseMinMinutes = 20;
+        $baseMaxMinutes = 40;
+        $distanceFactorMin = 2; // minutes per km for min
+        $distanceFactorMax = 3; // minutes per km for max
+        $loadFactorMin = 1; // minutes per pending order for min
+        $loadFactorMax = 2; // minutes per pending order for max
+
+        $dynamicMinMinutes = $baseMinMinutes + ($distanceKm * $distanceFactorMin) + ($pendingOrdersCount * $loadFactorMin);
+        $dynamicMaxMinutes = $baseMaxMinutes + ($distanceKm * $distanceFactorMax) + ($pendingOrdersCount * $loadFactorMax);
+
+        // Calculate estimated time as average in minutes
+        $estimatedTimeMinutes = ($dynamicMinMinutes + $dynamicMaxMinutes) / 2;
+
+        // Convert to the appropriate unit
+        $estimatedTime = match ($unit->value) {
+            'hour' => $estimatedTimeMinutes / 60,
+            'day' => $estimatedTimeMinutes / (60 * 24),
+            default => $estimatedTimeMinutes,
+        };
+
+        return match ($unit->value) {
             'hour' => now()->addHours($estimatedTime)->toDateTimeString(),
             'day' => now()->addDays($estimatedTime)->toDateTimeString(),
             default => now()->addMinutes($estimatedTime)->toDateTimeString(),
@@ -577,6 +718,118 @@ class OrderService
         });
     }
 
+    /**
+     * Find the optimal branch to fulfill an order
+     */
+    public function findOptimalBranch(array $orderData, array $orderItems): Store
+    {
+        $productIds = collect($orderItems)->pluck('product_id')->unique()->toArray();
+        $deliveryAddressId = $orderData['delivery_address_id'] ?? null;
+
+        // Get the main store from the request or from the first product
+        $mainStoreId = $orderData['store_id'] ?? null;
+        if (!$mainStoreId && !empty($productIds)) {
+            $firstProduct = \Modules\Product\Models\Product::find($productIds[0]);
+            $mainStoreId = $firstProduct?->store_id;
+        }
+
+        if (!$mainStoreId) {
+            throw new \Exception('Unable to determine store for order');
+        }
+
+        $mainStore = Store::find($mainStoreId);
+        if (!$mainStore) {
+            throw new \Exception('Store not found');
+        }
+
+        // Get all branches (including main store)
+        $branches = collect([$mainStore])->merge($mainStore->branches);
+
+        // Find branches that can fulfill the order
+        $candidateBranches = $branches->filter(function($branch) use ($productIds, $deliveryAddressId) {
+            return $this->branchCanFulfillOrder($branch, $productIds, $deliveryAddressId);
+        });
+
+        if ($candidateBranches->isEmpty()) {
+            throw new \Exception('No branch can fulfill this order. Products may be out of stock or delivery not available.');
+        }
+
+        // Select the optimal branch (closest to delivery address)
+        return $this->selectOptimalBranch($candidateBranches, $deliveryAddressId);
+    }
+
+    /**
+     * Check if a branch can fulfill the order
+     */
+    private function branchCanFulfillOrder(Store $branch, array $productIds, ?int $deliveryAddressId): bool
+    {
+        // Check if branch has all required products in stock
+        foreach ($productIds as $productId) {
+            $availability = \Modules\Product\Models\ProductAvailability::where('product_id', $productId)
+                ->where('store_id', $branch->id)
+                ->first();
+
+            if (!$availability || !$availability->is_in_stock || $availability->stock_quantity <= 0) {
+                return false;
+            }
+        }
+
+        // If delivery address is provided, check if branch can deliver there
+        if ($deliveryAddressId) {
+            return $branch->canDeliverTo($deliveryAddressId);
+        }
+
+        // If no delivery address (pickup order), branch is valid
+        return true;
+    }
+
+    /**
+     * Select the optimal branch from candidates
+     */
+    private function selectOptimalBranch(\Illuminate\Support\Collection $branches, ?int $deliveryAddressId): Store
+    {
+        if ($branches->count() === 1) {
+            return $branches->first();
+        }
+
+        if (!$deliveryAddressId) {
+            // For pickup orders, prefer main branch or first available
+            return $branches->first(function($branch) {
+                return $branch->branch_type === 'main';
+            }) ?? $branches->first();
+        }
+
+        // For delivery orders, select closest branch
+        $deliveryAddress = Address::find($deliveryAddressId);
+        if (!$deliveryAddress || !$deliveryAddress->latitude || !$deliveryAddress->longitude) {
+            return $branches->first();
+        }
+
+        $closestBranch = null;
+        $minDistance = PHP_FLOAT_MAX;
+
+        foreach ($branches as $branch) {
+            $branchAddress = $branch->address;
+            if (!$branchAddress || !$branchAddress->latitude || !$branchAddress->longitude) {
+                continue;
+            }
+
+            $distance = $this->calculateDistance(
+                $deliveryAddress->latitude,
+                $deliveryAddress->longitude,
+                $branchAddress->latitude,
+                $branchAddress->longitude
+            );
+
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $closestBranch = $branch;
+            }
+        }
+
+        return $closestBranch ?? $branches->first();
+    }
+
     public function deleteOrder(int $id): bool
     {
         return DB::transaction(function () use ($id) {
@@ -591,11 +844,15 @@ class OrderService
                 throw new \Exception('Can only delete pending orders');
             }
 
-            // Restore stock
+            // Restore stock to the correct branch
             foreach ($order->orderItems as $item) {
-                if ($item->product && $item->product->availability) {
-                    $item->product->availability->increment('stock_quantity', $item->quantity);
-                    $item->product->availability->update(['is_in_stock' => true]);
+                $availability = \Modules\Product\Models\ProductAvailability::where('product_id', $item->product_id)
+                    ->where('store_id', $order->store_id)
+                    ->first();
+
+                if ($availability) {
+                    $availability->increment('stock_quantity', $item->quantity);
+                    $availability->update(['is_in_stock' => true]);
                 }
             }
 

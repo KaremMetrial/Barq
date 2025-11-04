@@ -59,7 +59,19 @@ class OrderResource extends JsonResource
 
             // Delivery details
             'delivery' => [
-                'address' => $this->delivery_address,
+                'address' => $this->when($this->relationLoaded('deliveryAddress'), function () {
+                    return $this->deliveryAddress ? [
+                        'id' => $this->deliveryAddress->id,
+                        'name' => $this->deliveryAddress->name,
+                        'phone' => $this->deliveryAddress->phone,
+                        'type' => $this->deliveryAddress->type?->value,
+                        'address_line_1' => $this->deliveryAddress->address_line_1,
+                        'address_line_2' => $this->deliveryAddress->address_line_2,
+                        'latitude' => $this->deliveryAddress->latitude,
+                        'longitude' => $this->deliveryAddress->longitude,
+                        'full_address' => $this->deliveryAddress->getFullAddressAttribute(),
+                    ] : null;
+                }),
                 'estimated_delivery_time' => $this->estimated_delivery_time?->format('Y-m-d H:i:s'),
                 'delivered_at' => $this->delivered_at?->format('Y-m-d H:i:s'),
             ],

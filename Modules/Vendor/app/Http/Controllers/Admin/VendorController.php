@@ -45,7 +45,7 @@ class VendorController extends Controller
     {
         $vendor = $this->vendorService->createVendor($request->validated());
         return $this->successResponse([
-            'vendor' => new VendorResource($vendor)
+            'vendor' => new VendorCollectionResource($vendor)
         ], __('message.success'));
     }
 

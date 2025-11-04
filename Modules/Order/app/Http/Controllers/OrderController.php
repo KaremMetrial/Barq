@@ -41,7 +41,7 @@ class OrderController extends Controller
         $order = $this->orderService->createOrder($request->validated());
         // dd($order->load('items.product', 'items.addOns', 'store', 'user', 'courier', 'statusHistories'));
         return $this->successResponse([
-            'order' => new OrderResource($order->load('items', 'items.product', 'items.addOns', 'store', 'user', 'courier', 'statusHistories')),
+            'order' => new OrderResource($order->load('items', 'items.product', 'items.addOns', 'store', 'user', 'courier', 'statusHistories', 'deliveryAddress')),
         ], __('message.success'));
     }
 
@@ -51,7 +51,7 @@ class OrderController extends Controller
     public function show(int $id): JsonResponse
     {
         $order = $this->orderService->getOrderById($id);
-        $order->load('items', 'items.product', 'items.addOns', 'store', 'user', 'courier', 'statusHistories');
+        $order->load('items', 'items.product', 'items.addOns', 'store', 'user', 'courier', 'statusHistories', 'deliveryAddress');
         return $this->successResponse([
             'order' => new OrderResource($order),
         ], __('message.success'));

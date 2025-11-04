@@ -38,7 +38,7 @@ class Order extends Model
         'payment_status',
         'otp_code',
         'requires_otp',
-        'delivery_address',
+        'delivery_address_id',
         'tip_amount',
         'estimated_delivery_time',
         'delivered_at',
@@ -112,7 +112,7 @@ class Order extends Model
 
     public function deliveryAddress()
     {
-        return $this->belongsTo(Address::class, 'delivery_address');
+        return $this->belongsTo(Address::class, 'delivery_address_id');
     }
     public function orderItems(): HasMany
     {
@@ -154,30 +154,12 @@ class Order extends Model
     }
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {
-        $zoneId = $this->address?->zone_id;
-        if (!$zoneId) {
+        // Use store's delivery fee calculation method for consistency
+        if (!$this->store) {
             return null;
         }
 
-        $shippingPriceQuery = ShippingPrice::where('zone_id', $zoneId);
-        if ($vehicleId) {
-            $shippingPriceQuery->where('vehicle_id', $vehicleId);
-        }
-        $shippingPrice = $shippingPriceQuery->first();
-
-        if (!$shippingPrice) {
-            return null;
-        }
-
-        $distanceKm = $distanceKm ?? 0;
-
-        $fee = $shippingPrice->base_price + ($shippingPrice->per_km_price * $distanceKm);
-
-        if ($shippingPrice->max_price && $fee > $shippingPrice->max_price) {
-            $fee = $shippingPrice->max_price;
-        }
-
-        return round($fee, 2);
+        return $this->store->getDeliveryFee($vehicleId, $distanceKm);
     }
 
 }

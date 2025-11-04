@@ -5,6 +5,8 @@ namespace Modules\Cart\Http\Resources;
 use App\Enums\CartTypeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Address\Models\Address;
+use Modules\Order\Models\Order;
 
 class CartResource extends JsonResource
 {
@@ -17,10 +19,14 @@ class CartResource extends JsonResource
     {
         $cartQuantity = $this->items->sum('quantity');
         $subtotal = $this->items->sum('total_price');
-        
+
         $store = $this->store;
         $storeName = $store ? $store->name : null;
-        $deliveryFee = $store ? $store->getDeliveryFee() : 0;
+
+        // Calculate delivery fee based on delivery address if available
+        $deliveryAddressId = $request->header('address_id');
+        $deliveryFee = $this->getDeliveryFeeForDisplay($deliveryAddressId);
+
         $tax = $store ? $store->getTaxAmount() : 0;
         return [
             "id" => $this->id,

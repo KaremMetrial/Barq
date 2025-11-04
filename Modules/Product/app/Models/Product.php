@@ -39,6 +39,7 @@ class Product extends Model implements TranslatableContract
         'store_id',
         'category_id',
         'barcode',
+        'weight',
     ];
     protected $casts = [
         'is_active' => 'boolean',
@@ -47,6 +48,7 @@ class Product extends Model implements TranslatableContract
         'is_reviewed' => 'boolean',
         'is_vegetarian' => 'boolean',
         'is_featured' => 'boolean',
+        'weight' => 'decimal:3',
     ];
     public function store(): BelongsTo
     {
@@ -67,6 +69,11 @@ class Product extends Model implements TranslatableContract
     public function availability(): HasOne
     {
         return $this->hasOne(ProductAvailability::class);
+    }
+
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(ProductAvailability::class);
     }
     public function tags(): BelongsToMany
     {
@@ -152,6 +159,9 @@ class Product extends Model implements TranslatableContract
             $query->where('category_id', $filters['category_id'])->orWhereHas('category', function ($q) use ($filters) {
                 $q->where('parent_id', $filters['category_id']);
             });
+        }
+        if (isset($filters['weight'])) {
+            $query->where('weight', $filters['weight']);
         }
 
         if ($admin) {
