@@ -21,7 +21,8 @@ class Section extends Model implements TranslatableContract
         'icon',
         'is_restaurant',
         'is_active',
-        'type'
+        'type',
+        'is_show_on_home'
     ];
 
     protected $casts = [
@@ -44,7 +45,8 @@ class Section extends Model implements TranslatableContract
     public function scopeFilter($query, $filters)
     {
         if (!auth('admin')->check()) {
-            $query->whereIsActive(true);
+            $query->whereIsActive(true)
+            ->whereIsShowOnHome(true);
         }
 
         return $query->with('categories')->latest();

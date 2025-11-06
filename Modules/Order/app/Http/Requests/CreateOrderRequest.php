@@ -41,6 +41,7 @@ class CreateOrderRequest extends FormRequest
         return [
             // Order data
             "order" => ["required", "array"],
+            "order.payment_method_id" => ["required", "integer", "exists:payment_methods,id"],
             "order.store_id" => [
                 "required",
                 "integer",
@@ -181,7 +182,7 @@ class CreateOrderRequest extends FormRequest
                 }
             ],
             "items.*.add_ons.*.quantity" => ["required", "integer", "min:1", "max:10"],
-            "items.*.add_ons.*.price" => ["required", "numeric", "min:0"],
+            "items.*.add_ons.*.price" => ["nullable", "numeric", "min:0"],
 
 
         ];

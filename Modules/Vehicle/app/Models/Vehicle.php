@@ -2,7 +2,9 @@
 
 namespace Modules\Vehicle\Models;
 
+use App\Models\ShippingPrice;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Couier\Models\CouierVehicle;
 use Astrotomic\Translatable\Translatable;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -35,5 +37,15 @@ class Vehicle extends Model implements TranslatableContract
     {
         return $this->hasMany(ShippingPrice::class);
     }
-
+    public function scopeFilter($query, $filters): mixed
+    {
+        if (isset($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+        }
+        if (auth('sanctum')->check() && !auth('sanctum')->user()->can('admin'))
+        {
+            $query->whereIsActive(true);
+        }
+        return $query->latest();
+    }
 }

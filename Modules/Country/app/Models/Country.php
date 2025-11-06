@@ -55,9 +55,13 @@ class Country extends Model implements TranslatableContract
     public function scopeFilter($query, $filters)
     {
         if (isset($filters['search'])) {
-            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%')->orWhere('code', '%' . $filters['search'] . '%');
         }
-        if(!auth('admin')->check())
+        if (!auth('sanctum')->check())
+        {
+            $query->whereIsActive(true);
+        }
+        if (auth('sanctum')->check() && !auth('sanctum')->user()->can('admin'))
         {
             $query->whereIsActive(true);
         }

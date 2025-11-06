@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('delivery_companies', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('sections', function (Blueprint $table) {
+            $table->boolean('is_show_on_home')->default(true);
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Schema::dropIfExists('delivery_companies');
+        Schema::table('sections', function (Blueprint $table) {
+            $table->dropColumn('is_show_on_home');
+        });
     }
 };

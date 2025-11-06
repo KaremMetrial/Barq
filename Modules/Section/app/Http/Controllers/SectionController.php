@@ -23,7 +23,7 @@ class SectionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $sections = $this->sectionService->getAllSections();
         return $this->successResponse([

@@ -1,7 +1,9 @@
 <?php
 namespace Modules\Zone\Models;
 
+use App\Models\ShippingPrice;
 use Modules\City\Models\City;
+use Modules\Store\Models\Store;
 use Modules\Address\Models\Address;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
@@ -24,6 +26,7 @@ class Zone extends Model implements TranslatableContract
     ];
     protected $casts = [
         'is_active' => 'boolean',
+        'area' => 'array'
     ];
     /*
         * Scopes Query to search by name
@@ -49,15 +52,32 @@ class Zone extends Model implements TranslatableContract
     {
         return $this->hasMany(ShippingPrice::class);
     }
-       public function scopeFilter($query, $filters)
+
+    /**
+     * Scope to find zones that contain given coordinates using spatial query
+     */
+    public function scopeWithinCoordinates($query, float $latitude, float $longitude)
+    {
+        return $query->whereRaw("ST_Contains(area, ST_GeomFromText('POINT(? ?)'))", [$longitude, $latitude]);
+    }
+
+    public function scopeFilter($query, $filters): mixed
     {
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }
-        if(!auth('admin')->check())
+        if (!auth('sanctum')->check())
+        {
+            $query->whereIsActive(true);
+        }
+        if (auth('sanctum')->check() && !auth('sanctum')->user()->can('admin'))
         {
             $query->whereIsActive(true);
         }
         return $query->latest();
+    }
+    public function stores()
+    {
+        return $this->belongsToMany(Store::class, 'store_zone', 'zone_id', 'store_id');
     }
 }

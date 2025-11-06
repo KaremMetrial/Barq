@@ -32,7 +32,7 @@ class LanguageService
     }
     public function getAllLanguages($filters = []): Collection
     {
-        return $this->languageRepository->allWithTranslations();
+        return $this->languageRepository->all();
     }
     public function createLanguage(array $data): ?Language
     {
@@ -46,6 +46,7 @@ class LanguageService
     public function updateLanguage(int $id, array $data): ?Language
     {
         $this->clearCache();
+        $data = array_filter($data, fn($value) => !blank($value));
         return $this->languageRepository->update($id, $data);
     }
     public function deleteLanguage(int $id): bool

@@ -70,6 +70,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatusEnum::class,
+            'points_expire_at' => 'datetime',
         ];
     }
     public function interests(): BelongsToMany
@@ -155,7 +156,7 @@ class User extends Authenticatable
         $this->increment('loyalty_points', $points);
 
         // Update expiry date if needed
-        if (!$this->points_expire_at || $this->points_expire_at->isPast()) {
+        if (!$this->points_expire_at || (method_exists($this->points_expire_at, 'isPast') && $this->points_expire_at->isPast())) {
             $this->points_expire_at = now()->addDays($settings->points_expiry_days);
             $this->save();
         }
@@ -203,7 +204,7 @@ class User extends Authenticatable
      */
     public function getAvailablePoints(): float
     {
-        if (!$this->points_expire_at || $this->points_expire_at->isPast()) {
+        if (!$this->points_expire_at || (method_exists($this->points_expire_at, 'isPast') && $this->points_expire_at->isPast())) {
             return 0;
         }
 

@@ -107,7 +107,7 @@ class OrderService
                 if ($totalAmount < $this->storeSettings->minimum_order_amount) {
                     throw new \Exception(
                         "Minimum order amount is {$this->storeSettings->minimum_order_amount}"
-                    );
+                    ,422);
                 }
             }
 

@@ -47,8 +47,20 @@ class Governorate extends Model implements TranslatableContract
     {
         return $this->hasMany(City::class);
     }
-         public function scopeFilter($query, $filters)
+    public function scopeFilter($query, $filters): mixed
     {
+        if (isset($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+        }
+        if (!auth('sanctum')->check())
+        {
+            $query->whereIsActive(true);
+        }
+        if (auth('sanctum')->check() && !auth('sanctum')->user()->can('admin'))
+        {
+            $query->whereIsActive(true);
+        }
         return $query->latest();
     }
+
 }

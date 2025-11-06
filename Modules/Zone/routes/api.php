@@ -10,7 +10,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}', 'show')->name('show');
     });
 
-    Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->middleware(['auth:admin', 'abilities:admin'])->name('admin.')->group(function () {
         Route::apiResource('zones', AdminZoneController::class)->names('zone');
     });
 });

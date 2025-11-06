@@ -16,6 +16,7 @@ class CountryResource extends JsonResource
             "id"=> $this->id,
             "name"=> $this->name,
             "code"=> $this->code,
+            "currency_symbol"=> $this->currency_symbol,
             "is_active"=> (bool) $this->is_active,
         ];
     }

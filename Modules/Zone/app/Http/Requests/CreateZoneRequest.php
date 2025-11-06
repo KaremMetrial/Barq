@@ -17,7 +17,7 @@ class CreateZoneRequest extends FormRequest
         return [
             'city_id' => ['required', 'exists:cities,id'],
             'name' => ['required', 'string', 'max:255'],
-            'area' => ['nullable', 'string'],
+            'area' => ['required', 'array'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }
@@ -29,4 +29,21 @@ class CreateZoneRequest extends FormRequest
     {
         return true;
     }
+        protected function passedValidation(): void
+    {
+        $validated = $this->validated();
+
+        $fields = ['name'];
+
+        foreach ($fields as $field) {
+            if (isset($validated[$field], $validated['lang'])) {
+                $validated["{$field}:{$validated['lang']}"] = $validated[$field];
+                unset($validated[$field]);
+            }
+        }
+        unset($validated['lang']);
+
+        $this->replace($validated);
+    }
+
 }

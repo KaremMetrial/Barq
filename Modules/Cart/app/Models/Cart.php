@@ -19,6 +19,10 @@ class Cart extends Model
         "user_id",
         "is_group_order"
     ];
+
+    protected $casts = [
+        'is_group_order' => 'boolean',
+    ];
     // public function getRouteKeyName()
     // {
     //     return 'cart_key';
@@ -40,10 +44,7 @@ class Cart extends Model
     {
         return $this->hasMany(CartItem::class);
     }
-    public function owner(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
+    // إزالة علاقة owner المكررة - استخدم علاقة user بدلاً منها
 
     public function participants(): BelongsToMany
     {
@@ -57,6 +58,11 @@ class Cart extends Model
     public function getCalculatedDeliveryFee(?int $deliveryAddressId = null, ?int $vehicleId = null): ?float
     {
         if (!$this->store) {
+            return null;
+        }
+
+        // التحقق من وجود طريقة getDeliveryFee في المتجر
+        if (!method_exists($this->store, 'getDeliveryFee')) {
             return null;
         }
 
@@ -112,5 +118,30 @@ class Cart extends Model
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
         return $earthRadius * $c;
+    }
+
+    /**
+     * نطاقات مفيدة للاستعلامات
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereHas('items', function($q) {
+            $q->where('quantity', '>', 0);
+        });
+    }
+
+    public function scopeByStore($query, $storeId)
+    {
+        return $query->where('store_id', $storeId);
+    }
+
+    public function scopeGroupOrders($query)
+    {
+        return $query->where('is_group_order', true);
+    }
+
+    public function scopeByUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
     }
 }

@@ -3,6 +3,7 @@
 namespace Modules\Store\Services;
 
 use Carbon\Carbon;
+use Modules\Role\Models\Role;
 use App\Traits\FileUploadTrait;
 use Modules\Store\Models\Store;
 use Illuminate\Support\Facades\DB;
@@ -176,5 +177,42 @@ class StoreService
             ]
         );
     }
+    public function createAdminStore(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+            $data['store']['logo'] = $this->upload(
+                request(),
+                'logo',
+                'uploads/logos',
+                'public'
+            );
+            $data['store']['cover_image'] = $this->upload(
+                request(),
+                'cover_image',
+                'uploads/cover_images',
+                'public'
+            );
+            $data = array_filter($data, fn($value) => !blank($value));
+            $store =  $this->StoreRepository->create($data['store']);
+            $store->storeSetting()->create([
+                'orders_enabled' => $data['store']['orders_enabled'] ?? false,
+                'delivery_service_enabled' => $data['storeSetting']['delivery_service_enabled'] ?? false,
+                'external_pickup_enabled' => $data['store']['external_pickup_enabled'] ?? false,
+                'product_classification' => $data['store']['product_classification'] ?? false,
+                'self_delivery_enabled' => $data['store']['self_delivery_enabled'] ?? false,
+                'free_delivery_enabled' => $data['store']['free_delivery_enabled'] ?? false,
+                'minimum_order_amount' => $data['store']['minimum_order_amount'] ?? 0,
+                'delivery_time_min' => $data['store']['delivery_time_min'] ?? 0,
+                'delivery_time_max' => $data['store']['delivery_time_max'] ?? 0,
+                'delivery_type_unit' => $data['store']['delivery_type_unit'] ?? 0,
+                'tax_rate' => $data['store']['tax_rate'] ?? 0,
+                'order_interval_time' => $data['store']['order_interval_time'] ?? 0,
+                'service_fee_percentage' => $data['store']['service_fee_percentage'] ?? 0,
+            ]);
+            $data['vendor']['role_id'] = Role::where('name', 'store_owner')->first()->id;
+            $store->vendors()->create($data['vendor']);
 
+            return $store;
+        });
+    }
 }

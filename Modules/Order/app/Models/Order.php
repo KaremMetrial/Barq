@@ -50,7 +50,8 @@ class Order extends Model
         'created_at',
         'updated_at',
         'pos_shift_id',
-        'coupon_id'
+        'coupon_id',
+        'payment_method_id'
     ];
 
     protected $casts = [
@@ -160,6 +161,38 @@ class Order extends Model
         }
 
         return $this->store->getDeliveryFee($vehicleId, $distanceKm);
+    }
+
+    /**
+     * Check if order is pickup type
+     */
+    public function isPickup(): bool
+    {
+        return $this->type === OrderTypeEnum::PICKUP;
+    }
+
+    /**
+     * Check if order is delivery type
+     */
+    public function isDeliver(): bool
+    {
+        return $this->type === OrderTypeEnum::DELIVER;
+    }
+
+    /**
+     * Check if order is service type
+     */
+    public function isService(): bool
+    {
+        return $this->type === OrderTypeEnum::SERVICE;
+    }
+
+    /**
+     * Check if order is POS type
+     */
+    public function isPos(): bool
+    {
+        return $this->type === OrderTypeEnum::POS;
     }
 
 }

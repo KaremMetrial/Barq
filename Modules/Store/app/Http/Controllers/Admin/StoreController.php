@@ -44,7 +44,7 @@ class StoreController extends Controller
      */
     public function store(CreateStoreRequest $request): JsonResponse
     {
-        $Store = $this->StoreService->createStore($request->validated());
+        $Store = $this->StoreService->createAdminStore($request->validated());
         return $this->successResponse([
             'Store' => new StoreResource($Store)
         ], __('message.success'));

@@ -16,6 +16,8 @@
     use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
     use Illuminate\Http\Request;
     use Illuminate\Http\JsonResponse;
+    use Laravel\Sanctum\Http\Middleware\CheckAbilities;
+    use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
           $middleware->append(SetApiLocale::class);
+            $middleware->alias([
+                'abilities' => CheckAbilities::class,
+                'ability' => CheckForAnyAbility::class,
+            ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 404 - Not Found
@@ -134,9 +141,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($request->is('api/*') || $request->is('vendor/*')) {
                     return response()->json([
                         'success' => (bool)false,
-                        'message' => __('message.unexpected_error'),
+                        'message' =>  $e->getMessage(),
                         'data' => env('APP_DEBUG') ? $e->getMessage() : null,
-                    ], 500);
+                    ], 422);
                 }
             });
     })->create();

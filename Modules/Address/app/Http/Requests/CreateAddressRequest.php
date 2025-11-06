@@ -30,7 +30,7 @@ class CreateAddressRequest extends FormRequest
             'address_line_2' => ['nullable', 'string'],
             'is_default' => ['nullable', 'boolean'],
             'type' => ['nullable', 'string', Rule::in(AddressTypeEnum::values())],
-            'zone_id' => ['nullable', 'exists:zones,id'],
+            'zone_id' => ['nullable', 'exists:zones,id'], // Made optional since it will be auto-determined
             'addressable_type' => ['required', 'string'],
             'addressable_id' => ['required', 'numeric'],
             'city_id' => ['nullable', 'exists:cities,id'],

@@ -51,6 +51,7 @@ class CountryService
     public function updateCountry(int $id, array $data): ?Country
     {
         $this->clearCache();
+        $data = array_filter($data, fn($value) => !blank($value));
         return $this->countryRepository->update($id, $data);
     }
 

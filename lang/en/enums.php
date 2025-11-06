@@ -189,6 +189,7 @@ return [
         'restaurant' => 'Restaurant',
         'pharmacy' => 'Pharmacy',
         'regular_store' => 'Regular Store',
+        'delivery_company' => 'Delivery Company',
         'other' => 'Other',
     ],
         'loyalty_transaction_type' => [

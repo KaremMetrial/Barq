@@ -16,9 +16,9 @@ class SectionService
         protected SectionRepository $SectionRepository
     ) {}
 
-    public function getAllSections(): Collection
+    public function getAllSections($filters = []): Collection
     {
-        return $this->SectionRepository->allWithTranslations([]);
+        return $this->SectionRepository->allWithTranslations($filters);
     }
 
     public function createSection(array $data): ?Section

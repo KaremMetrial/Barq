@@ -55,7 +55,7 @@ class CountryController extends Controller
      */
     public function update(UpdateCountryRequest $request, $id)
     {
-        $country = $this->countryService->updateCountry($id, $request->validated());
+        $country = $this->countryService->updateCountry($id, $request->all());
         return $this->successResponse([
             "country"=> new CountryResource($country),
         ], __("message.success"));

@@ -14,6 +14,7 @@ class StoreCountryRequest extends FormRequest
         return [
             'name' => ['required','string','max:255'],
             'code' => ["required", "string", "max:5", "unique:countries,code"],
+            'currency_symbol' => ["required", "string", "max:5"],
             'is_active' => ["nullable", "boolean"],
         ];
     }

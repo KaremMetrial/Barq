@@ -20,6 +20,17 @@ class AddressService
 
     public function createAddress(array $data): ?Address
     {
+        // Auto-determine zone_id based on latitude and longitude if not provided
+        if (!isset($data['zone_id']) && isset($data['latitude']) && isset($data['longitude'])) {
+            $zone = \Modules\Zone\Models\Zone::withinCoordinates($data['latitude'], $data['longitude'])->first();
+            if ($zone) {
+                $data['zone_id'] = $zone->id;
+                $data['city_id'] = $zone->city_id;
+                $data['governorate_id'] = $zone->city->governorate_id;
+                $data['country_id'] = $zone->city->governorate->country_id;
+            }
+        }
+
         return $this->AddressRepository->create($data);
     }
 

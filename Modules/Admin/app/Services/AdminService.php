@@ -70,7 +70,7 @@ class AdminService
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-        $token = $admin->createToken('admin')->plainTextToken;
+        $token = $admin->createToken('token',['admin'])->plainTextToken;
         return [
             'admin' => $admin,
             'token' => $token

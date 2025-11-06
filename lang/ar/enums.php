@@ -195,6 +195,7 @@ return [
         'restaurant' => 'مطعم',
         'pharmacy' => 'صيدلية',
         'regular_store' => 'متجر عادي',
+        'delivery_company' => 'شركة التوصيل',
         'other' => 'أخرى',
     ],
         'loyalty_transaction_type' => [

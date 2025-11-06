@@ -3,6 +3,7 @@
 namespace Modules\City\Models;
 
 use Modules\Zone\Models\Zone;
+use Modules\Banner\Models\Banner;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,8 +11,8 @@ use Modules\Governorate\Models\Governorate;
 use function PHPUnit\Framework\throwException;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
@@ -51,9 +52,17 @@ class City extends Model implements TranslatableContract
     {
         return $this->hasMany(Banner::class);
     }
-    public function scopeFilter($query, $filters)
+    public function scopeFilter($query, $filters): mixed
     {
-        if (!auth('admin')->check()) {
+        if (isset($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+        }
+        if (!auth('sanctum')->check())
+        {
+            $query->whereIsActive(true);
+        }
+        if (auth('sanctum')->check() && !auth('sanctum')->user()->can('admin'))
+        {
             $query->whereIsActive(true);
         }
         return $query->latest();

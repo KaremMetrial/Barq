@@ -7,6 +7,7 @@ enum SectionTypeEnum: string
     case RESTAURANT = 'restaurant';
     case PHARMACY = 'pharmacy';
     case REGULAR_STORE = 'regular_store';
+    case DELIVERY_COMPANY = 'delivery_company';
     case OTHER = 'other';
 
     public static function values(): array
@@ -21,6 +22,7 @@ enum SectionTypeEnum: string
             self::PHARMACY->value => __('enums.section_type.pharmacy'),
             self::REGULAR_STORE->value => __('enums.section_type.regular_store'),
             self::OTHER->value => __('enums.section_type.other'),
+            self::DELIVERY_COMPANY->value => __('enums.section_type.delivery_company'),
         ];
     }
 

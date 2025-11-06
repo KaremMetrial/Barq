@@ -98,7 +98,7 @@ class VendorService
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-        $token = $vendor->createToken('vendor')->plainTextToken;
+        $token = $vendor->createToken('token',['vendor'])->plainTextToken;
         return [
             'vendor' => $vendor,
             'token' => $token

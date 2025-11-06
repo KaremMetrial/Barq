@@ -9,7 +9,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'index');
     });
 
-    Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->middleware(['auth:sanctum', 'abilities:admin'])->name('admin.')->group(function () {
         Route::apiResource('languages', AdminLanguageController::class)->names('language');
     });
 });

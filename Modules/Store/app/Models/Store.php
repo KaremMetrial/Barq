@@ -3,11 +3,14 @@
 namespace Modules\Store\Models;
 
 use App\Models\Report;
+use App\Enums\PlanTypeEnum;
 use App\Models\ShippingPrice;
 use Modules\Cart\Models\Cart;
+use Modules\Zone\Models\Zone;
 use App\Enums\StoreStatusEnum;
 use Modules\Offer\Models\Offer;
 use Modules\Order\Models\Order;
+use Modules\Couier\Models\Couier;
 use Modules\Coupon\Models\Coupon;
 use Modules\Review\Models\Review;
 use Modules\Vendor\Models\Vendor;
@@ -53,6 +56,8 @@ class Store extends Model implements TranslatableContract
         'parent_id',
         'branch_type',
         'active_status',
+        'commission_type',
+        'commission_amount'
     ];
     protected $casts = [
         'is_featured' => 'boolean',
@@ -60,6 +65,7 @@ class Store extends Model implements TranslatableContract
         'is_closed' => 'boolean',
         'avg_rate' => 'float',
         'status' => StoreStatusEnum::class,
+        'commission_type' => PlanTypeEnum::class,
     ];
     public function section(): BelongsTo
     {
@@ -203,6 +209,7 @@ class Store extends Model implements TranslatableContract
                 $query->latest();
             }
         }
+
 
         if (auth('admin')->check()) {
             if(!empty($filters['main']) && $filters['main'] == 'true') {
@@ -353,5 +360,10 @@ class Store extends Model implements TranslatableContract
     public function countOrders(): int
     {
         return $this->orders()->count();
+    }
+    // area they serve it
+    public function zones()
+    {
+       return $this->belongsToMany(Zone::class, 'store_zone', 'store_id', 'zone_id');
     }
 }
