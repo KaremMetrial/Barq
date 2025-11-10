@@ -18,6 +18,8 @@ class CountryResource extends JsonResource
             "code"=> $this->code,
             "currency_symbol"=> $this->currency_symbol,
             "is_active"=> (bool) $this->is_active,
+            'currency_name' => $this->currency_name,
+            'flag' => $this->flag ? asset('storage/' . $this->flag) : null,
         ];
     }
 }

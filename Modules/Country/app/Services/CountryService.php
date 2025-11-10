@@ -2,6 +2,7 @@
 
 namespace Modules\Country\Services;
 
+use App\Traits\FileUploadTrait;
 use Modules\Country\Models\Country;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
@@ -10,6 +11,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class CountryService
 {
+    use FileUploadTrait;
     public function __construct(
         protected CountryRepository $countryRepository
     ) {}
@@ -40,6 +42,10 @@ class CountryService
     public function createCountry(array $data): ?Country
     {
         $this->clearCache();
+        if (request()->has('flag')) {
+            $data['flag'] = $this->upload(request(), 'flag', 'upload/countries');
+        }
+        $data = array_filter($data, fn($value) => !blank($value));
         return $this->countryRepository->create($data);
     }
 
@@ -51,6 +57,9 @@ class CountryService
     public function updateCountry(int $id, array $data): ?Country
     {
         $this->clearCache();
+        if (request()->has('flag')) {
+            $data['flag'] = $this->upload(request(), 'flag', 'upload/countries');
+        }
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->countryRepository->update($id, $data);
     }

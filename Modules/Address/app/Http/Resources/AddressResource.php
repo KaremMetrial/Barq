@@ -22,8 +22,8 @@ class AddressResource extends JsonResource
             "name"=> $this->name,
             "phone"=> $this->phone,
             "is_default"=> (bool) $this->is_default,
-            "type" => $this->type?->value,
-            "type_label" => AddressTypeEnum::label($this->type?->value),
+            // "type" => $this->type?->value,
+            // "type_label" => AddressTypeEnum::label($this->type?->value),
             "street" => $this->street,
             "house_number" => $this->house_number,
             "apartment_number" => $this->apartment_number,
@@ -39,6 +39,7 @@ class AddressResource extends JsonResource
                     'name'=> $this->zone->city->name,
                 ];
             }),
+            'address_line_1' => $this->address_line_1,
         ];
     }
 }

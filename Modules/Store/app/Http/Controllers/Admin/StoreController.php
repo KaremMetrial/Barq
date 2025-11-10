@@ -9,14 +9,23 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Modules\Store\Services\StoreService;
 use App\Http\Resources\PaginationResource;
-use Modules\Store\Http\Resources\StoreResource;
+use Modules\Store\Http\Resources\Admin\StoreResource;
 use Modules\Store\Http\Requests\CreateStoreRequest;
 use Modules\Store\Http\Requests\UpdateStoreRequest;
 use Modules\Store\Http\Resources\Admin\StoreCollectionResource;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class StoreController extends Controller
+class StoreController extends Controller implements HasMiddleware
 {
     use ApiResponse;
+    public static function middleware(): array
+    {
+        return [
+            'auth:sanctum',
+            new Middleware('ability:admin', only: ['store']),
+        ];
+    }
 
     public function __construct(protected StoreService $StoreService) {}
 
@@ -44,9 +53,9 @@ class StoreController extends Controller
      */
     public function store(CreateStoreRequest $request): JsonResponse
     {
-        $Store = $this->StoreService->createAdminStore($request->validated());
+        $Store = $this->StoreService->createAdminStore($request->all());
         return $this->successResponse([
-            'Store' => new StoreResource($Store)
+            'Store' => new StoreCollectionResource($Store)
         ], __('message.success'));
     }
 

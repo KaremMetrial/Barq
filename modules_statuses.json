@@ -44,5 +44,6 @@
     "Setting": true,
     "Role": true,
     "DeliveryCompany": true,
-    "PaymentMethod": true
+    "PaymentMethod": true,
+    "ShippingPrice": true
 }

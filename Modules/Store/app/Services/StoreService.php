@@ -42,20 +42,20 @@ class StoreService
     public function createStore(array $data)
     {
         return DB::transaction(function () use ($data) {
-            $data['logo'] = $this->upload(
+            $data['store']['logo'] = $this->upload(
                 request(),
-                'logo',
+                'store.logo',
                 'uploads/logos',
                 'public'
             );
-            $data['cover_image'] = $this->upload(
+            $data['store']['cover_image'] = $this->upload(
                 request(),
-                'cover_image',
+                'store.cover_image',
                 'uploads/cover_images',
                 'public'
             );
             $data = array_filter($data, fn($value) => !blank($value));
-            return $this->StoreRepository->create($data);
+            return $this->StoreRepository->create($data['store']);
         });
     }
 
@@ -73,20 +73,27 @@ class StoreService
     public function updateStore(int $id, array $data): ?Store
     {
         return DB::transaction(function () use ($data, $id) {
-            $data['logo'] = $this->upload(
+            $data['store']['logo'] = $this->upload(
                 request(),
-                'logo',
+                'store.logo',
                 'uploads/logos',
                 'public'
             );
-            $data['cover_image'] = $this->upload(
+            $data['store']['cover_image'] = $this->upload(
                 request(),
-                'cover_image',
+                'store.cover_image',
                 'uploads/cover_images',
                 'public'
             );
             $data = array_filter($data, fn($value) => !blank($value));
-            return $this->StoreRepository->update($id, $data);
+            $store = $this->StoreRepository->update($id, $data);
+
+            // Sync zones to cover if provided
+            if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
+                $store->zoneToCover()->sync($data['zones_to_cover']);
+            }
+
+            return $store;
         });
     }
 
@@ -182,18 +189,20 @@ class StoreService
         return DB::transaction(function () use ($data) {
             $data['store']['logo'] = $this->upload(
                 request(),
-                'logo',
+                'store.logo',
                 'uploads/logos',
                 'public'
             );
             $data['store']['cover_image'] = $this->upload(
-                request(),
-                'cover_image',
+               request(),
+                'store.cover_image',
                 'uploads/cover_images',
                 'public'
             );
             $data = array_filter($data, fn($value) => !blank($value));
-            $store =  $this->StoreRepository->create($data['store']);
+            $store =  $this->StoreRepository->create($data['store'] + ['zone_id' => $data['address']['zone_id']]);
+            $store->address()->create($data['address']);
+
             $store->storeSetting()->create([
                 'orders_enabled' => $data['store']['orders_enabled'] ?? false,
                 'delivery_service_enabled' => $data['storeSetting']['delivery_service_enabled'] ?? false,
@@ -204,13 +213,17 @@ class StoreService
                 'minimum_order_amount' => $data['store']['minimum_order_amount'] ?? 0,
                 'delivery_time_min' => $data['store']['delivery_time_min'] ?? 0,
                 'delivery_time_max' => $data['store']['delivery_time_max'] ?? 0,
-                'delivery_type_unit' => $data['store']['delivery_type_unit'] ?? 0,
                 'tax_rate' => $data['store']['tax_rate'] ?? 0,
                 'order_interval_time' => $data['store']['order_interval_time'] ?? 0,
                 'service_fee_percentage' => $data['store']['service_fee_percentage'] ?? 0,
             ]);
             $data['vendor']['role_id'] = Role::where('name', 'store_owner')->first()->id;
             $store->vendors()->create($data['vendor']);
+
+            // Attach zones to cover if provided
+            if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
+                $store->zoneToCover()->attach($data['zones_to_cover']);
+            }
 
             return $store;
         });

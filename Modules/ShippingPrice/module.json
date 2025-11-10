@@ -1,0 +1,11 @@
+{
+    "name": "ShippingPrice",
+    "alias": "shippingprice",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ShippingPrice\\Providers\\ShippingPriceServiceProvider"
+    ],
+    "files": []
+}

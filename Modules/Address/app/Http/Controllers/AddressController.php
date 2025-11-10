@@ -38,7 +38,7 @@ class AddressController extends Controller
     {
         $address = $this->addressService->createAddress($request->all());
         return $this->successResponse([
-            "address" => new AddressResource($address),
+            "address" => new AddressResource($address->load('zone')),
         ], __("message.success"));
     }
 
@@ -60,7 +60,7 @@ class AddressController extends Controller
     {
         $address = $this->addressService->updateAddress($id, $request->all());
         return $this->successResponse([
-            "address" => new AddressResource($address),
+            "address" => new AddressResource($address->load('zone')),
         ], __("message.success"));
     }
 
@@ -71,5 +71,23 @@ class AddressController extends Controller
     {
         $this->addressService->deleteAddress($id);
         return $this->successResponse(null, __("message.success"));
+    }
+    public function byLatLong(Request $request): JsonResponse
+    {
+        $lat = $request->input('lat');
+        $long = $request->input('long');
+        $address = $this->addressService->getAddressByLatLong($lat, $long);
+        $name = $address ? $address->getFullAddressAttribute() : null;
+        $response = [
+            "address_name" => $name,
+        ];
+        $response["user_addresses"] = [];
+        if (auth('user')->user()) {
+            $user = auth('user')->user();
+            $userAddresses = $user->addresses()->with('zone')->get();
+            $response["user_addresses"] = AddressResource::collection($userAddresses);
+        }
+
+        return $this->successResponse($response, __("message.success"));
     }
 }

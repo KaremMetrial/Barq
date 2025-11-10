@@ -28,6 +28,8 @@ class UpdateStoreRequest extends FormRequest
             'avg_rate' => ['nullable', 'numeric', 'min:0', 'max:5'],
             'section_id' => ['nullable', 'numeric', 'exists:sections,id'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
+            'zones_to_cover' => ['nullable', 'array'],
+            'zones_to_cover.*' => ['integer', 'exists:zones,id'],
         ];
     }
 

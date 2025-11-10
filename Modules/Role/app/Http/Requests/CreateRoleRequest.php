@@ -17,10 +17,7 @@ class CreateRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'identifier' => ['required', 'string', 'max:255', 'unique:pos_terminals,identifier'],
             'name'       => ['required', 'string', 'max:255'],
-            'is_active'  => ['nullable', 'boolean'],
-            'store_id'   => ['required', 'integer', 'exists:stores,id'],
         ];
     }
 

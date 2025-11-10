@@ -36,7 +36,7 @@ class CreateStoreRequest extends FormRequest
             'store.orders_enabled' => ['nullable', 'boolean'],
             'store.delivery_service_enabled' => ['nullable', 'boolean'],
             'store.external_pickup_enabled' => ['nullable', 'boolean'],
-            'store.product_classification' => ['nullable', 'boolean'],
+            'store.product_classification' => ['nullable', 'string'],
             'store.self_delivery_enabled' => ['nullable', 'boolean'],
             'store.free_delivery_enabled' => ['nullable', 'boolean'],
             'store.minimum_order_amount' => ['nullable', 'numeric', 'min:0'],
@@ -48,6 +48,12 @@ class CreateStoreRequest extends FormRequest
             'store.service_fee_percentage' => ['nullable', 'numeric', 'min:0'],
             'store.commission_amount' => ['nullable', 'numeric', 'min:0'],
             'store.commission_type' => ['nullable', 'string', Rule::in(PlanTypeEnum::values())],
+
+            'address' => ['required', 'array'],
+            'address.zone_id' => ['required', 'integer', 'exists:zones,id'],
+            'address.latitude' => ['required', 'numeric'],
+            'address.longitude' => ['required', 'numeric'],
+            'address.address_line_1' => ['nullable', 'string'],
 
 
             'vendor' => ['required', 'array'],
@@ -63,12 +69,14 @@ class CreateStoreRequest extends FormRequest
                     ->letters()
                     ->numbers()
                     ->symbols()
-                    ->uncompromised()
             ],
             'vendor.is_owner' => ['required', 'boolean'],
             'vendor.is_active' => ['required', 'boolean'],
             'vendor.store_id' => ['nullable', 'integer', 'exists:stores,id'],
-            'vendor.role_id' => ['nullable','string', 'exists:roles,id']
+            'vendor.role_id' => ['nullable','string', 'exists:roles,id'],
+
+            'zones_to_cover' => ['required', 'array'],
+            'zones_to_cover.*' => ['integer', 'exists:zones,id']
         ];
     }
 
@@ -78,5 +86,21 @@ class CreateStoreRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $zoneId = $this->input('address.zone_id');
+            $latitude = $this->input('address.latitude');
+            $longitude = $this->input('address.longitude');
+
+            if ($zoneId && $latitude && $longitude) {
+                $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($latitude, $longitude);
+                if (!$zone || $zone->id != $zoneId) {
+                    $validator->errors()->add('address.latitude', 'The provided latitude and longitude are not within the specified zone.');
+                }
+            }
+        });
     }
 }

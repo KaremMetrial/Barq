@@ -54,6 +54,9 @@ class City extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters): mixed
     {
+        if (isset($filters['governorate_id']) && $filters['governorate_id'] != 0) {
+            $query->where('governorate_id', $filters['governorate_id']);
+        }
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }

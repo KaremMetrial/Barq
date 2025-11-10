@@ -7,10 +7,6 @@ use Spatie\Permission\Models\Role as ModelsRole;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Translatable;
 
-class Role extends ModelsRole implements TranslatableContract
+class Role extends ModelsRole
 {
-    use Translatable;
-
-    public $translatedAttributes = ['name'];
-
 }

@@ -12,14 +12,14 @@ Route::prefix('v1')->group(function () {
     });
 
     // Vendor
-    Route::prefix('vendors')->middleware('auth:vendor')->controller(VendorStoreController::class)->group(function () {
-        Route::prefix('store')->group(function () {
-            Route::get('/stats', 'stats')->name('vendor.store.stats');
-        });
-    });
+    // Route::prefix('vendors')->middleware('auth:vendor')->controller(VendorStoreController::class)->group(function () {
+    //     Route::prefix('store')->group(function () {
+    //         Route::get('/stats', 'stats')->name('vendor.store.stats');
+    //     });
+    // });
 
     // Admin
-    Route::prefix('admin')->middleware('auth:admin')->group(function () {
+    Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::prefix('stores')->name('stores.')->group(function () {
             Route::get('/stats', [AdminStoreController::class, 'stats'])->name('status');
         });

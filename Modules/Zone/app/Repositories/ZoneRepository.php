@@ -10,4 +10,8 @@ class ZoneRepository extends BaseRepository implements ZoneRepositoryInterface
     {
         parent::__construct($model);
     }
+    public function findByLatLong($lat, $long)
+    {
+        return $this->model->findZoneByCoordinates($lat, $long);
+    }
 }

@@ -4,7 +4,6 @@ namespace Modules\Store\Models;
 
 use App\Models\Report;
 use App\Enums\PlanTypeEnum;
-use App\Models\ShippingPrice;
 use Modules\Cart\Models\Cart;
 use Modules\Zone\Models\Zone;
 use App\Enums\StoreStatusEnum;
@@ -27,6 +26,7 @@ use Modules\WorkingDay\Models\WorkingDay;
 use Modules\PosTerminal\Models\PosTerminal;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\StoreSetting\Models\StoreSetting;
+use Modules\ShippingPrice\Models\ShippingPrice;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -211,9 +211,11 @@ class Store extends Model implements TranslatableContract
         }
 
 
-        if (auth('admin')->check()) {
-            if(!empty($filters['main']) && $filters['main'] == 'true') {
-                $query->where('parent_id', null);
+        if (auth('sanctum')->check()) {
+            if (auth('sanctum')->user()->can('admin')) {
+                if (!empty($filters['main']) && $filters['main'] == 'true') {
+                    $query->where('parent_id', null);
+                }
             }
         } else {
             if (empty($filters['section_id']) || $filters['section_id'] == 0) {
@@ -224,12 +226,22 @@ class Store extends Model implements TranslatableContract
             }
             $query->where('status', StoreStatusEnum::APPROVED)
             ->where('is_active', true);
+
+
         }
         if (!empty($filters['section_id'])) {
             $query->where('section_id', $filters['section_id']);
         }
-
-
+        if (request()->header('lat') && request()->header('lng')) {
+            $lat = request()->header('lat');
+            $lng = request()->header('lng');
+            $zone = Zone::findZoneByCoordinates($lat, $lng);
+            if ($zone) {
+                $query->whereHas('zoneToCover', function ($q) use ($zone) {
+                    $q->where('zones.id', $zone->id);
+                });
+            }
+        }
         return $query;
     }
 
@@ -239,7 +251,9 @@ class Store extends Model implements TranslatableContract
             return 0.0;
         }
 
-        $zoneId = $this->address?->zone_id;
+        // For branches, use the parent's zone for delivery fee calculation
+        $store = $this->parent_id ? $this->parent : $this;
+        $zoneId = $store->address?->zone_id;
         if (!$zoneId) {
             return null;
         }
@@ -362,7 +376,7 @@ class Store extends Model implements TranslatableContract
         return $this->orders()->count();
     }
     // area they serve it
-    public function zones()
+    public function zoneToCover()
     {
        return $this->belongsToMany(Zone::class, 'store_zone', 'store_id', 'zone_id');
     }

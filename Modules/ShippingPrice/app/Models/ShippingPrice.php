@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\ShippingPrice\Models;
 
 use Modules\Zone\Models\Zone;
 use Modules\Vehicle\Models\Vehicle;
@@ -32,5 +32,9 @@ class ShippingPrice extends Model implements TranslatableContract
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+    public function scopeFilter($query, $filters)
+    {
+        return $query->latest();
     }
 }

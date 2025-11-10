@@ -24,7 +24,7 @@ class GovernorateController extends Controller
     {
         $governorates = $this->governorateService->getAllGovernorates();
         return $this->successResponse([
-            "governorates" => GovernorateResource::collection($governorates),
+            "governorates" => GovernorateResource::collection($governorates->load('country')),
         ], __("message.success"));
     }
 

@@ -22,6 +22,8 @@ class Country extends Model implements TranslatableContract
         'code',
         'currency_symbol',
         'is_active',
+        'currency_name',
+        'flag',
     ];
     protected $casts = [
         'is_active' => 'boolean',

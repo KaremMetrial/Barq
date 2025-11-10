@@ -49,6 +49,10 @@ class Governorate extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters): mixed
     {
+        if(isset($filters['country_id']) && $filters['country_id'] != 0)
+        {
+            $query->where('country_id', $filters['country_id']);
+        }
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }

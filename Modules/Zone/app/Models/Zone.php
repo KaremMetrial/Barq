@@ -52,7 +52,6 @@ class Zone extends Model implements TranslatableContract
     {
         return $this->hasMany(ShippingPrice::class);
     }
-
     /**
      * Scope to find zones that contain given coordinates using spatial query
      */
@@ -63,6 +62,9 @@ class Zone extends Model implements TranslatableContract
 
     public function scopeFilter($query, $filters): mixed
     {
+        if (isset($filters['city_id']) && $filters['city_id'] != 0) {
+            $query->where('city_id', $filters['city_id']);
+        }
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }
@@ -80,4 +82,56 @@ class Zone extends Model implements TranslatableContract
     {
         return $this->belongsToMany(Store::class, 'store_zone', 'zone_id', 'store_id');
     }
+    public static function pointInPolygon($lat, $lng, $polygon): bool
+    {
+        $inside = false;
+        $points = $polygon;
+        $j = count($points) - 1;
+
+        for ($i = 0; $i < count($points); $i++) {
+            $xi = $points[$i]['long']; // longitude
+            $yi = $points[$i]['lat']; // latitude
+            $xj = $points[$j]['long'];
+            $yj = $points[$j]['lat'];
+
+            $intersect = (($yi > $lat) != ($yj > $lat))
+                && ($lng < ($xj - $xi) * ($lat - $yi) / ($yj - $yi) + $xi);
+
+            if ($intersect) {
+                $inside = !$inside;
+            }
+
+            $j = $i;
+        }
+
+        return $inside;
+    }
+    public static function findZoneByCoordinates(float $lat, float $lng): ?self
+    {
+        $zones = self::where('is_active', true)->get();
+        foreach ($zones as $zone) {
+            if (self::pointInPolygon($lat, $lng, $zone->area)) {
+                return $zone;
+            }
+        }
+
+        return null; // not found
+    }
+    public function getFullAddressAttribute(): ?string
+    {
+        $parts = [];
+        if ($this->city && $this->city->name) $parts[] = $this->city->name;
+        if ($this->governorate && $this->governorate->name) $parts[] = $this->governorate->name;
+        if ($this->country && $this->country->name) $parts[] = $this->country->name;
+        return implode(', ', $parts) ?: null;
+    }
+    public function governorate(): BelongsTo
+    {
+        return $this->city->governorate();
+    }
+    public function country(): BelongsTo
+    {
+        return $this->city->governorate->country();
+    }
+
 }

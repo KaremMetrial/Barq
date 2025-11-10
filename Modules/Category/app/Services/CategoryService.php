@@ -2,6 +2,7 @@
 
 namespace Modules\Category\Services;
 
+use App\Traits\FileUploadTrait;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Category\Models\Category;
 use Modules\Category\Repositories\CategoryRepository;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 
 class CategoryService
 {
+    use FileUploadTrait;
     public function __construct(
         protected CategoryRepository $CategoryRepository
     ) {}
@@ -21,7 +23,7 @@ class CategoryService
     public function createCategory(array $data): ?Category
     {
         if (request()->hasFile('icon')) {
-            $data['icon'] = request()->file('icon')->store('uploads/icons', 'public');
+            $data['icon'] = $this->upload(request(), 'icon', 'uploads/icons', 'public');
         }
         return $this->CategoryRepository->create($data);
     }
@@ -34,7 +36,7 @@ class CategoryService
     public function updateCategory(int $id, array $data): ?Category
     {
         if (request()->hasFile('icon')) {
-            $data['icon'] = request()->file('icon')->store('uploads/icons', 'public');
+            $data['icon'] = $this->upload(request(), 'icon', 'uploads/icons', 'public');
         }
         return $this->CategoryRepository->update($id, $data);
     }

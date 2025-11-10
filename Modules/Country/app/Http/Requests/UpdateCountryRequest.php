@@ -17,6 +17,8 @@ class UpdateCountryRequest extends FormRequest
             'name' => ['nullable', 'string', 'max:255'],
             'code' => ["nullable", "string", "max:4", "unique:countries,code," . $this->route('country')],
             'is_active' => ["nullable", "boolean"],
+            'currency_name' => ["nullable", "string", "max:255"],
+            'flag' => ["nullable", "image", 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }
