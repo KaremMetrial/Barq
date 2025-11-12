@@ -12,9 +12,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Section\Http\Resources\SectionResource;
 use Modules\Category\Http\Resources\CategoryResource;
 use Modules\StoreSetting\Http\Resources\StoreSettingResource;
+use Modules\Product\Traits\DeliveryTimeTrait;
 
 class StoreResource extends JsonResource
 {
+    use DeliveryTimeTrait;
     /**
      * Transform the resource into an array.
      *

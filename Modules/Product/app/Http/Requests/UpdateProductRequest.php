@@ -2,10 +2,11 @@
 
 namespace Modules\Product\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Cache;
 use App\Enums\ProductStatusEnum;
+use App\Enums\DeliveryTypeUnitEnum;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -63,6 +64,9 @@ class UpdateProductRequest extends FormRequest
             'product.store_id' => ['required', 'integer', 'exists:stores,id'],
             'product.category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'product.max_cart_quantity' => ['nullable', 'integer', 'min:1'],
+            'product.weight'             => ['nullable', 'numeric', 'min:0'],
+            'product.preparation_time'   => ['nullable', 'integer', 'min:0'],
+            'product.preparation_time_unit' => ['nullable', 'string', Rule::in(DeliveryTypeUnitEnum::values())],
 
             // Pharmacy Info
             'pharmacyInfo' => ['nullable', 'array'],

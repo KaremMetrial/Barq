@@ -8,9 +8,11 @@ use App\Enums\StoreSettingTypeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Section\Http\Resources\SectionResource;
+use Modules\Product\Traits\DeliveryTimeTrait;
 
 class StoreSettingResource extends JsonResource
 {
+    use DeliveryTimeTrait;
     /**
      * Transform the resource into an array.
      *
@@ -18,17 +20,14 @@ class StoreSettingResource extends JsonResource
      */
 public function toArray(Request $request): array
     {
-        $userLat = $request->input('lat');
-        $userLng = $request->input('long');
+        $userLat = $request->header('lat');
+        $userLng = $request->header('lng');
 
-        if ($userLat && $userLng && $this->relationLoaded('store') && $this->store->relationLoaded('address') && $this->store->address) {
-            $storeLat = $this->store->address->latitude;
-            $storeLng = $this->store->address->longitude;
-            $distance = $this->calculateDistance($storeLat, $storeLng, $userLat, $userLng);
-            $timeHours = $distance / 30; // 30 km/h
-            $timeMinutes = $timeHours * 60;
-            $delivery_time_min = max(0, round($timeMinutes - 5));
-            $delivery_time_max = round($timeMinutes + 5);
+        if ($userLat && $userLng && $this->store && $this->store->address) {
+            $deliveryTypeUnit = $this->delivery_type_unit ?? \App\Enums\DeliveryTypeUnitEnum::MINUTE;
+            $dynamicDeliveryTimes = $this->calculateDynamicDeliveryTime($this->store, $deliveryTypeUnit, $userLat, $userLng);
+            $delivery_time_min = $dynamicDeliveryTimes['min'];
+            $delivery_time_max = $dynamicDeliveryTimes['max'];
         } else {
             $delivery_time_min = $this->delivery_time_min;
             $delivery_time_max = $this->delivery_time_max;
@@ -58,28 +57,5 @@ public function toArray(Request $request): array
         ];
     }
 
-    /**
-     * Calculate distance between two points using Haversine formula.
-     *
-     * @param float $lat1
-     * @param float $lon1
-     * @param float $lat2
-     * @param float $lon2
-     * @return float Distance in kilometers
-     */
-    private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
-    {
-        $earthRadius = 6371; // Radius of the earth in km
 
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLon = deg2rad($lon2 - $lon1);
-
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-             sin($dLon / 2) * sin($dLon / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return $earthRadius * $c;
-    }
 }

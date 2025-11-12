@@ -117,6 +117,15 @@ class Zone extends Model implements TranslatableContract
 
         return null; // not found
     }
+    public static function findZoneByAddressId(int $addressId): ?self
+    {
+        $address = Address::find($addressId);
+        if (!$address || !$address->zone_id) {
+            return null;
+        }
+
+        return self::find($address->zone_id);
+    }
     public function getFullAddressAttribute(): ?string
     {
         $parts = [];

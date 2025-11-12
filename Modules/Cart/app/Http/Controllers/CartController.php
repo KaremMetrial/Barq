@@ -8,16 +8,18 @@ use Modules\Cart\Models\Cart;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Modules\Cart\Services\CartService;
+use Modules\Address\Services\AddressService;
 use Modules\Cart\Http\Resources\CartResource;
 use Modules\Cart\Http\Requests\CreateCartRequest;
 use Modules\Cart\Http\Requests\UpdateCartRequest;
+use Modules\Address\Http\Resources\AddressResource;
 use Modules\Cart\Http\Requests\RemoveParticipantRequest;
 
 class CartController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected CartService $cartService) {}
+    public function __construct(protected CartService $cartService, protected AddressService $addressService) {}
 
     /**
      * Display a listing of the resource.
@@ -65,6 +67,12 @@ class CartController extends Controller
         if (!$cart) {
             return $this->errorResponse(__("message.not_found"), 404);
         }
+        $addressId = request()->header('address-id') ?? request()->header('Address-Id');
+        $address = null;
+        if ($addressId) {
+            $address = $this->addressService->getAddressById($addressId);
+        }
+
         return $this->successResponse([
             "cart" => new CartResource($cart->load(
                 'items.product.images',
@@ -76,6 +84,7 @@ class CartController extends Controller
                 'participants',
                 'posShift'
             )),
+            // "address" => $address ? new AddressResource($address) : null,
         ], __("message.success"));
     }
 

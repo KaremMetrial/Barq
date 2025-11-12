@@ -23,9 +23,17 @@ class CartResource extends JsonResource
         $store = $this->store;
         $storeName = $store ? $store->name : null;
 
-        // Calculate delivery fee based on delivery address if available
-        $deliveryAddressId = $request->header('address_id');
-        $deliveryFee = $this->getDeliveryFeeForDisplay($deliveryAddressId);
+        // Calculate delivery fee based on delivery address or user location if available
+        $deliveryAddressId = $request->header('address-id');
+        $userLat = $request->header('lat');
+        $userLng = $request->header('lng');
+
+        if ($userLat && $userLng && !$deliveryAddressId) {
+            // Use user location to calculate delivery fee if no delivery address provided
+            $deliveryFee = $this->getDeliveryFeeForDisplay(null, null, $userLat, $userLng);
+        } else {
+            $deliveryFee = $this->getDeliveryFeeForDisplay($deliveryAddressId);
+        }
 
         $tax = $store ? $store->getTaxAmount() : 0;
         return [

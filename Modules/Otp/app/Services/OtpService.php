@@ -99,7 +99,7 @@ class OtpService
             ];
         }
         if (!request()->has('update_profile') && request()->input('update_profile') != 'true') {
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_token',['user'])->plainTextToken;
         }
         return [
             'success' => true,

@@ -4,6 +4,7 @@ namespace Modules\Store\Http\Requests;
 
 use App\Enums\PlanTypeEnum;
 use App\Enums\StoreStatusEnum;
+use App\Enums\WorkingDayEnum;
 use Illuminate\Validation\Rule;
 use Modules\Store\Models\Store;
 use App\Enums\DeliveryTypeUnitEnum;
@@ -76,7 +77,12 @@ class CreateStoreRequest extends FormRequest
             'vendor.role_id' => ['nullable','string', 'exists:roles,id'],
 
             'zones_to_cover' => ['required', 'array'],
-            'zones_to_cover.*' => ['integer', 'exists:zones,id']
+            'zones_to_cover.*' => ['integer', 'exists:zones,id'],
+
+            'working_days' => ['required', 'array'],
+            'working_days.*.day_of_week' => ['required', 'integer', Rule::in(WorkingDayEnum::values())],
+            'working_days.*.open_time' => ['required', 'date_format:H:i'],
+            'working_days.*.close_time' => ['required', 'date_format:H:i', 'after:working_days.*.open_time']
         ];
     }
 

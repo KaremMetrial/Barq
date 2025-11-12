@@ -310,6 +310,11 @@ class CartService
             throw new \InvalidArgumentException("Product with ID {$item['product_id']} not found");
         }
 
+        // Validate quantity against max_cart_quantity
+        if ($product->max_cart_quantity && $quantity > $product->max_cart_quantity) {
+            throw new \InvalidArgumentException("Maximum quantity for this product is {$product->max_cart_quantity}");
+        }
+
         // Get product price safely
         $productPrice = 0;
         if ($product->price && isset($product->price->price)) {

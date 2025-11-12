@@ -41,6 +41,7 @@ class SearchRepository implements SearchRepositoryInterface
                         "status" => $store->status->value,
                         "status_label" => StoreStatusEnum::label($store->status->value),
                         "delivery_fee" => $store->getDeliveryFee() ?? 0,
+                        'delivery_time_min' => $store->storeSetting->delivery_time_min,
                         'delivery_time_max' => $store->storeSetting->delivery_time_max,
                         'products'   => $storeProducts->map(fn($product) => [
                             'product_id'   => $product->id,

@@ -11,9 +11,11 @@ use Modules\Tag\Http\Resources\TagResource;
 use Modules\Unit\Http\Resources\UnitResource;
 use Modules\AddOn\Http\Resources\AddOnResource;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Product\Traits\DeliveryTimeTrait;
 
 class ProductResource extends JsonResource
 {
+    use DeliveryTimeTrait;
     /**
      * Transform the resource into an array.
      *
@@ -41,11 +43,22 @@ class ProductResource extends JsonResource
                 return number_format($this->price->price, 0);
                 }),
             "store"      => $this->whenLoaded('store', function () {
+                $deliveryTypeUnit = $this->store->storeSetting?->delivery_type_unit ?? \App\Enums\DeliveryTypeUnitEnum::MINUTE;
+
+                // Get user location from headers
+                $userLat = request()->header('lat');
+                $userLng = request()->header('lng');
+
+                // Calculate dynamic delivery time based on location, time, and store status
+                $dynamicDeliveryTimes = $this->calculateDynamicDeliveryTime($this->store, $deliveryTypeUnit, $userLat, $userLng);
+
                 return [
                     "id"   => $this->store->id,
                     "name" => $this->store->name,
                     "logo" => $this->store->logo ? asset('storage/' . $this->store->logo) : null,
-                    "delivery_time_max" => (int) $this->store->storeSetting?->delivery_time_max,
+                    "delivery_time_min" => $dynamicDeliveryTimes['min'],
+                    "delivery_time_max" => $dynamicDeliveryTimes['max'],
+                    "delivery_type_unit" => $deliveryTypeUnit->value,
                 ];
             }),
             "category"   => $this->whenLoaded('category', function () {
@@ -77,23 +90,23 @@ class ProductResource extends JsonResource
                     ->sortBy('end_date')
                     ->first();
 
+                $price = $this->price->sale_price ? number_format($this->price->sale_price,0) : null;
+
                 if (!$offer) {
                     return [
-                    'id' => null,
-                    'discount_type' => null,
-                    'discount_amount' => null,
-                    'start_date' => null,
-                    'end_date' => null,
-                    'is_flash_sale' => null,
-                    'has_stock_limit' =>null,
-                    'stock_limit' => null,
-                    'ends_in' => null,
-                    'sale_price' => null,
-                    'banner_text' => null,
+                        'id' => null,
+                        'discount_type' => null,
+                        'discount_amount' => null,
+                        'start_date' => null,
+                        'end_date' => null,
+                        'is_flash_sale' => null,
+                        'has_stock_limit' => null,
+                        'stock_limit' => null,
+                        'ends_in' => null,
+                        'sale_price' => $price,
+                        'banner_text' => null,
                     ];
                 }
-
-                $price = $this->price->price ?? 0;
 
                 return [
                     'id' => $offer->id,
@@ -187,4 +200,6 @@ class ProductResource extends JsonResource
 
         return null;
     }
+
+
 }

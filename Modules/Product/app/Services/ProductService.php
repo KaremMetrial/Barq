@@ -28,10 +28,20 @@ class ProductService
             $this->defaultProductRelations()
         );
     }
+    private function generateUniqueBarcode(): string
+    {
+        $barcode = rand(100000000000, 999999999999);
+        while (Product::where('barcode', $barcode)->exists()) {
+            $barcode = rand(100000000000, 999999999999);
+        }
+        return (string) $barcode;
+    }
 
     public function createProduct(array $data): ?Product
     {
         return DB::transaction(function () use ($data) {
+            $data['availability']['store_id'] = $data['product']['store_id'];
+            $data['product']['barcode'] = $data['product']['barcode'] ?? $this->generateUniqueBarcode();
             $product = $this->ProductRepository->create($data['product']);
 
             $this->syncPharmacyInfo($product, $data['pharmacyInfo'] ?? []);

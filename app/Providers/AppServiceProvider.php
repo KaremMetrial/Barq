@@ -10,6 +10,7 @@ use Modules\Product\Models\Product;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Intervention\Image\Laravel\Facades\Image;
+use Modules\Category\Models\Category;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
             'vendor' => Vendor::class,
             'admin' => Admin::class,
             'product' => Product::class,
+            'category' => Category::class,
         ]);
     }
 }

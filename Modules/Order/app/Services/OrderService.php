@@ -31,17 +31,19 @@ class OrderService
 
     public function getAllOrders(array $filter = [])
     {
-        return $this->orderRepository->paginate($filter, 15, ['items', 'deliveryAddress']);
+        return $this->orderRepository->paginate($filter, 15, ['items', 'deliveryAddress', 'statusHistories']);
     }
 
     public function getOrderById(int $id): ?Order
     {
         return $this->orderRepository->find($id, [
-            'orderItems.product.images',
-            'orderItems.addOns',
+            'items.product',
+            'items.addOns',
             'store',
             'user',
-            'deliveryAddress'
+            'courier',
+            'deliveryAddress',
+            'statusHistories'
         ]);
     }
 
@@ -138,7 +140,15 @@ class OrderService
                 );
             }
 
-            return $order->refresh();
+            return $order->refresh()->load([
+                'items.product',
+                'items.addOns',
+                'store',
+                'user',
+                'courier',
+                'deliveryAddress',
+                'statusHistories'
+            ]);
         });
     }
 
@@ -663,21 +673,15 @@ class OrderService
         $dynamicMinMinutes = $baseMinMinutes + ($distanceKm * $distanceFactorMin) + ($pendingOrdersCount * $loadFactorMin);
         $dynamicMaxMinutes = $baseMaxMinutes + ($distanceKm * $distanceFactorMax) + ($pendingOrdersCount * $loadFactorMax);
 
-        // Calculate estimated time as average in minutes
-        $estimatedTimeMinutes = ($dynamicMinMinutes + $dynamicMaxMinutes) / 2;
+        $startTime = now()->addMinutes($dynamicMinMinutes);
+        $endTime = now()->addMinutes($dynamicMaxMinutes);
 
-        // Convert to the appropriate unit
-        $estimatedTime = match ($unit->value) {
-            'hour' => $estimatedTimeMinutes / 60,
-            'day' => $estimatedTimeMinutes / (60 * 24),
-            default => $estimatedTimeMinutes,
-        };
+        \Carbon\Carbon::setLocale('ar');
 
-        return match ($unit->value) {
-            'hour' => now()->addHours($estimatedTime)->toDateTimeString(),
-            'day' => now()->addDays($estimatedTime)->toDateTimeString(),
-            default => now()->addMinutes($estimatedTime)->toDateTimeString(),
-        };
+        $formattedStartTime = $startTime->isoFormat('h:mm A');
+        $formattedEndTime = $endTime->isoFormat('h:mm A');
+
+        return "من {$formattedStartTime} إلى {$formattedEndTime}";
     }
 
     /**

@@ -64,7 +64,6 @@ class Order extends Model
         'requires_otp' => 'boolean',
         'is_read' => 'boolean',
         'tip_amount' => 'decimal:3',
-        'estimated_delivery_time' => 'datetime',
         'delivered_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -140,16 +139,22 @@ class Order extends Model
             $query->where('status', $filters['status']);
         });
 
-        // Role-based filtering using proper authentication guards
-        if (auth('admin')->check()) {
-            // Admin sees all orders - no additional filtering
-        } elseif (auth('vendor')->check()) {
-            // Vendor sees only their store's orders
-            $query->where('store_id', auth('vendor')->user()->store_id);
-        } elseif (auth('user')->check()) {
-            // User sees only their own orders
-            $query->where('user_id', auth('user')->id());
+        $user = auth()->user();
+        if ($user) {
+            if ($user->tokenCan('admin')) {
+                // Admin sees all orders - no additional filter
+            } elseif ($user->tokenCan('vendor')) {
+                // Vendor sees only their store's orders
+                $query->where('store_id', $user->store_id);
+            } elseif ($user->tokenCan('user')) {
+                // User sees only their own orders
+                $query->where('user_id', $user->id);
+            } else {
+                // Optional: prevent access if no proper ability
+                $query->whereRaw('0 = 1'); // returns empty
+            }
         }
+
 
         return $query->latest();
     }

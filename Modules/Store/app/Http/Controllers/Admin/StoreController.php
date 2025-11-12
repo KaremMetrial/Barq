@@ -98,5 +98,4 @@ class StoreController extends Controller implements HasMiddleware
             ], __('message.success'));
 
     }
-
 }

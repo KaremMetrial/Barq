@@ -72,20 +72,42 @@ class AddressController extends Controller
         $this->addressService->deleteAddress($id);
         return $this->successResponse(null, __("message.success"));
     }
-    public function byLatLong(Request $request): JsonResponse
+     public function byLatLong(Request $request): JsonResponse
     {
-        $lat = $request->input('lat');
-        $long = $request->input('long');
-        $address = $this->addressService->getAddressByLatLong($lat, $long);
-        $name = $address ? $address->getFullAddressAttribute() : null;
+        $zone = null;
+        $addressName = null;
+        if ($request->header('address-id')) {
+            $currentAddress = $this->addressService->getAddressById(request()->header('address-id'));
+            $zone = $currentAddress?->zone;
+            $addressName = $currentAddress?->getFullAddressAttribute();
+        } else {
+            $lat = $request->input('lat');
+            $long = $request->input('long');
+            $zone = $this->addressService->getAddressByLatLong($lat, $long);
+            $addressName = $zone?->getFullAddressAttribute();
+        }
+
         $response = [
-            "address_name" => $name,
+            "address_name" => $addressName,
+            "user_addresses" => [],
+            "current_address_id" => null,
         ];
-        $response["user_addresses"] = [];
-        if (auth('user')->user()) {
-            $user = auth('user')->user();
+
+        // If user is authenticated
+        if ($user = auth('user')->user()) {
             $userAddresses = $user->addresses()->with('zone')->get();
             $response["user_addresses"] = AddressResource::collection($userAddresses);
+
+            // Find current address within user's saved addresses
+            if ($zone && isset($zone->id)) {
+                if (!request()->header('address-id')) {
+                    $currentAddress = $userAddresses
+                        ->where('zone_id', $zone->id)
+                        ->sortByDesc('created_at')
+                        ->first();
+                }
+                $response["current_address_id"] = $currentAddress?->id ? (string) $currentAddress->id : null;
+            }
         }
 
         return $this->successResponse($response, __("message.success"));

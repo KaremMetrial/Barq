@@ -14,7 +14,7 @@ class OtpController extends Controller
     use ApiResponse;
 
     public function __construct(protected OtpService $otpService) {}
-
+    
     public function sendOtp(SendOtpRequest $request)
     {
         $otpData = $this->otpService->sendOtp($request->validated());

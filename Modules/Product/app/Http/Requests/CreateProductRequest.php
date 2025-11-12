@@ -4,8 +4,9 @@ namespace Modules\Product\Http\Requests;
 
 use App\Enums\SaleTypeEnum;
 use App\Enums\ProductTypeEnum;
-use App\Enums\ProductStatusEnum;
 use Illuminate\Validation\Rule;
+use App\Enums\ProductStatusEnum;
+use App\Enums\DeliveryTypeUnitEnum;
 use Modules\Product\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -60,6 +61,10 @@ class CreateProductRequest extends FormRequest
             'product.store_id'           => ['required', 'integer', 'exists:stores,id'],
             'product.category_id'        => ['nullable', 'integer', 'exists:categories,id'],
             'product.max_cart_quantity'  => ['nullable', 'integer', 'min:1'],
+            'product.weight'             => ['nullable', 'numeric', 'min:0'],
+            'product.preparation_time'   => ['nullable', 'integer', 'min:0'],
+            'product.preparation_time_unit' => ['nullable', 'string', Rule::in(DeliveryTypeUnitEnum::values())],
+
 
             // Parmacy Info Table
             'pharmacyInfo' => ['nullable', 'array'],
@@ -96,7 +101,8 @@ class CreateProductRequest extends FormRequest
             // Product Price Table
             'prices' => ['required', 'array'],
             'prices.price' => ['required', 'numeric', 'min:0'],
-            'prices.purchase_price' => ['required', 'numeric', 'min:0'],
+            'prices.purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'prices.sale_price' => ['nullable', 'numeric', 'min:0'],
 
             // Product Tags Table
             'tags' => ['nullable', 'array'],
@@ -114,7 +120,7 @@ class CreateProductRequest extends FormRequest
             'watermarks.opacity' => ['nullable', 'integer', 'min:0', 'max:100'],
 
             // Product Option and Values Table
-            'productOptions' => ['required', 'array'],
+            'productOptions' => ['nullable', 'array'],
             'productOptions.*.option_id' => ['required', 'integer', 'exists:options,id'],
             'productOptions.*.min_select' => ['nullable', 'integer', 'min:0'],
             'productOptions.*.max_select' => ['nullable', 'integer', 'min:1'],

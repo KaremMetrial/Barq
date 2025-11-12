@@ -168,7 +168,7 @@ class Store extends Model implements TranslatableContract
                     break;
 
                 case 'distance':
-                    $addressId = request()->header('address_id');
+                    $addressId = request()->header('address-id');
 
                     if ($addressId) {
                         $address = \DB::table('addresses')->where('id', $addressId)->first();
@@ -232,18 +232,32 @@ class Store extends Model implements TranslatableContract
         if (!empty($filters['section_id'])) {
             $query->where('section_id', $filters['section_id']);
         }
-        if (request()->header('lat') && request()->header('lng')) {
-            $lat = request()->header('lat');
-            $lng = request()->header('lng');
+
+
+        $addressId = request()->header('address-id') ?? request()->header('AddressId');
+        $lat = request()->header('lat');
+        $lng = request()->header('lng');
+
+        $zone = null;
+
+        if ($addressId) {
+            $zone = Zone::findZoneByAddressId($addressId);
+        } elseif ($lat && $lng) {
             $zone = Zone::findZoneByCoordinates($lat, $lng);
-            if ($zone) {
-                $query->whereHas('zoneToCover', function ($q) use ($zone) {
-                    $q->where('zones.id', $zone->id);
-                });
-            }
         }
+
+        if ($zone) {
+            $query->whereHas('zoneToCover', function ($q) use ($zone) {
+                $q->where('zones.id', $zone->id);
+            });
+        }
+
+
         return $query;
     }
+
+
+
 
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {

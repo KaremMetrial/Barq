@@ -93,6 +93,17 @@ class StoreService
                 $store->zoneToCover()->sync($data['zones_to_cover']);
             }
 
+            // Update working days if provided
+            if (isset($data['working_days']) && is_array($data['working_days'])) {
+                // Delete existing working days
+                $store->workingDays()->delete();
+
+                // Create new working days
+                foreach ($data['working_days'] as $workingDay) {
+                    $store->workingDays()->create($workingDay);
+                }
+            }
+
             return $store;
         });
     }
@@ -223,6 +234,13 @@ class StoreService
             // Attach zones to cover if provided
             if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
                 $store->zoneToCover()->attach($data['zones_to_cover']);
+            }
+
+            // Create working days if provided
+            if (isset($data['working_days']) && is_array($data['working_days'])) {
+                foreach ($data['working_days'] as $workingDay) {
+                    $store->workingDays()->create($workingDay);
+                }
             }
 
             return $store;

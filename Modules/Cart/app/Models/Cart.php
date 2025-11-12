@@ -96,8 +96,30 @@ class Cart extends Model
     /**
      * Get delivery fee for cart display - ensures non-null return for UI consistency
      */
-    public function getDeliveryFeeForDisplay(?int $deliveryAddressId = null, ?int $vehicleId = null): float
+    public function getDeliveryFeeForDisplay(?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null): float
     {
+        if ($userLat && $userLng && !$deliveryAddressId) {
+            // Calculate delivery fee based on user location
+            if (!$this->store) {
+                return 0.0;
+            }
+
+            $storeAddress = $this->store->address;
+            if (!$storeAddress || !$storeAddress->latitude || !$storeAddress->longitude) {
+                return $this->store->getDeliveryFee($vehicleId) ?? 0.0;
+            }
+
+            // Calculate distance between store and user location
+            $distanceKm = $this->calculateDistance(
+                $storeAddress->latitude,
+                $storeAddress->longitude,
+                $userLat,
+                $userLng
+            );
+
+            return $this->store->getDeliveryFee($vehicleId, $distanceKm) ?? 0.0;
+        }
+
         return $this->getCalculatedDeliveryFee($deliveryAddressId, $vehicleId) ?? 0.0;
     }
 

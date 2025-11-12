@@ -72,7 +72,9 @@ class OrderResource extends JsonResource
                         'full_address' => $this->deliveryAddress->getFullAddressAttribute(),
                     ] : null;
                 }),
-                'estimated_delivery_time' => $this->estimated_delivery_time?->format('Y-m-d H:i:s'),
+                'estimated_delivery_time' => $this->estimated_delivery_time,
+                'estimated_delivery_time_max' => $this->estimated_delivery_time,
+
                 'delivered_at' => $this->delivered_at?->format('Y-m-d H:i:s'),
             ],
 
@@ -115,7 +117,7 @@ class OrderResource extends JsonResource
                 ] : null;
             }),
 
-            'status_history' => OrderStatusHistoryResource::collection($this->whenLoaded('statusHistories')),
+            // 'status_history' => OrderStatusHistoryResource::collection($this->whenLoaded('statusHistories')),
 
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),

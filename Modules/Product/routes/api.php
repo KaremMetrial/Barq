@@ -14,10 +14,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'index')->name('product.index');
         Route::get('/{id}', 'show')->name('product.show');
     });
-    Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->middleware(['auth:sanctum','ability:admin,vendor'])->name('admin.')->group(function () {
         Route::apiResource('products', AdminProductController::class)->names('product');
-    });
-    Route::prefix('vendor')->middleware('auth:vendor')->name('vendor.')->group(function () {
-        Route::apiResource('products', VendorProductController::class)->names('product');
     });
 });

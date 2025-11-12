@@ -40,6 +40,8 @@ class Product extends Model implements TranslatableContract
         'category_id',
         'barcode',
         'weight',
+        'preparation_time',
+        'preparation_time_unit'
     ];
     protected $casts = [
         'is_active' => 'boolean',
