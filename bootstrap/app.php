@@ -37,7 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         // 404 - Not Found
             $exceptions->render(function (NotFoundHttpException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' => __('message.page_not_found'),
@@ -48,7 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 404 - Model Not Found
             $exceptions->render(function (ModelNotFoundException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' => __('message.record_not_found'),
@@ -59,7 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 405 - Method Not Allowed
             $exceptions->render(function (MethodNotAllowedHttpException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' => __('message.method_not_allowed'),
@@ -69,7 +69,7 @@ return Application::configure(basePath: dirname(__DIR__))
             });
             // 422 - Validation Error
             $exceptions->render(function (ValidationException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     $errors = $e->errors();
                     $firstError = collect($errors)->flatten()->first();
 
@@ -83,7 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 401 - Authentication Error
             $exceptions->render(function (AuthenticationException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' => __('message.unauthorized_access'),
@@ -94,7 +94,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 403 - Authorization Error
             $exceptions->render(function (AuthorizationException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' => __('message.access_forbidden'),
@@ -105,7 +105,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 403 - Access Denied
             $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' => __('message.access_denied'),
@@ -116,7 +116,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 429 - Too Many Requests
             $exceptions->render(function (TooManyRequestsHttpException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' => __('message.rate_limit_exceeded'),
@@ -127,7 +127,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Database Query Exception
             $exceptions->render(function (QueryException $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' => __('message.database_error'),
@@ -138,7 +138,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Generic exception handler - should be last
             $exceptions->render(function (Throwable $e, Request $request) {
-                if ($request->is('api/*') || $request->is('vendor/*')) {
+                if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
                         'message' =>  $e->getMessage(),

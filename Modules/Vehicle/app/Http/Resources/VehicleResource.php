@@ -20,6 +20,7 @@ class VehicleResource extends JsonResource
             "id" => $this->id,
             "name" => $this->name,
             "description" => $this->description,
+            'icon' => $this->icon ? asset('storage/' . $this->icon) : null,
             "is_active" => (bool) $this->is_active,
         ];
     }

@@ -30,8 +30,16 @@ class SectionService
             $data = array_filter($data, fn($value) => !blank($value));
             $section = $this->SectionRepository->create($data);
             $this->syncCategories($section, $data);
+            $this->syncCountries($section, $data);
             return $section->refresh();
         });
+    }
+
+    public function syncCountries(Section $section, array $data): void
+    {
+        if (isset($data['countries'])) {
+            $section->country()->sync($data['countries']);
+        }
     }
 
     public function getSectionById(int $id): ?Section
@@ -50,6 +58,7 @@ class SectionService
             $section = $this->SectionRepository->find($id);
             $section->update($data);
             $this->syncCategories($section, $data);
+            $this->syncCountries($section, $data);
             return $section->refresh();
         });
     }

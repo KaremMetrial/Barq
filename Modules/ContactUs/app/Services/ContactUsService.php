@@ -13,9 +13,9 @@ class ContactUsService
         protected ContactUsRepository $ContactUsRepository
     ) {}
 
-    public function getAllContactUss(): Collection
+    public function getAllContactUss($filters = [])
     {
-        return $this->ContactUsRepository->all();
+        return $this->ContactUsRepository->paginate($filters);
     }
 
     public function createContactUs(array $data): ?ContactUs

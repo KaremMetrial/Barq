@@ -21,7 +21,7 @@ class AddressResource extends JsonResource
             "longitude"=> $this->longitude,
             "name"=> $this->name,
             "phone"=> $this->phone,
-            "is_default"=> (bool) $this->is_default,
+            "is_default"=> request()->header('address-id') == $this->id ? true : false,
             // "type" => $this->type?->value,
             // "type_label" => AddressTypeEnum::label($this->type?->value),
             "street" => $this->street,
@@ -29,7 +29,7 @@ class AddressResource extends JsonResource
             "apartment_number" => $this->apartment_number,
             'zone' => $this->whenLoaded('zone', function () {
                 return [
-                    'id'=> $this->id,
+                    'id'=> $this->zone->id,
                     'name'=> $this->zone->name,
                 ];
             }),

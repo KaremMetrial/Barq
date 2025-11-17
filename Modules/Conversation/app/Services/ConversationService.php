@@ -60,6 +60,26 @@ class ConversationService
     }
     public function getConversationsByGuard($id, $guard): Collection
     {
+        if ($guard === 'admin') {
+            return $this->ConversationRepository->findAllForAdmin();
+        }
         return $this->ConversationRepository->findByGuard($id, $guard);
+    }
+
+    /**
+     * End a conversation (set end_time).
+     */
+    public function endConversation(int $id): ?Conversation
+    {
+        return DB::transaction(function () use ($id) {
+            $conversation = $this->ConversationRepository->find($id);
+            if (!$conversation) {
+                return null;
+            }
+
+            return $this->ConversationRepository->update($id, [
+                'end_time' => now(),
+            ]);
+        });
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Favourite\Models\Favourite;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Favourite\Repositories\FavouriteRepository;
+use Modules\Store\Http\Resources\StoreResource;
 
 class FavouriteService
 {
@@ -29,25 +30,20 @@ class FavouriteService
             return 'Uncategorized';
         });
 
+        $sections = $groupedFavourites->keys()->toArray();
+
         $sectionsWithStores = $groupedFavourites->map(function ($items, $sectionName) {
             return [
                 'section_name' => $sectionName,
-                'stores' => $items->map(function ($item) {
-                    return [
-                        'store_id' => $item->favouriteable->id,
-                        'store_name' => $item->favouriteable->name,
-                        'store_logo' => $item->favouriteable->logo ? asset('storage/' . $item->favouriteable->logo) : null,
-                        'note' => $item->favouriteable->note,
-                        'cover_image' => $item->favouriteable->cover_image ? asset('storage/' . $item->favouriteable->cover_image) : null,
-                        'phone' => $item->favouriteable->phone,
-                        'avg_rate' => $item->favouriteable->avg_rate,
-                        'getDeliveryFee' => $item->favouriteable->getDeliveryFee() ?? 0,
-                    ];
-                })
+                'section_type' => $items->first()->favouriteable->section->type->value ?? null,
+                'stores' => StoreResource::collection($items->pluck('favouriteable'))
             ];
-        });
+        })->values()->toArray();
 
-        return $sectionsWithStores;
+        return [
+            'sections' => $sections,
+            'sections_with_stores' => $sectionsWithStores
+        ];
     }
 
 

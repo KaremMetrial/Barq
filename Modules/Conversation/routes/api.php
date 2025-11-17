@@ -10,7 +10,7 @@ use Modules\Conversation\Http\Controllers\ConversationController;
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:user')
-    ->prefix('user/conversations')
+    ->prefix('v1/conversations')
     ->controller(ConversationController::class)
     ->group(function () {
         Route::get('/', 'index');
@@ -21,7 +21,7 @@ Route::middleware('auth:user')
     });
 
 Route::middleware('auth:user')
-    ->prefix('user/messages')
+    ->prefix('v1/messages')
     ->controller(MessageController::class)
     ->group(function () {
         Route::get('/conversation/{conversationId}', 'index');
@@ -36,24 +36,50 @@ Route::middleware('auth:user')
 | Vendor Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:vendor')
-    ->prefix('vendor/conversations')
-    ->controller(ConversationController::class)
-    ->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{id}', 'show');
-        Route::put('/{id}', 'update');
-        Route::delete('/{id}', 'destroy');
-    });
+// Route::middleware('auth:vendor')
+//     ->prefix('vendor/conversations')
+//     ->controller(ConversationController::class)
+//     ->group(function () {
+//         Route::get('/', 'index');
+//         Route::post('/', 'store');
+//         Route::get('/{id}', 'show');
+//         Route::put('/{id}', 'update');
+//         Route::delete('/{id}', 'destroy');
+//     });
 
-Route::middleware('auth:vendor')
-    ->prefix('vendor/messages')
-    ->controller(MessageController::class)
-    ->group(function () {
-        Route::get('/conversation/{conversationId}', 'index');
-        Route::post('/', 'store');
-        Route::get('/{id}', 'show');
-        Route::put('/{id}', 'update');
-        Route::delete('/{id}', 'destroy');
-    });
+// Route::middleware('auth:vendor')
+//     ->prefix('vendor/messages')
+//     ->controller(MessageController::class)
+//     ->group(function () {
+//         Route::get('/conversation/{conversationId}', 'index');
+//         Route::post('/', 'store');
+//         Route::get('/{id}', 'show');
+//         Route::put('/{id}', 'update');
+//         Route::delete('/{id}', 'destroy');
+//     });
+
+/*
+|--------------------------------------------------------------------------
+| Admin/Support Routes
+|--------------------------------------------------------------------------
+*/
+// Route::middleware('auth:sanctum')
+//     ->prefix('admin/conversations')
+//     ->controller(ConversationController::class)
+//     ->group(function () {
+//         Route::get('/', 'index');
+//         Route::get('/{id}', 'show');
+//         Route::put('/{id}', 'update');
+//         Route::put('/{id}/end', 'endConversation');
+//     });
+
+// Route::middleware('auth:sanctum')
+//     ->prefix('admin/messages')
+//     ->controller(MessageController::class)
+//     ->group(function () {
+//         Route::get('/conversation/{conversationId}', 'index');
+//         Route::post('/', 'store');
+//         Route::get('/{id}', 'show');
+//         Route::put('/{id}', 'update');
+//         Route::delete('/{id}', 'destroy');
+//     });

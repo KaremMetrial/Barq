@@ -5,6 +5,7 @@ namespace Modules\ContactUs\Http\Controllers;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
 use Modules\ContactUs\Services\ContactUsService;
 use Modules\ContactUs\Http\Resources\ContactUsResource;
 use Modules\ContactUs\Http\Requests\CreateContactUsRequest;
@@ -24,6 +25,7 @@ class ContactUsController extends Controller
         $contactUsMessages = $this->contactUsService->getAllContactUss();
         return $this->successResponse([
             'contact_us' => ContactUsResource::collection($contactUsMessages),
+            "pagination" => new PaginationResource($contactUsMessages),
         ], __('message.success'));
     }
 

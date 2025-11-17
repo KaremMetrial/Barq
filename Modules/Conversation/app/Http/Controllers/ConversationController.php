@@ -18,7 +18,10 @@ class ConversationController extends Controller
 
     private function getAuthenticatedGuard()
     {
-        return auth('user')->check() ? 'user' : 'vendor';
+        if (auth('user')->check()) return 'user';
+        if (auth('vendor')->check()) return 'vendor';
+        if (auth('sanctum')->check()) return 'admin';
+        return null;
     }
 
     public function index()
@@ -37,7 +40,11 @@ class ConversationController extends Controller
     {
         $guard = $this->getAuthenticatedGuard();
         $data = $request->validated();
-        $data[$guard . '_id'] = auth($guard)->id();
+
+        // For admin, they can create conversations for users/vendors
+        if ($guard !== 'admin') {
+            $data[$guard . '_id'] = auth($guard)->id();
+        }
 
         $conversation = $this->conversationService->createConversation($data);
 
@@ -48,7 +55,18 @@ class ConversationController extends Controller
 
     public function show($id)
     {
+        $guard = $this->getAuthenticatedGuard();
+
         $conversation = $this->conversationService->getConversationById($id);
+
+        // For admin, they can view any conversation
+        if ($guard !== 'admin') {
+            // For users/vendors, they can only view their own conversations
+            if (!$conversation || $conversation->{$guard . '_id'} !== auth($guard)->id()) {
+                return $this->errorResponse(__('message.unauthorized'), 403);
+            }
+        }
+
         return $this->successResponse([
             'conversation' => new ConversationResource($conversation),
         ], __('message.success'));
@@ -56,7 +74,20 @@ class ConversationController extends Controller
 
     public function update(UpdateConversationRequest $request, $id)
     {
-        $conversation = $this->conversationService->updateConversation($id, $request->validated());
+        $guard = $this->getAuthenticatedGuard();
+
+        // For admin, they can update any conversation
+        if ($guard === 'admin') {
+            $conversation = $this->conversationService->updateConversation($id, $request->validated());
+        } else {
+            // For users/vendors, they can only update their own conversations
+            $conversation = $this->conversationService->getConversationById($id);
+            if (!$conversation || $conversation->{$guard . '_id'} !== auth($guard)->id()) {
+                return $this->errorResponse(__('message.unauthorized'), 403);
+            }
+            $conversation = $this->conversationService->updateConversation($id, $request->validated());
+        }
+
         return $this->successResponse([
             'conversation' => new ConversationResource($conversation),
         ], __('message.success'));
@@ -64,7 +95,35 @@ class ConversationController extends Controller
 
     public function destroy($id)
     {
-        $this->conversationService->deleteConversation($id);
+        $guard = $this->getAuthenticatedGuard();
+
+        // For admin, they can delete any conversation
+        if ($guard === 'admin') {
+            $this->conversationService->deleteConversation($id);
+        } else {
+            // For users/vendors, they can only delete their own conversations
+            $conversation = $this->conversationService->getConversationById($id);
+            if (!$conversation || $conversation->{$guard . '_id'} !== auth($guard)->id()) {
+                return $this->errorResponse(__('message.unauthorized'), 403);
+            }
+            $this->conversationService->deleteConversation($id);
+        }
+
         return $this->successResponse(null, __('message.success'));
+    }
+
+    public function endConversation($id)
+    {
+        $guard = $this->getAuthenticatedGuard();
+
+        // Only admin can end conversations
+        if ($guard !== 'admin') {
+            return $this->errorResponse(__('message.unauthorized'), 403);
+        }
+
+        $conversation = $this->conversationService->endConversation($id);
+        return $this->successResponse([
+            'conversation' => new ConversationResource($conversation),
+        ], __('message.success'));
     }
 }

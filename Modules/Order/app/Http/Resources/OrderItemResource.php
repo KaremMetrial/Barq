@@ -17,13 +17,14 @@ class OrderItemResource extends JsonResource
             'quantity' => $this->quantity,
             'total_price' => (float) $this->total_price,
             'unit_price' => (float) ($this->total_price / $this->quantity),
+            'symbol_currency' => $this->order?->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
 
             'product' => $this->when($this->relationLoaded('product'), function() {
                 return [
                     'id' => $this->product->id,
                     'name' => $this->product->translations->first()?->name ?? 'N/A',
                     'description' => $this->product->translations->first()?->description,
-                    'image' => $this->product->images->first()?->image_path,
+                    'image' => $this->product->images->first()?->image_path ? asset('storage/'.$this->product->images->first()?->image_path) : null,
                     'price' => (float) ($this->product->price?->price ?? 0),
                 ];
             }),

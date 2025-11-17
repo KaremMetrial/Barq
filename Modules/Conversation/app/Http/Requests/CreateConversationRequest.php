@@ -10,6 +10,12 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateConversationRequest extends FormRequest
 {
+    public function prepareForValidation()
+    {
+        return $this->merge([
+            'user_id' => auth('user')->check() ? auth('user')->id() : null,
+        ]);
+    }
     /**
      * Get the validation rules that apply to the request.
      */

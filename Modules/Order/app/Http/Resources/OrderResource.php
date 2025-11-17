@@ -46,9 +46,10 @@ class OrderResource extends JsonResource
                 'delivery_fee' => (float) $this->delivery_fee,
                 'service_fee' => (float) $this->service_fee,
                 'tax_amount' => (float) $this->tax_amount,
-                'tip_amount' => $this->tip_amount ? (float) $this->tip_amount : null,
+                'tip_amount' => (float) ($this->tip_amount ?? 0),
                 'paid_amount' => (float) $this->paid_amount,
                 'final_amount' => (float) ($this->total_amount - $this->discount_amount + $this->delivery_fee + $this->service_fee + $this->tax_amount),
+                'symbol_currency' => $this->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
             ],
 
             // OTP details
@@ -72,8 +73,7 @@ class OrderResource extends JsonResource
                         'full_address' => $this->deliveryAddress->getFullAddressAttribute(),
                     ] : null;
                 }),
-                'estimated_delivery_time' => $this->estimated_delivery_time,
-                'estimated_delivery_time_max' => $this->estimated_delivery_time,
+                'estimated_delivery_time' => $this->getEstimatedDeliveryTime($request),
 
                 'delivered_at' => $this->delivered_at?->format('Y-m-d H:i:s'),
             ],
@@ -84,7 +84,7 @@ class OrderResource extends JsonResource
                     'id' => $this->store->id,
                     'name' => $this->store->name ?? $this->store->translations->first()?->name,
                     'phone' => $this->store->phone,
-                    'logo' => $this->store->logo,
+                    'logo' => $this->store->logo ? asset('storage/' . $this->store->logo) : null,
                 ];
             }),
 
@@ -102,7 +102,7 @@ class OrderResource extends JsonResource
                     'id' => $this->courier->id,
                     'name' => $this->courier->first_name . ' ' . $this->courier->last_name,
                     'phone' => $this->courier->phone,
-                    'avatar' => $this->courier->avatar,
+                    'avatar' => $this->courier->avatar ? asset('storage/' . $this->courier->avatar) : null,
                 ] : null;
             }),
 
@@ -117,7 +117,15 @@ class OrderResource extends JsonResource
                 ] : null;
             }),
 
-            // 'status_history' => OrderStatusHistoryResource::collection($this->whenLoaded('statusHistories')),
+            'status_history' => OrderStatusHistoryResource::collection($this->whenLoaded('statusHistories')),
+
+            'payment_method' => $this->when($this->relationLoaded('paymentMethod'), function () {
+                return $this->paymentMethod ? [
+                    'id' => $this->paymentMethod->id,
+                    'name' => $this->paymentMethod->name,
+                    'is_cod' => $this->paymentMethod->is_cod,
+                ] : null;
+            }),
 
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
@@ -151,5 +159,23 @@ class OrderResource extends JsonResource
         }
 
         return false;
+    }
+
+    private function getEstimatedDeliveryTime(Request $request): ?string
+    {
+        if (!$this->estimated_delivery_time) {
+            return null;
+        }
+
+        $data = json_decode($this->estimated_delivery_time, true);
+        if (!$data) {
+            return null;
+        }
+
+        // Get Accept-Language header, default to 'en'
+        $acceptLanguage = $request->header('Accept-Language', 'en');
+        $isArabic = str_contains(strtolower($acceptLanguage), 'ar');
+
+        return $isArabic ? ($data['formatted_ar'] ?? null) : ($data['formatted_en'] ?? null);
     }
 }

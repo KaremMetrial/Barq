@@ -60,7 +60,7 @@ class CreateProductRequest extends FormRequest
             'product.is_active'          => ['nullable', 'boolean'],
             'product.store_id'           => ['required', 'integer', 'exists:stores,id'],
             'product.category_id'        => ['nullable', 'integer', 'exists:categories,id'],
-            'product.max_cart_quantity'  => ['nullable', 'integer', 'min:1'],
+            'product.max_cart_quantity'  => ['nullable', 'integer', 'min:1', 'max:99'],
             'product.weight'             => ['nullable', 'numeric', 'min:0'],
             'product.preparation_time'   => ['nullable', 'integer', 'min:0'],
             'product.preparation_time_unit' => ['nullable', 'string', Rule::in(DeliveryTypeUnitEnum::values())],

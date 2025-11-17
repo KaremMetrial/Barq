@@ -10,4 +10,9 @@ class ShippingPriceRepository extends BaseRepository implements ShippingPriceRep
     {
         parent::__construct($model);
     }
+
+    public function findByZoneAndVehicle(int $zoneId, int $vehicleId)
+    {
+        return $this->model->where('zone_id', $zoneId)->where('vehicle_id', $vehicleId)->first();
+    }
 }

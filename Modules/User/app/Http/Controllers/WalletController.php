@@ -37,7 +37,7 @@ class WalletController extends Controller
         $walletData = [
             'balance' => [
                 'amount' => $user->balance,
-                'currency_symbol' => 'KWD',
+                'currency_symbol' => $user->getCurrencySymbol(),
             ],
             'loyalty_points' => [
                 'available_points' => $loyaltyInfo['available_points'],
@@ -53,7 +53,7 @@ class WalletController extends Controller
                     'amount' => $transaction->amount,
                     'currency' => $transaction->currency,
                     'description' => $transaction->description,
-                    'created_at' => $transaction->created_at,
+                    'created_at' => $transaction->created_at?->format('Y-m-d H:i:s'),
                 ];
             })
         ];

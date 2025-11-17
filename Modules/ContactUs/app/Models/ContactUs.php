@@ -11,4 +11,8 @@ class ContactUs extends Model
         "phone",
         "content"
     ];
+    public function scopeFilter($query, $filters)
+    {
+        return $query->latest();
+    }
 }

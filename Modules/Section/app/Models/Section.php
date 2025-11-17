@@ -3,6 +3,7 @@
 namespace Modules\Section\Models;
 
 use App\Enums\SectionTypeEnum;
+use Modules\Country\Models\Country;
 use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
@@ -49,6 +50,43 @@ class Section extends Model implements TranslatableContract
             ->whereIsShowOnHome(true);
         }
 
+        // Filter by country if address-id is provided in header
+        $addressId = request()->header('address-id');
+        $lat = request()->header('lat');
+        $lng = request()->header('lng');
+        $locationProvided = $addressId || ($lat && $lng);
+        $countryFound = false;
+
+        if ($addressId) {
+            $address = \Modules\Address\Models\Address::find($addressId);
+            if ($address && $address->country_id) {
+                $query->whereHas('country', function ($q) use ($address) {
+                    $q->where('countries.id', $address->country_id);
+                });
+                $countryFound = true;
+            }
+        } elseif ($lat && $lng) {
+            // If lat/lng provided, find country by coordinates
+            // Find zone by coordinates, then get country from zone's city->governorate->country
+            $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates((float)$lat, (float)$lng);
+            if ($zone && $zone->city && $zone->city->governorate && $zone->city->governorate->country) {
+                $countryId = $zone->city->governorate->country->id;
+                $query->whereHas('country', function ($q) use ($countryId) {
+                    $q->where('countries.id', $countryId);
+                });
+                $countryFound = true;
+            }
+        }
+
+        // If location provided but no country found, return no results
+        if ($locationProvided && !$countryFound) {
+            $query->whereRaw('1 = 0');
+        }
+
         return $query->with('categories')->latest();
+    }
+    public function country()
+    {
+        return $this->belongsToMany(Country::class, 'country_section', 'section_id', 'country_id');
     }
 }

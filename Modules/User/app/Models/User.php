@@ -222,4 +222,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class);
     }
+
+    /**
+     * Get the user's currency symbol based on their address
+     */
+    public function getCurrencySymbol(): string
+    {
+        $address = $this->addresses()->first();
+        if ($address && $address->zone && $address->zone->city && $address->zone->city->governorate && $address->zone->city->governorate->country) {
+            return $address->zone->city->governorate->country->currency_symbol;
+        }
+        return 'EGP'; // Default currency
+    }
 }

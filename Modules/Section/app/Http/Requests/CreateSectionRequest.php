@@ -21,6 +21,8 @@ class CreateSectionRequest extends FormRequest
             'type' => ['nullable', 'string', Rule::in(SectionTypeEnum::values())],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', Rule::exists('categories', 'id')],
+            'countries' => ['required', 'array'],
+            'countries.*' => ['integer', Rule::exists('countries', 'id')],
         ];
     }
 

@@ -61,36 +61,8 @@ class Cart extends Model
             return null;
         }
 
-        // التحقق من وجود طريقة getDeliveryFee في المتجر
-        if (!method_exists($this->store, 'getDeliveryFee')) {
-            return null;
-        }
-
-        // If no delivery address provided, use store's default delivery fee calculation
-        if (!$deliveryAddressId) {
-            return $this->store->getDeliveryFee($vehicleId);
-        }
-
-        // Calculate delivery fee based on distance from store to delivery address
-        $deliveryAddress = \Modules\Address\Models\Address::find($deliveryAddressId);
-        if (!$deliveryAddress || !$deliveryAddress->latitude || !$deliveryAddress->longitude) {
-            return $this->store->getDeliveryFee($vehicleId);
-        }
-
-        $storeAddress = $this->store->address;
-        if (!$storeAddress || !$storeAddress->latitude || !$storeAddress->longitude) {
-            return $this->store->getDeliveryFee($vehicleId);
-        }
-
-        // Calculate distance between store and delivery address
-        $distanceKm = $this->calculateDistance(
-            $storeAddress->latitude,
-            $storeAddress->longitude,
-            $deliveryAddress->latitude,
-            $deliveryAddress->longitude
-        );
-
-        return $this->store->getDeliveryFee($vehicleId, $distanceKm);
+        $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
+        return $deliveryFeeService->calculateForCart($this->store, $deliveryAddressId, $vehicleId);
     }
 
     /**
@@ -98,29 +70,8 @@ class Cart extends Model
      */
     public function getDeliveryFeeForDisplay(?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null): float
     {
-        if ($userLat && $userLng && !$deliveryAddressId) {
-            // Calculate delivery fee based on user location
-            if (!$this->store) {
-                return 0.0;
-            }
-
-            $storeAddress = $this->store->address;
-            if (!$storeAddress || !$storeAddress->latitude || !$storeAddress->longitude) {
-                return $this->store->getDeliveryFee($vehicleId) ?? 0.0;
-            }
-
-            // Calculate distance between store and user location
-            $distanceKm = $this->calculateDistance(
-                $storeAddress->latitude,
-                $storeAddress->longitude,
-                $userLat,
-                $userLng
-            );
-
-            return $this->store->getDeliveryFee($vehicleId, $distanceKm) ?? 0.0;
-        }
-
-        return $this->getCalculatedDeliveryFee($deliveryAddressId, $vehicleId) ?? 0.0;
+        $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
+        return $deliveryFeeService->calculateForCart($this->store, $deliveryAddressId, $vehicleId, $userLat, $userLng);
     }
 
     /**

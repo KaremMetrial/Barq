@@ -20,7 +20,8 @@ class ShippingPrice extends Model implements TranslatableContract
         'max_cod_price',
         'enable_cod',
         'zone_id',
-        'vehicle_id'
+        'vehicle_id',
+        'is_active'
     ];
     protected $casts = [
         'enable_cod' => 'boolean',

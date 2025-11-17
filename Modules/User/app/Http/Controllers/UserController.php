@@ -76,4 +76,9 @@ class UserController extends Controller
             'token' => $user->generateToken(),
         ], __("message.success"));
     }
+    public function logout(): JsonResponse
+    {
+        auth('user')->user()->currentAccessToken()->delete();
+        return $this->successResponse(null, __('message.success'));
+    }
 }

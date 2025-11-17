@@ -19,6 +19,14 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
     public function findByGuard($id, $guard)
     {
         $column = $guard . '_id';
-        return Conversation::where($column, $id)->get();
+        return Conversation::where($column, $id)->where('end_time', null)->get();
+    }
+
+    /**
+     * Find conversations for admin/support (all conversations)
+     */
+    public function findAllForAdmin()
+    {
+        return Conversation::with(['user', 'vendor', 'admin', 'order'])->get();
     }
 }

@@ -3,14 +3,15 @@
 namespace Modules\Order\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Modules\Order\Services\OrderService;
 use App\Http\Resources\PaginationResource;
-use Illuminate\Http\Request;
 use Modules\Order\Http\Resources\OrderResource;
 use Modules\Order\Http\Requests\CreateOrderRequest;
 use Modules\Order\Http\Requests\UpdateOrderRequest;
+use Modules\Order\Http\Requests\UpdateOrderStatusRequest;
 use Modules\Order\Http\Resources\OrderCollectionResource;
 
 class OrderController extends Controller
@@ -24,12 +25,19 @@ class OrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $userId = auth('user')->id();
         $filter = $request->only('search', 'status');
-        $orders = $this->orderService->getAllOrders($filter);
+
+        // Get current order (latest active order)
+        $currentOrder = $this->orderService->getCurrentOrder($userId);
+
+        // Get finished orders (delivered or cancelled)
+        $finishedOrders = $this->orderService->getFinishedOrders($userId, $filter);
 
         return $this->successResponse([
-            'orders' => OrderResource::collection($orders),
-            'pagination' => new PaginationResource($orders),
+            'current_order' => $currentOrder ? new OrderResource($currentOrder) : null,
+            'finished_orders' => OrderResource::collection($finishedOrders),
+            'pagination' => new PaginationResource($finishedOrders),
         ], __('message.success'));
     }
 
@@ -62,6 +70,18 @@ class OrderController extends Controller
     public function update(UpdateOrderRequest $request, int $id): JsonResponse
     {
         $order = $this->orderService->updateOrder($id, $request->all());
+
+        return $this->successResponse([
+            'order' => new OrderResource($order),
+        ], __('message.success'));
+    }
+
+    /**
+     * Update the status of the specified order.
+     */
+    public function updateStatus(UpdateOrderStatusRequest $request, int $id): JsonResponse
+    {
+        $order = $this->orderService->updateOrderStatus($id, $request->validated());
 
         return $this->successResponse([
             'order' => new OrderResource($order),

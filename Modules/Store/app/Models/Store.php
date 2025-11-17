@@ -139,6 +139,14 @@ class Store extends Model implements TranslatableContract
     {
         $query->withTranslation();
 
+        // Set first section if section_id is 0 or empty
+        if (empty($filters['section_id']) || $filters['section_id'] == 0) {
+            $firstSection = Section::latest()->first();
+            if ($firstSection) {
+                $filters['section_id'] = $firstSection->id;
+            }
+        }
+
         if (!empty($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }
@@ -250,6 +258,10 @@ class Store extends Model implements TranslatableContract
             $query->whereHas('zoneToCover', function ($q) use ($zone) {
                 $q->where('zones.id', $zone->id);
             });
+        } else {
+            if ($addressId || ($lat && $lng)) {
+                $query->whereRaw('1 = 0');
+            }
         }
 
 
@@ -261,33 +273,8 @@ class Store extends Model implements TranslatableContract
 
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {
-        if ($this->storeSetting && $this->storeSetting->free_delivery_enabled) {
-            return 0.0;
-        }
-
-        // For branches, use the parent's zone for delivery fee calculation
-        $store = $this->parent_id ? $this->parent : $this;
-        $zoneId = $store->address?->zone_id;
-        if (!$zoneId) {
-            return null;
-        }
-
-        $shippingPriceQuery = ShippingPrice::where('zone_id', $zoneId);
-        if ($vehicleId) {
-            $shippingPriceQuery->where('vehicle_id', $vehicleId);
-        }
-        $shippingPrice = $shippingPriceQuery->first();
-        if (!$shippingPrice) {
-            return null;
-        }
-        $distanceKm = $distanceKm ?? 0;
-
-        $fee = $shippingPrice->base_price + ($shippingPrice->per_km_price * $distanceKm);
-        if ($shippingPrice->max_price && $fee > $shippingPrice->max_price) {
-            $fee = $shippingPrice->max_price;
-        }
-
-        return round($fee, 3);
+        $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
+        return $deliveryFeeService->calculateForStore($this, $vehicleId, $distanceKm);
     }
 
     /**
@@ -295,19 +282,8 @@ class Store extends Model implements TranslatableContract
      */
     public function canDeliverTo(int $addressId): bool
     {
-        $address = Address::find($addressId);
-        if (!$address || !$address->zone_id) {
-            return false;
-        }
-
-        // Check if any shipping prices are configured in the system
-        if (!ShippingPrice::exists()) {
-            return false;
-        }
-
-        // Check if store has shipping prices for this zone
-        // This works for both main stores and branches since shipping prices are configured per zone
-        return ShippingPrice::where('zone_id', $address->zone_id)->exists();
+        $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
+        return $deliveryFeeService->canDeliverTo($this, $addressId);
     }
 
     /**

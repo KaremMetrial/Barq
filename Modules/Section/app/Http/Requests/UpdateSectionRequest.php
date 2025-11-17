@@ -35,6 +35,8 @@ class UpdateSectionRequest extends FormRequest
             'type' => ['nullable', 'string', Rule::in(SectionTypeEnum::values())],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', Rule::exists('categories', 'id')],
+            'countries' => ['required', 'array'],
+            'countries.*' => ['integer', Rule::exists('countries', 'id')],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }

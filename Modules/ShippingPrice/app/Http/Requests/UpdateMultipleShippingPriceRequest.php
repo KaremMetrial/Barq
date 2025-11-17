@@ -2,12 +2,9 @@
 
 namespace Modules\ShippingPrice\Http\Requests;
 
-use Modules\Zone\Models\Zone;
-use Illuminate\Validation\Rule;
-use App\Enums\ShippingPriceTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateShippingPriceRequest extends FormRequest
+class UpdateMultipleShippingPriceRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -15,14 +12,15 @@ class CreateShippingPriceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'zone_id' => ['required', 'integer', 'exists:zones,id'],
-            'vehicles' => ['required', 'array', 'min:1'],
-            'vehicles.*.vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
+            'zone_id' => ['required', 'integer'],
+            'vehicles' => ['required', 'array'],
+            'vehicles.*.vehicle_id' => ['required', 'integer'],
             'vehicles.*.base_price' => ['required', 'numeric'],
             'vehicles.*.max_price' => ['required', 'numeric'],
             'vehicles.*.per_km_price' => ['required', 'numeric'],
             'vehicles.*.max_cod_price' => ['required', 'numeric'],
             'vehicles.*.enable_cod' => ['required', 'boolean'],
+            'vehicles.*.is_active' => ['required', 'boolean'],
         ];
     }
 

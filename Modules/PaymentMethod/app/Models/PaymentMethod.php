@@ -2,6 +2,7 @@
 
 namespace Modules\PaymentMethod\Models;
 
+use Modules\Order\Models\Order;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\PaymentMethod\Database\Factories\PaymentMethodFactory;
@@ -53,4 +54,8 @@ class PaymentMethod extends Model
     // {
     //     // return PaymentMethodFactory::new();
     // }
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

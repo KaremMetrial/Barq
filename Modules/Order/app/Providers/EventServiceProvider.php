@@ -11,7 +11,11 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
-    protected $listen = [];
+    protected $listen = [
+        \Modules\Order\Events\OrderStatusChanged::class => [
+            \Modules\Order\Listeners\SaveOrderStatusHistory::class,
+        ],
+    ];
 
     /**
      * Indicates if events should be discovered.

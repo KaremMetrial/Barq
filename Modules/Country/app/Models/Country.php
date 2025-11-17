@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Modules\Section\Models\Section;
 
 class Country extends Model implements TranslatableContract
 {
@@ -68,5 +69,9 @@ class Country extends Model implements TranslatableContract
             $query->whereIsActive(true);
         }
         return $query->latest();
+    }
+    public function section()
+    {
+        return $this->belongsToMany(Section::class, 'country_section', 'country_id', 'section_id');
     }
 }

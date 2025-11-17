@@ -6,5 +6,6 @@ use Modules\ShippingPrice\Http\Controllers\ShippingPriceController;
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::prefix('admin')->middleware('ability:admin')->group(function () {
         Route::apiResource('shippingprices', ShippingPriceController::class)->names('shippingprice');
+        Route::get('shippingprices-statistics', [ShippingPriceController::class, 'statistics'])->name('shippingprice.statistics');
     });
 });

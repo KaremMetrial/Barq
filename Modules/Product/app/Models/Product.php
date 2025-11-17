@@ -174,7 +174,11 @@ class Product extends Model implements TranslatableContract
             return  $query->where('store_id', $vendor->store_id);
         }
 
-        return $query->whereStatus(ProductStatusEnum::ACTIVE)->latest();
+        if(!$admin)
+        {
+            $query->whereStatus(ProductStatusEnum::ACTIVE);
+        }
+        return $query->latest();
     }
     public function getAvgRateAttribute()
     {

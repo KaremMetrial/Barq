@@ -2,11 +2,11 @@
 
 namespace Modules\Vehicle\Models;
 
-use App\Models\ShippingPrice;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Couier\Models\CouierVehicle;
 use Astrotomic\Translatable\Translatable;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Modules\ShippingPrice\Models\ShippingPrice;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
@@ -16,7 +16,7 @@ class Vehicle extends Model implements TranslatableContract
 
     public $translatedAttributes = ['name', 'description'];
 
-    protected $fillable = ['slug', 'is_active'];
+    protected $fillable = ['slug', 'is_active','icon'];
     protected $casts = [
         'is_active' => 'boolean',
     ];

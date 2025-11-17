@@ -30,6 +30,15 @@ class ShippingPriceService
         });
     }
 
+    public function createMultipleShippingPrices(array $shippingPricesData): array
+    {
+        $createdPrices = [];
+        foreach ($shippingPricesData as $data) {
+            $createdPrices[] = $this->createShippingPrice($data);
+        }
+        return $createdPrices;
+    }
+
     public function getShippingPriceById(int $id): ?ShippingPrice
     {
         return $this->ShippingPriceRepository->find($id);
@@ -48,5 +57,33 @@ class ShippingPriceService
     public function deleteShippingPrice(int $id): bool
     {
         return $this->ShippingPriceRepository->delete($id);
+    }
+
+    public function updateMultipleShippingPrices(int $zoneId, array $vehiclesData): array
+    {
+        $updatedPrices = [];
+        foreach ($vehiclesData as $vehicleData) {
+            $vehicleId = $vehicleData['vehicle_id'];
+            $shippingPrice = $this->ShippingPriceRepository->findByZoneAndVehicle($zoneId, $vehicleId);
+
+            if ($shippingPrice) {
+                // Update existing
+                $data = array_filter($vehicleData, fn($value) => !blank($value));
+                unset($data['vehicle_id']); // Remove vehicle_id from data
+                $shippingPrice->update($data);
+                $updatedPrices[] = $shippingPrice->refresh();
+            } else {
+                // Create new if not exists
+                $zone = \Modules\Zone\Models\Zone::findOrFail($zoneId);
+                $vehicle = \Modules\Vehicle\Models\Vehicle::findOrFail($vehicleId);
+                $data = array_filter($vehicleData, fn($value) => !blank($value));
+                $data['name'] = $zone->name . ' - ' . $vehicle->name;
+                $data['zone_id'] = $zoneId;
+                unset($data['vehicle_id']);
+                $newPrice = $this->ShippingPriceRepository->create($data);
+                $updatedPrices[] = $newPrice->refresh();
+            }
+        }
+        return $updatedPrices;
     }
 }

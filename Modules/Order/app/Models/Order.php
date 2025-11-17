@@ -16,9 +16,13 @@ use Modules\Review\Models\Review;
 use Modules\Address\Models\Address;
 use Modules\PosShift\Models\PosShift;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Order\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\PaymentMethod\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
+#[ObservedBy([OrderObserver::class])]
 class Order extends Model
 {
     use SoftDeletes;
@@ -64,6 +68,7 @@ class Order extends Model
         'requires_otp' => 'boolean',
         'is_read' => 'boolean',
         'tip_amount' => 'decimal:3',
+        'estimated_delivery_time' => 'string',
         'delivered_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -82,7 +87,7 @@ class Order extends Model
     }
     public function courier()
     {
-        return $this->belongsTo(Couier::class);
+        return $this->belongsTo(Couier::class, 'courier_id');
     }
 
     public function items()
@@ -199,5 +204,8 @@ class Order extends Model
     {
         return $this->type === OrderTypeEnum::POS;
     }
-
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class);
+    }
 }

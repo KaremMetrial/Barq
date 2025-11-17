@@ -19,6 +19,9 @@ Route::prefix('v1')->group(function () {
         Route::post('calculate-redemption', [LoyaltyController::class, 'calculateRedemption'])->name('loyalty.calculate-redemption');
     });
 
+            // Logout
+    Route::post('logout', [UserController::class, 'logout'])->middleware('auth:user')->name('logout');
+
     // Wallet route
     Route::get('wallet', [WalletController::class, 'index'])->middleware('auth:user')->name('wallet.index');
 });

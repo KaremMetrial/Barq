@@ -28,7 +28,7 @@ class AdminOrderController extends Controller
         $orders = $this->orderService->getAllOrders($filter);
 
         return $this->successResponse([
-            'orders' => OrderResource::collection($orders),
+            'orders' => OrderResource::collection($orders->load('user', 'courier')),
             'pagination' => new PaginationResource($orders),
         ], __('message.success'));
     }
@@ -50,10 +50,10 @@ class AdminOrderController extends Controller
     public function show(int $id): JsonResponse
     {
         $order = $this->orderService->getOrderById($id);
-        $order->load('items.product', 'items.productOptionValue', 'items.addOns', 'store', 'user', 'courier', 'statusHistories');
+        // $order->load('items.product', 'items.productOptionValue', 'items.addOns', 'store', 'user', 'courier', 'statusHistories');
 
         return $this->successResponse([
-            'order' => new OrderResource($order),
+            'order' => new OrderResource($order->load('statusHistories', 'paymentMethod')),
         ], __('message.success'));
     }
 

@@ -15,7 +15,7 @@ class OrderStatusHistoryResource extends JsonResource
             'id' => $this->id,
             'status' => [
                 'value' => $this->status,
-                'label' => \App\Enums\OrderStatus::label($this->status),
+                'label' => \App\Enums\OrderStatus::label($this->status->value),
             ],
             'note' => $this->note,
             'changed_at' => $this->changed_at?->format('Y-m-d H:i:s'),

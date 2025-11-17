@@ -23,6 +23,7 @@ class Coupon extends Model implements TranslatableContract
         'discount_type',
         'usage_limit',
         'usage_limit_per_user',
+        'usage_count',
         'minimum_order_amount',
         'start_date',
         'end_date',
@@ -36,6 +37,7 @@ class Coupon extends Model implements TranslatableContract
         'end_date' => 'date',
         'discount_amount' => 'decimal:3',
         'minimum_order_amount' => 'decimal:3',
+        'usage_count' => 'integer',
         'discount_type' => SaleTypeEnum::class,
         'coupon_type' => CouponTypeEnum::class,
         'object_type' => ObjectTypeEnum::class,
@@ -82,6 +84,21 @@ class Coupon extends Model implements TranslatableContract
             });
         }
         return $query->latest();
+    }
+
+    public function usageCount(): int
+    {
+        return $this->usage_count ?? 0;
+    }
+
+    public function getUserUsageCount(int $userId): int
+    {
+        // Using CouponUsage model for tracking per-user usage
+        $couponUsage = \App\Models\CouponUsage::where('coupon_id', $this->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        return $couponUsage ? $couponUsage->usage_count : 0;
     }
 
 }

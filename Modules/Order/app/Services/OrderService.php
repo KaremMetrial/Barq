@@ -34,6 +34,46 @@ class OrderService
         return $this->orderRepository->paginate($filter, 15, ['items', 'deliveryAddress', 'statusHistories']);
     }
 
+    public function getOrdersByUserId(int $userId, array $filter = [])
+    {
+        $filter['user_id'] = $userId;
+        return $this->orderRepository->paginate($filter, 15, ['items', 'deliveryAddress', 'statusHistories']);
+    }
+
+    /**
+     * Get the current (latest active) order for a user
+     */
+    public function getCurrentOrder(int $userId): ?Order
+    {
+        return Order::where('user_id', $userId)
+            ->whereNotIn('status', ['delivered', 'cancelled'])
+            ->with(['items.product', 'items.addOns', 'store', 'user', 'courier', 'deliveryAddress', 'statusHistories'])
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * Get finished orders (delivered or cancelled) for a user
+     */
+    public function getFinishedOrders(int $userId, array $filter = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $query = Order::where('user_id', $userId)
+            ->whereIn('status', ['delivered', 'cancelled'])
+            ->with(['items.product', 'items.addOns', 'store', 'user', 'courier', 'deliveryAddress', 'statusHistories']);
+
+        // Apply search filter
+        if (isset($filter['search'])) {
+            $query->where('order_number', 'like', '%' . $filter['search'] . '%');
+        }
+
+        // Apply status filter
+        if (isset($filter['status'])) {
+            $query->where('status', $filter['status']);
+        }
+
+        return $query->latest()->paginate(15);
+    }
+
     public function getOrderById(int $id): ?Order
     {
         return $this->orderRepository->find($id, [
@@ -50,95 +90,11 @@ class OrderService
     public function createOrder(array $data): ?Order
     {
         return DB::transaction(function () use ($data) {
-            $orderData = $data['order'] ?? [];
-            $orderItems = $data['items'] ?? [];
-
-            // Find optimal branch for fulfilling the order
-            $optimalBranch = $this->findOptimalBranch($orderData, $orderItems);
-            $orderData['store_id'] = $optimalBranch->id;
-
-            // Validate store exists and is operational
-            $this->validateStoreAvailability($orderData['store_id']);
-
-            $orderData['order_number'] = $this->generateOrderNumber();
-            $orderData['reference_code'] = $this->generateReferenceCode();
-
-            // Calculate totals
-            $totalAmount = $this->calculateTotalAmount($orderItems);
-
-            // Apply coupon if provided
-            $discountAmount = 0.0;
-            $coupon = null;
-
-            if (!empty($orderData['coupon_code'])) {
-                $couponResult = $this->applyCoupon(
-                    $orderData['coupon_code'],
-                    $totalAmount,
-                    $orderData['store_id'] ?? null,
-                    $orderItems
-                );
-
-                if ($couponResult['valid']) {
-                    $discountAmount = $couponResult['discount'];
-                    $orderData['coupon_id'] = $couponResult['coupon']->id;
-                    $coupon = $couponResult['coupon'];
-                }
-            }
-
-            $orderData['total_amount'] = $totalAmount;
-            $orderData['discount_amount'] = round($discountAmount, 3);
-
-            // Calculate fees based on store settings
-            $orderData['delivery_fee'] = $this->calculateDeliveryFee($orderData);
-            $orderData['service_fee'] = $this->calculateServiceFee($orderData);
-            $orderData['tax_amount'] = $this->calculateTaxAmount($orderData);
-
-            // OTP for delivery
-            $orderData['otp_code'] = ($orderData['requires_otp'] ?? false)
-                ? str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT)
-                : null;
-
-            // Estimated delivery time
-            $orderData['estimated_delivery_time'] = $this->calculateEstimatedDeliveryTime($orderData['delivery_address_id'] ?? null);
-
-            // Set user and store (store_id is already set by findOptimalBranch)
-            $orderData['user_id'] = auth('user')->id() ?? $orderData['user_id'] ?? null;
-
-            // Validate minimum order amount
-            if ($this->storeSettings && $this->storeSettings->minimum_order_amount) {
-                if ($totalAmount < $this->storeSettings->minimum_order_amount) {
-                    throw new \Exception(
-                        "Minimum order amount is {$this->storeSettings->minimum_order_amount}"
-                    ,422);
-                }
-            }
-
-            // Create order
-            $order = $this->orderRepository->create($orderData);
-
-            // Create order items with add-ons
-            $this->createOrderItems($order, $orderItems);
-
-            // Update coupon usage if applicable
-            if ($coupon) {
-                $this->incrementCouponUsage($coupon, $orderData['user_id']);
-            }
-
-            // Decrease product stock (wrapped in transaction for safety)
-            DB::transaction(function () use ($orderItems) {
-                $this->decreaseProductStock($orderItems);
-            });
-
-            // Award loyalty points after successful order
-            if ($order->user_id) {
-                $loyaltyService = app(\Modules\User\Services\LoyaltyService::class);
-                $loyaltyService->awardPoints(
-                    $order->user_id,
-                    $orderData['total_amount'],
-                    "Points earned from order #{$order->order_number}",
-                    $order
-                );
-            }
+            $this->validateOrderData($data);
+            $orderData = $this->prepareOrderData($data);
+            $order = $this->createOrderRecord($orderData);
+            $this->createOrderItems($order, $data['items']);
+            $this->applyPostOrderLogic($order, $orderData, $data['items']);
 
             return $order->refresh()->load([
                 'items.product',
@@ -153,6 +109,139 @@ class OrderService
     }
 
     /**
+     * Validate order data before processing
+     */
+    private function validateOrderData(array $data): void
+    {
+        if (empty($data['order']) || empty($data['items'])) {
+            throw new \Exception('Order data and items are required');
+        }
+
+        $orderData = $data['order'];
+        $orderItems = $data['items'];
+
+        // Find optimal branch for fulfilling the order
+        $optimalBranch = $this->findOptimalBranch($orderData, $orderItems);
+
+        // Validate store exists and is operational
+        $this->validateStoreAvailability($optimalBranch->id);
+
+        // Validate minimum order amount
+        $totalAmount = $this->calculateTotalAmount($orderItems);
+        if ($this->storeSettings && $this->storeSettings->minimum_order_amount) {
+            if ($totalAmount < $this->storeSettings->minimum_order_amount) {
+                throw new \Exception(
+                    "Minimum order amount is {$this->storeSettings->minimum_order_amount}",
+                    422
+                );
+            }
+        }
+    }
+
+    /**
+     * Prepare order data with all calculations
+     */
+    private function prepareOrderData(array $data): array
+    {
+        $orderData = $data['order'];
+        $orderItems = $data['items'];
+
+        // Find optimal branch for fulfilling the order
+        $optimalBranch = $this->findOptimalBranch($orderData, $orderItems);
+        $orderData['store_id'] = $optimalBranch->id;
+
+        // Generate order identifiers
+        $orderData['order_number'] = $this->generateOrderNumber();
+        $orderData['reference_code'] = $this->generateReferenceCode();
+
+        // Calculate totals
+        $totalAmount = $this->calculateTotalAmount($orderItems);
+
+        // Apply coupon if provided
+        $discountAmount = 0.0;
+        $coupon = null;
+
+        if (!empty($orderData['coupon_code'])) {
+            $couponResult = $this->applyCoupon(
+                $orderData['coupon_code'],
+                $totalAmount,
+                $orderData['store_id'],
+                $orderItems
+            );
+
+            if ($couponResult['valid']) {
+                $discountAmount = $couponResult['discount'];
+                $orderData['coupon_id'] = $couponResult['coupon']->id;
+                $coupon = $couponResult['coupon'];
+            }
+        }
+
+        $orderData['total_amount'] = $totalAmount;
+        $orderData['discount_amount'] = round($discountAmount, 3);
+
+        // Calculate fees based on store settings
+        $orderData['delivery_fee'] = $this->calculateDeliveryFee($orderData);
+        $orderData['service_fee'] = $this->calculateServiceFee($orderData);
+        $orderData['tax_amount'] = $this->calculateTaxAmount($orderData);
+
+        // OTP for delivery
+        $orderData['otp_code'] = ($orderData['requires_otp'] ?? false)
+            ? str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT)
+            : null;
+
+        // Estimated delivery time
+        $orderData['estimated_delivery_time'] = $this->calculateEstimatedDeliveryTime($orderData['delivery_address_id'] ?? null);
+
+        // Set user
+        $orderData['user_id'] = auth('user')->id() ?? $orderData['user_id'] ?? null;
+
+        // Store coupon for post-order logic
+        $orderData['_coupon'] = $coupon;
+
+        return $orderData;
+    }
+
+    /**
+     * Create the order record in database
+     */
+    private function createOrderRecord(array $orderData): Order
+    {
+        // Remove temporary data before creating order
+        $orderDataForCreate = collect($orderData)->except(['_coupon'])->toArray();
+
+        return $this->orderRepository->create($orderDataForCreate);
+    }
+
+    /**
+     * Apply post-order logic (coupon usage, stock decrease, loyalty points)
+     */
+    private function applyPostOrderLogic(Order $order, array $orderData, array $orderItems): void
+    {
+        $coupon = $orderData['_coupon'] ?? null;
+
+        // Update coupon usage if applicable
+        if ($coupon) {
+            $this->incrementCouponUsage($coupon, $orderData['user_id']);
+        }
+
+        // Decrease product stock (wrapped in transaction for safety)
+        DB::transaction(function () use ($orderItems) {
+            $this->decreaseProductStock($orderItems);
+        });
+
+        // Award loyalty points after successful order
+        if ($order->user_id) {
+            $loyaltyService = app(\Modules\User\Services\LoyaltyService::class);
+            $loyaltyService->awardPoints(
+                $order->user_id,
+                $orderData['total_amount'],
+                "Points earned from order #{$order->order_number}",
+                $order
+            );
+        }
+    }
+
+    /**
      * Validate store availability
      */
     private function validateStoreAvailability(?int $storeId): void
@@ -161,7 +250,7 @@ class OrderService
             throw new \Exception('Store ID is required');
         }
 
-        $this->currentStore = Store::with('StoreSetting')->find($storeId);
+        $this->currentStore = Store::with('storeSetting')->find($storeId);
         if (!$this->currentStore) {
             throw new \Exception('Store not found');
         }
@@ -173,7 +262,7 @@ class OrderService
             throw new \Exception('Store is currently closed');
         }
 
-        $this->storeSettings = $this->currentStore->settings;
+        $this->storeSettings = $this->currentStore->storeSetting;
 
         if ($this->storeSettings && !$this->storeSettings->orders_enabled) {
             throw new \Exception('Store is not accepting orders');
@@ -311,16 +400,17 @@ class OrderService
     private function incrementCouponUsage(Coupon $coupon, ?int $userId): void
     {
         // Increment global coupon usage count
-        $coupon->increment('usage_count');
+        $coupon->usage_count += 1;
+        $coupon->save();
 
-        // Track per-user usage if user is authenticated
+        // Track per-user usage in database if user is authenticated
         if ($userId) {
-            Cache::increment("coupon_{$coupon->id}_user_{$userId}_usage");
-
-            // Also store in database if you have a CouponUsage table
-            // For now, using cache with a longer TTL for persistence
-            $currentUsage = Cache::get("coupon_{$coupon->id}_user_{$userId}_usage", 0);
-            Cache::put("coupon_{$coupon->id}_user_{$userId}_usage", $currentUsage, now()->addDays(30));
+            // Using CouponUsage model for tracking per-user usage
+            $couponUsage = \App\Models\CouponUsage::firstOrCreate(
+                ['coupon_id' => $coupon->id, 'user_id' => $userId],
+                ['usage_count' => 0]
+            );
+            $couponUsage->increment('usage_count');
         }
     }
 
@@ -448,61 +538,8 @@ class OrderService
      */
     private function calculateDeliveryFee(array $orderData): float
     {
-        // If free delivery is enabled
-        if ($this->storeSettings?->free_delivery_enabled) {
-            return 0.0;
-        }
-
-        // If delivery is disabled
-        if (!$this->storeSettings?->delivery_service_enabled) {
-            return 0.0;
-        }
-
-        // Check if any shipping prices are configured in the system
-        if (!ShippingPrice::exists()) {
-            // If no shipping prices configured, use store default or throw error
-            if ($this->storeSettings?->delivery_fee) {
-                return round($this->storeSettings->delivery_fee, 3);
-            }
-            throw new \Exception('Delivery service is not configured for this store. Please contact store support.');
-        }
-
-        // Get delivery zone if address provided
-        if (isset($orderData['delivery_address_id'])) {
-            // Validate that store can deliver to this address
-            $this->validateDeliveryAddress($orderData['delivery_address_id']);
-
-            // Get delivery address to determine zone
-            $deliveryAddress = Address::find($orderData['delivery_address_id']);
-            if ($deliveryAddress && $deliveryAddress->zone_id) {
-                // Calculate delivery fee based on zone and distance
-                $zoneId = $deliveryAddress->zone_id;
-                $shippingPrice = ShippingPrice::where('zone_id', $zoneId)->first();
-
-                if ($shippingPrice) {
-                    // Calculate distance between store and delivery address
-                    $storeAddress = $this->currentStore->address;
-                    if ($storeAddress && $deliveryAddress->latitude && $deliveryAddress->longitude) {
-                        $distanceKm = $this->calculateDistance(
-                            $storeAddress->latitude,
-                            $storeAddress->longitude,
-                            $deliveryAddress->latitude,
-                            $deliveryAddress->longitude
-                        );
-
-                        $fee = $shippingPrice->base_price + ($shippingPrice->per_km_price * $distanceKm);
-                        if ($shippingPrice->max_price && $fee > $shippingPrice->max_price) {
-                            $fee = $shippingPrice->max_price;
-                        }
-
-                        return round($fee, 3);
-                    }
-                }
-            }
-        }
-
-        // Fallback to store default delivery fee
-        return round($this->storeSettings?->delivery_fee ?? 10.00, 3);
+        $deliveryFeeService = app(DeliveryFeeService::class);
+        return $deliveryFeeService->calculateForOrder($orderData, $this->currentStore);
     }
 
     /**
@@ -510,25 +547,14 @@ class OrderService
      */
     private function validateDeliveryAddress(int $addressId): void
     {
+        $deliveryFeeService = app(DeliveryFeeService::class);
+        if (!$deliveryFeeService->canDeliverTo($this->currentStore, $addressId)) {
+            throw new \Exception('Store does not deliver to this address location');
+        }
+
         $deliveryAddress = Address::find($addressId);
         if (!$deliveryAddress) {
             throw new \Exception('Delivery address not found');
-        }
-
-        if (!$deliveryAddress->zone_id) {
-            throw new \Exception('Delivery address does not have a valid zone');
-        }
-
-        // Check if store has any shipping prices configured
-        $storeHasShippingPrices = ShippingPrice::exists();
-        if (!$storeHasShippingPrices) {
-            throw new \Exception('Store delivery service is not configured. Please contact store support.');
-        }
-
-        // Check if store has shipping prices for this specific zone
-        $shippingPriceExists = ShippingPrice::where('zone_id', $deliveryAddress->zone_id)->exists();
-        if (!$shippingPriceExists) {
-            throw new \Exception('Store does not deliver to this address location');
         }
 
         // Ensure store has an address with coordinates for distance calculation
@@ -586,10 +612,7 @@ class OrderService
             return 0.0;
         }
 
-        $taxableAmount = $orderData['total_amount']
-            - ($orderData['discount_amount'] ?? 0)
-            + ($orderData['service_fee'] ?? 0)
-            + ($orderData['delivery_fee'] ?? 0);
+        $taxableAmount = $orderData['total_amount'] - ($orderData['discount_amount'] ?? 0);
 
         return round($taxableAmount * ($this->storeSettings->tax_rate / 100), 3);
     }
@@ -636,10 +659,8 @@ class OrderService
     /**
      * Calculate estimated delivery time dynamically based on distance and store load
      */
-    private function calculateEstimatedDeliveryTime(?int $deliveryAddressId = null): string
+    private function calculateEstimatedDeliveryTime(?int $deliveryAddressId = null): ?string
     {
-        $unit = $this->storeSettings?->delivery_type_unit ?? \App\Enums\DeliveryTypeUnitEnum::MINUTE;
-
         // Calculate distance in km (0 if no delivery address)
         $distanceKm = 0;
         if ($deliveryAddressId) {
@@ -662,26 +683,33 @@ class OrderService
             ->where('status', 'pending')
             ->count();
 
-        // Calculate dynamic min and max in minutes
-        $baseMinMinutes = 20;
-        $baseMaxMinutes = 40;
-        $distanceFactorMin = 2; // minutes per km for min
-        $distanceFactorMax = 3; // minutes per km for max
-        $loadFactorMin = 1; // minutes per pending order for min
-        $loadFactorMax = 2; // minutes per pending order for max
+        // More realistic delivery speed calculations
+        $hour = now()->hour;
+        $avgSpeed = ($hour >= 11 && $hour <= 14) || ($hour >= 17 && $hour <= 20) ? 15 : 25; // km/h
+        $trafficFactor = 1.3; // 30% traffic factor
 
-        $dynamicMinMinutes = $baseMinMinutes + ($distanceKm * $distanceFactorMin) + ($pendingOrdersCount * $loadFactorMin);
-        $dynamicMaxMinutes = $baseMaxMinutes + ($distanceKm * $distanceFactorMax) + ($pendingOrdersCount * $loadFactorMax);
+        $travelTimeHours = ($distanceKm / $avgSpeed) * $trafficFactor;
+        $travelTimeMinutes = $travelTimeHours * 60;
 
-        $startTime = now()->addMinutes($dynamicMinMinutes);
-        $endTime = now()->addMinutes($dynamicMaxMinutes);
+        // Add preparation time (15-25 minutes)
+        $prepTime = 20;
 
-        \Carbon\Carbon::setLocale('ar');
+        // Add load factor (1-2 minutes per pending order)
+        $loadFactor = $pendingOrdersCount * 1.5;
 
-        $formattedStartTime = $startTime->isoFormat('h:mm A');
-        $formattedEndTime = $endTime->isoFormat('h:mm A');
+        $totalMinMinutes = $prepTime + $travelTimeMinutes * 0.8 + $loadFactor;
+        $totalMaxMinutes = $prepTime + $travelTimeMinutes * 1.4 + $loadFactor;
 
-        return "من {$formattedStartTime} إلى {$formattedEndTime}";
+        $startTime = now()->addMinutes($totalMinMinutes);
+        $endTime = now()->addMinutes($totalMaxMinutes);
+
+        // Return as JSON string for database storage
+        return json_encode([
+            'min_time' => $startTime->toISOString(),
+            'max_time' => $endTime->toISOString(),
+            'formatted_ar' => "من {$startTime->isoFormat('h:mm A')} إلى {$endTime->isoFormat('h:mm A')}",
+            'formatted_en' => "From {$startTime->format('h:i A')} to {$endTime->format('h:i A')}"
+        ]);
     }
 
     /**
@@ -717,7 +745,15 @@ class OrderService
                 throw new \Exception('Cannot update completed or cancelled orders');
             }
 
-            $filtered = array_filter($data, fn($v) => !blank($v));
+            // Filter data but allow status updates even if they might be considered "blank"
+            $filtered = array_filter($data, function($v, $k) {
+                // Always allow status updates
+                if ($k === 'status') {
+                    return true;
+                }
+                return !blank($v);
+            }, ARRAY_FILTER_USE_BOTH);
+
             return $this->orderRepository->update($id, $filtered);
         });
     }
@@ -832,6 +868,28 @@ class OrderService
         }
 
         return $closestBranch ?? $branches->first();
+    }
+
+    public function updateOrderStatus(int $id, array $data): ?Order
+    {
+        return DB::transaction(function () use ($id, $data) {
+            $order = $this->orderRepository->find($id);
+
+            if (!$order) {
+                throw new \Exception('Order not found');
+            }
+
+            $oldStatus = $order->status;
+            $filtered = array_filter($data, fn($v) => !blank($v));
+            $updatedOrder = $this->orderRepository->update($id, $filtered);
+
+            // Fire event if status changed
+            if ($updatedOrder && isset($filtered['status']) && $oldStatus != $updatedOrder->status) {
+                event(new \Modules\Order\Events\OrderStatusChanged($updatedOrder, $oldStatus, $updatedOrder->status));
+            }
+
+            return $updatedOrder;
+        });
     }
 
     public function deleteOrder(int $id): bool
