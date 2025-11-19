@@ -17,6 +17,8 @@ class Section extends Model implements TranslatableContract
 
     public $translatedAttributes = ['name', 'description'];
 
+    protected $useTranslationFallback = true;
+
     protected $fillable = [
         'slug',
         'icon',
@@ -47,7 +49,8 @@ class Section extends Model implements TranslatableContract
     {
         if (!auth('admin')->check()) {
             $query->whereIsActive(true)
-            ->whereIsShowOnHome(true);
+            ->whereIsShowOnHome(true)
+            ->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY);
         }
 
         // Filter by country if address-id is provided in header

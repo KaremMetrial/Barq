@@ -40,6 +40,7 @@ class OtpService
         $otp = $this->otpRepository->updateOrCreate(
             [
                 'phone'        => $phone,
+                'phone_code'   => $data['phone_code'],
                 'model_type'   => $modelTypeClass,
                 'otp_verified' => false,
             ],
@@ -76,7 +77,8 @@ class OtpService
         $isValid = Otp::validateOtp(
             $data['phone'],
             $data['otp'],
-            $modelTypeClass
+            $modelTypeClass,
+            $data['phone_code']
         );
 
         if (! $isValid) {
@@ -88,7 +90,7 @@ class OtpService
         }
 
         // Find user by phone
-        $user = $modelTypeClass::where('phone', $data['phone'])->first();
+        $user = $modelTypeClass::where('phone', $data['phone'])->where('phone_code', $data['phone_code'])->first();
 
         if (! $user) {
             return [
@@ -98,12 +100,12 @@ class OtpService
                 'message' => 'OTP verified, but user account does not exist.',
             ];
         }
-        if (!request()->has('update_profile') && request()->input('update_profile') != 'true') {
+        if (request()->input('update_profile') != 'true') {
             $token = $user->createToken('auth_token',['user'])->plainTextToken;
         }
         return [
             'success' => true,
-            'token' => $token,
+            'token' => $token ?? null,
             'user' => new UserResource($user),
             'message' => 'OTP verified and token generated.',
         ];

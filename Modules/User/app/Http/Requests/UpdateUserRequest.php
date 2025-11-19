@@ -15,11 +15,15 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $userId = $this->route('user') ?? auth('user')->id();
+
         return [
-            "name" => ["nullable", "string", "max:255"],
-            "email" => ["nullable", "string", "email", Rule::unique("users")->ignore($this->route('user'))],
-            "phone" => ["nullable", "string", "max:255", Rule::unique("users")->ignore($this->route('user'))],
-            "password" => ["nullable", "string"],
+            "first_name" => ["nullable", "string", "max:255"],
+            "last_name" => ["nullable", "string", "max:255"],
+            "email" => ["nullable", "string", "email", Rule::unique("users")->ignore($userId)],
+            "phone" => ["nullable", "string", "max:255", Rule::unique("users")->ignore($userId)],
+            "phone_code" => ["nullable", "string", "max:255"],
+            "password" => ["nullable", "string", "min:8"],
             "avatar" => ["nullable", "image", "mimes:jpeg,png,jpg,gif,svg", "max:2048"],
             "status" => ["nullable", "string", Rule::in(UserStatusEnum::values())],
             "provider" => ["nullable", "string", "max:255"],

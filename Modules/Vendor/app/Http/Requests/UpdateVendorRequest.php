@@ -13,6 +13,12 @@ class UpdateVendorRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
+    public function prepareForValidation()
+    {
+        return $this->merge([
+            'store_id' => auth('vendor')->user()->store_id ?? $this->store_id,
+        ]);
+    }
     public function rules(): array
     {
         return [
@@ -28,7 +34,6 @@ class UpdateVendorRequest extends FormRequest
                     ->letters()
                     ->numbers()
                     ->symbols()
-                    ->uncompromised()
             ],
             'is_owner' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],

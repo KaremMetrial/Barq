@@ -2,12 +2,17 @@
 
 namespace Modules\Couier\Models;
 
+use App\Models\Attachment;
 use App\Enums\UserStatusEnum;
+use Modules\Zone\Models\Zone;
 use Modules\Store\Models\Store;
+use App\Models\NationalIdentity;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\CouierAvaliableStatusEnum;
 use Illuminate\Notifications\Notifiable;
+use Modules\Conversation\Models\Message;
+use Modules\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -31,6 +36,7 @@ class Couier extends Authenticatable
         "avg_rate",
         "status",
         "store_id",
+        "birthday"
     ];
     protected $casts = [
         "avaliable_status" => CouierAvaliableStatusEnum::class,
@@ -68,5 +74,9 @@ class Couier extends Authenticatable
     public function messages(): MorphMany
     {
         return $this->morphMany(Message::class,'messageable');
+    }
+    public function zones()
+    {
+        return $this->belongsToMany(Zone::class, 'couier_zone', 'couier_id', 'zone_id');
     }
 }

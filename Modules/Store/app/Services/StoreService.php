@@ -3,6 +3,7 @@
 namespace Modules\Store\Services;
 
 use Carbon\Carbon;
+use App\Enums\OrderStatus;
 use Modules\Role\Models\Role;
 use App\Traits\FileUploadTrait;
 use Modules\Store\Models\Store;
@@ -213,37 +214,69 @@ class StoreService
             $data = array_filter($data, fn($value) => !blank($value));
             $store =  $this->StoreRepository->create($data['store'] + ['zone_id' => $data['address']['zone_id']]);
             $store->address()->create($data['address']);
+            if($data['store']['type'] != 'delivery'){
+                $store->storeSetting()->create([
+                    'orders_enabled' => $data['store']['orders_enabled'] ?? false,
+                    'delivery_service_enabled' => $data['storeSetting']['delivery_service_enabled'] ?? false,
+                    'external_pickup_enabled' => $data['store']['external_pickup_enabled'] ?? false,
+                    'product_classification' => $data['store']['product_classification'] ?? false,
+                    'self_delivery_enabled' => $data['store']['self_delivery_enabled'] ?? false,
+                    'free_delivery_enabled' => $data['store']['free_delivery_enabled'] ?? false,
+                    'minimum_order_amount' => $data['store']['minimum_order_amount'] ?? 0,
+                    'delivery_time_min' => $data['store']['delivery_time_min'] ?? 0,
+                    'delivery_time_max' => $data['store']['delivery_time_max'] ?? 0,
+                    'tax_rate' => $data['store']['tax_rate'] ?? 0,
+                    'order_interval_time' => $data['store']['order_interval_time'] ?? 0,
+                    'service_fee_percentage' => $data['store']['service_fee_percentage'] ?? 0,
+                ]);
+                $data['vendor']['role_id'] = Role::where('name', 'store_owner')->first()->id;
+                $store->vendors()->create($data['vendor']);
 
-            $store->storeSetting()->create([
-                'orders_enabled' => $data['store']['orders_enabled'] ?? false,
-                'delivery_service_enabled' => $data['storeSetting']['delivery_service_enabled'] ?? false,
-                'external_pickup_enabled' => $data['store']['external_pickup_enabled'] ?? false,
-                'product_classification' => $data['store']['product_classification'] ?? false,
-                'self_delivery_enabled' => $data['store']['self_delivery_enabled'] ?? false,
-                'free_delivery_enabled' => $data['store']['free_delivery_enabled'] ?? false,
-                'minimum_order_amount' => $data['store']['minimum_order_amount'] ?? 0,
-                'delivery_time_min' => $data['store']['delivery_time_min'] ?? 0,
-                'delivery_time_max' => $data['store']['delivery_time_max'] ?? 0,
-                'tax_rate' => $data['store']['tax_rate'] ?? 0,
-                'order_interval_time' => $data['store']['order_interval_time'] ?? 0,
-                'service_fee_percentage' => $data['store']['service_fee_percentage'] ?? 0,
-            ]);
-            $data['vendor']['role_id'] = Role::where('name', 'store_owner')->first()->id;
-            $store->vendors()->create($data['vendor']);
+                // Attach zones to cover if provided
+                if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
+                    $store->zoneToCover()->attach($data['zones_to_cover']);
+                }
 
-            // Attach zones to cover if provided
-            if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
-                $store->zoneToCover()->attach($data['zones_to_cover']);
-            }
+                // Create working days if provided
+                if (isset($data['working_days']) && is_array($data['working_days'])) {
+                    foreach ($data['working_days'] as $workingDay) {
+                        $store->workingDays()->create($workingDay);
+                    }
 
-            // Create working days if provided
-            if (isset($data['working_days']) && is_array($data['working_days'])) {
-                foreach ($data['working_days'] as $workingDay) {
-                    $store->workingDays()->create($workingDay);
                 }
             }
-
             return $store;
         });
+    }
+    public function deliveryStore()
+    {
+        return $this->StoreRepository->deliveryStore();
+    }
+
+    public function deliveryStoreStats()
+    {
+        $deliveryStores = Store::where('type', 'delivery')->get();
+        $totalDeliveryCompanies = $deliveryStores->count();
+        $totalCouriers = $deliveryStores->sum(function ($store) {
+            return $store->couriers()->count();
+        });
+        $totalOrders = $deliveryStores->sum(function ($store) {
+            return $store->orders()->count();
+        });
+        $successfulOrders = $deliveryStores->sum(function ($store) {
+            return $store->orders()->where('status', OrderStatus::DELIVERED)->count();
+        });
+        $totalRevenue = $deliveryStores->sum(function ($store) {
+            return $store->orders()->where('payment_status', 'paid')->sum('total_amount');
+        });
+        $successRate = $totalOrders > 0 ? round(($successfulOrders / $totalOrders) * 100, 2) : 0;
+
+        return [
+            'success_rate' => $successRate,
+            'total_revenue' => $totalRevenue,
+            'executed_orders' => $successfulOrders,
+            'total_couriers' => $totalCouriers,
+            'total_delivery_companies' => $totalDeliveryCompanies,
+        ];
     }
 }

@@ -57,7 +57,8 @@ class Store extends Model implements TranslatableContract
         'branch_type',
         'active_status',
         'commission_type',
-        'commission_amount'
+        'commission_amount',
+        'type'
     ];
     protected $casts = [
         'is_featured' => 'boolean',
@@ -95,7 +96,7 @@ class Store extends Model implements TranslatableContract
     {
         return $this->hasOne(Vendor::class)->where('is_owner', true);
     }
-    public function couiers(): HasMany
+    public function couriers(): HasMany
     {
         return $this->hasMany(Couier::class);
     }
@@ -139,9 +140,13 @@ class Store extends Model implements TranslatableContract
     {
         $query->withTranslation();
 
+        if(!empty($filters['type'])) {
+            $query->where('type', 'delivery');
+        }
+
         // Set first section if section_id is 0 or empty
         if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-            $firstSection = Section::latest()->first();
+            $firstSection = Section::where('type', '!=', 'delivery')->latest()->first();
             if ($firstSection) {
                 $filters['section_id'] = $firstSection->id;
             }

@@ -17,7 +17,9 @@ class SendOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // 'phone' => ['required','string', 'regex:/^\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/'],
             'phone' => ['required','string'],
+            'phone_code' => ['required','string'],
             'model_type' => ['required','string'],
         ];
     }

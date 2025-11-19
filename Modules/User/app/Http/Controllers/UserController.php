@@ -81,4 +81,27 @@ class UserController extends Controller
         auth('user')->user()->currentAccessToken()->delete();
         return $this->successResponse(null, __('message.success'));
     }
+
+    /**
+     * Update the authenticated user's profile.
+     */
+    public function updateProfile(UpdateUserRequest $request): JsonResponse
+    {
+        $user = auth('user')->user();
+        $updatedUser = $this->userService->updateUser($user->id, $request->all());
+        return $this->successResponse([
+            "user" => new UserResource($updatedUser)
+        ], __("message.success"));
+    }
+    public function deleteAccount(): JsonResponse
+    {
+        $user = auth('user')->user();
+        $deleted = $this->userService->deleteUser($user->id);
+
+        if ($deleted) {
+            $user->currentAccessToken()->delete();
+        }
+
+        return $this->successResponse(null, __('message.success'));
+    }
 }

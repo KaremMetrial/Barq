@@ -13,6 +13,7 @@ use Modules\Store\Http\Resources\Admin\StoreResource;
 use Modules\Store\Http\Requests\CreateStoreRequest;
 use Modules\Store\Http\Requests\UpdateStoreRequest;
 use Modules\Store\Http\Resources\Admin\StoreCollectionResource;
+use Modules\Store\Http\Resources\Admin\DeliveryCompanyResource;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -97,5 +98,18 @@ class StoreController extends Controller implements HasMiddleware
             'pos_count' => $statsCount['posCount'],
             ], __('message.success'));
 
+    }
+    public function deliveryStore()
+    {
+        $deliveryCompany = $this->StoreService->deliveryStore();
+        return $this->successResponse([
+            'delivery_company' => DeliveryCompanyResource::collection($deliveryCompany->getCollection()),
+            'pagination' => new PaginationResource($deliveryCompany)
+        ],__('message.success'));
+    }
+    public function deliveryStoreStats()
+    {
+        $stats = $this->StoreService->deliveryStoreStats();
+        return $this->successResponse($stats,__('message.success'));
     }
 }

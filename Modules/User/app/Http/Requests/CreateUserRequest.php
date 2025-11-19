@@ -19,6 +19,7 @@ class CreateUserRequest extends FormRequest
             "first_name" => ["required", "string", "max:255"],
             "last_name" => ["required", "string", "max:255"],
             "email" => ["nullable", "string", "email", Rule::unique("users")],
+            "phone_code" => ["required", "string", "max:255"],
             "phone" => ["required", "string", "max:255", Rule::unique("users")],
             "password" => ["nullable", "string"],
             "avatar" => ["nullable", "image", "mimes:jpeg,png,jpg,gif,svg", "max:2048"],

@@ -3,6 +3,7 @@ namespace Modules\Zone\Models;
 
 use Modules\City\Models\City;
 use Modules\Store\Models\Store;
+use Modules\Couier\Models\Couier;
 use Modules\Address\Models\Address;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
@@ -142,5 +143,8 @@ class Zone extends Model implements TranslatableContract
     {
         return $this->city->governorate->country();
     }
-
+    public function couriers()
+    {
+        return $this->belongsToMany(Couier::class, 'couier_zone', 'zone_id', 'couier_id');
+    }
 }

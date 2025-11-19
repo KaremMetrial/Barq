@@ -13,6 +13,8 @@ Route::prefix('v1')->group(function () {
             Route::post('logout', 'logout');
 
             Route::post('update-password', 'updatePassword');
+
+            Route::get('profile', 'profile');
         });
     });
 

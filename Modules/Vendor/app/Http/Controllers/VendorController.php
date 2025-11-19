@@ -64,4 +64,15 @@ class VendorController extends Controller
         $vendor = $this->vendorService->updatePassword($request->validated());
         return $this->successResponse(null, __('message.success'));
     }
+
+    /**
+     * Get the authenticated vendor's profile with stores.
+     */
+    public function profile(): JsonResponse
+    {
+        $vendor = auth('vendor')->user();
+        return $this->successResponse([
+            'vendor' => new VendorResource($vendor->load('stores')),
+        ], __('message.success'));
+    }
 }

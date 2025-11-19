@@ -68,5 +68,14 @@ class AdminOrderController extends Controller
             'order' => new OrderResource($order),
         ], __('message.success'));
     }
+    /**
+     * Delete the specified order.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $this->orderService->deleteOrder($id);
+
+        return $this->successResponse(null, __('message.success'));
+    }
 
 }

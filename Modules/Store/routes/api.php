@@ -22,6 +22,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::prefix('stores')->name('stores.')->group(function () {
             Route::get('/stats', [AdminStoreController::class, 'stats'])->name('status');
+            Route::get('delivery', [AdminStoreController::class, 'deliveryStore']);
+            Route::get('delivery/stats', [AdminStoreController::class, 'deliveryStoreStats']);
         });
         Route::apiResource('stores', AdminStoreController::class)->names('store');
     });

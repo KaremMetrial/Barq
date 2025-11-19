@@ -16,14 +16,11 @@ class SetApiLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->is('*')) {
-            // Get language from header, default to config value
-            $locale = $request->header('Accept-Language', config('app.locale'));
-
-            // Validate the locale exists in supported languages
-            if (in_array($locale, config('translatable.locales', ['en', 'ar']))) {
-                app()->setLocale($locale);
-            }
+        // Get language from header, default to config value
+        $locale = $request->header('Accept-Language', config('app.locale'));
+        // Set the locale - translatable package will handle fallback for unsupported locales
+        if (in_array($locale, config('translatable.locales', ['en', 'ar']))) {
+            app()->setLocale($locale);
         }
 
         return $next($request);

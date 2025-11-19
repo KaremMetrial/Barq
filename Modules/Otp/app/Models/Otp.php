@@ -12,6 +12,7 @@ class Otp extends Model
         'otp_hash',
         'model_type',
         'phone',
+        'phone_code',
         'otp_expires_at',
         'otp_verified',
         'otp',
@@ -19,9 +20,10 @@ class Otp extends Model
     protected $casts = [
         'otp_verified' => 'boolean',
     ];
-    public static function validateOtp(string $phone, string $otp, string $modelType): bool
+    public static function validateOtp(string $phone, string $otp, string $modelType, string $phoneCode): bool
     {
         $record = self::where('phone', $phone)
+            ->where('phone_code', $phoneCode)
             ->where('model_type', $modelType)
             ->where('otp_verified', false)
             ->where('otp_expires_at', '>=', now())

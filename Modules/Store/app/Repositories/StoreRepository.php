@@ -3,6 +3,7 @@
 namespace Modules\Store\Repositories;
 
 use App\Enums\SectionTypeEnum;
+use App\Enums\OrderStatus;
 use Modules\Store\Models\Store;
 use Modules\Section\Models\Section;
 use App\Repositories\BaseRepository;
@@ -82,5 +83,12 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             'storeCount' => $storeCount,
             'posCount' => $posCount,
         ];
+    }
+
+    public function deliveryStore()
+    {
+        return $this->model->where('type', 'delivery')->with(['section', 'couriers'])->withCount(['couriers', 'orders', 'orders as successful_orders_count' => function ($query) {
+            $query->where('status', OrderStatus::DELIVERED);
+        }])->paginate(10);
     }
 }

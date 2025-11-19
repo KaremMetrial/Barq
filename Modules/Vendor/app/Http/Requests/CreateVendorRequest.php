@@ -25,7 +25,6 @@ class CreateVendorRequest extends FormRequest
                     ->letters()
                     ->numbers()
                     ->symbols()
-                    ->uncompromised()
             ],
             'is_owner' => ['required', 'boolean'],
             'is_active' => ['required', 'boolean'],

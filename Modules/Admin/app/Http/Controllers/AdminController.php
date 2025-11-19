@@ -96,4 +96,15 @@ class AdminController extends Controller
         $vendor = $this->adminService->updatePassword($request->validated());
         return $this->successResponse(null, __('message.success'));
     }
+
+    /**
+     * Get the authenticated admin's profile.
+     */
+    public function profile(): JsonResponse
+    {
+        $admin = auth('sanctum')->user();
+        return $this->successResponse([
+            "admin" => new AdminResource($admin),
+        ], __("message.success"));
+    }
 }

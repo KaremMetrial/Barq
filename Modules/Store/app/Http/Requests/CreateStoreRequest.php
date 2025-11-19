@@ -8,6 +8,7 @@ use App\Enums\WorkingDayEnum;
 use Illuminate\Validation\Rule;
 use Modules\Store\Models\Store;
 use App\Enums\DeliveryTypeUnitEnum;
+use App\Enums\SectionTypeEnum;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -15,7 +16,20 @@ class CreateStoreRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
+     *
      */
+    public function prepareForValidation()
+    {
+        if ($this->has('store.type') && $this->input('store.type') === 'delivery') {
+            $deliverySection = \Modules\Section\Models\Section::where('type', SectionTypeEnum::DELIVERY_COMPANY)->first();
+            if ($deliverySection) {
+                $this->merge([
+                    'store.section_id' => $deliverySection->id,
+                ]);
+            }
+        }
+
+    }
     public function rules(): array
     {
         return [
@@ -24,7 +38,7 @@ class CreateStoreRequest extends FormRequest
             'store.status' => ['nullable', 'string', Rule::in(StoreStatusEnum::values())],
             'store.note' => ['nullable', 'string'],
             'store.logo' => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
-            'store.cover_image' => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
+            'store.cover_image' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
             'store.phone' => ['required', 'string', 'unique:stores,phone'],
             'store.message' => ['nullable', 'string'],
             'store.is_featured' => ['nullable', 'boolean'],
@@ -49,6 +63,7 @@ class CreateStoreRequest extends FormRequest
             'store.service_fee_percentage' => ['nullable', 'numeric', 'min:0'],
             'store.commission_amount' => ['nullable', 'numeric', 'min:0'],
             'store.commission_type' => ['nullable', 'string', Rule::in(PlanTypeEnum::values())],
+            'store.type' => ['nullable', 'string', 'in:delivery,store'],
 
             'address' => ['required', 'array'],
             'address.zone_id' => ['required', 'integer', 'exists:zones,id'],
@@ -57,13 +72,13 @@ class CreateStoreRequest extends FormRequest
             'address.address_line_1' => ['nullable', 'string'],
 
 
-            'vendor' => ['required', 'array'],
-            'vendor.first_name' => ['required', 'string', 'max:255'],
-            'vendor.last_name' => ['required', 'string', 'max:255'],
-            'vendor.email' => ['required', 'string', 'email', 'unique:vendors,email'],
-            'vendor.phone' => ['required', 'string', 'unique:vendors,phone'],
+            'vendor' => ['nullable', 'required_if:store.type,store', 'array'],
+            'vendor.first_name' => ['nullable', 'required_if:store.type,store', 'string', 'max:255'],
+            'vendor.last_name' => ['nullable', 'required_if:store.type,store', 'string', 'max:255'],
+            'vendor.email' => ['nullable', 'required_if:store.type,store', 'string', 'email', 'unique:vendors,email'],
+            'vendor.phone' => ['nullable', 'required_if:store.type,store', 'string', 'unique:vendors,phone'],
             'vendor.password' => [
-                'required',
+                'nullable', 'required_if:store.type,store',
                 'string',
                 Password::min(8)
                     ->mixedCase()
@@ -71,15 +86,15 @@ class CreateStoreRequest extends FormRequest
                     ->numbers()
                     ->symbols()
             ],
-            'vendor.is_owner' => ['required', 'boolean'],
-            'vendor.is_active' => ['required', 'boolean'],
+            'vendor.is_owner' => ['nullable', 'required_if:store.type,store', 'boolean'],
+            'vendor.is_active' => ['nullabel', 'required_if:store.type,store', 'boolean'],
             'vendor.store_id' => ['nullable', 'integer', 'exists:stores,id'],
             'vendor.role_id' => ['nullable','string', 'exists:roles,id'],
 
-            'zones_to_cover' => ['required', 'array'],
+            'zones_to_cover' => ['nullable', 'required_if:store.type,store', 'array'],
             'zones_to_cover.*' => ['integer', 'exists:zones,id'],
 
-            'working_days' => ['required', 'array'],
+            'working_days' => ['nullable', 'required_if:store.type,store', 'array'],
             'working_days.*.day_of_week' => ['required', 'integer', Rule::in(WorkingDayEnum::values())],
             'working_days.*.open_time' => ['required', 'date_format:H:i'],
             'working_days.*.close_time' => ['required', 'date_format:H:i', 'after:working_days.*.open_time']
