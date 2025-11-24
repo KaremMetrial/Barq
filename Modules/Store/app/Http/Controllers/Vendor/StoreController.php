@@ -81,9 +81,9 @@ class StoreController extends Controller
         $isDeleted = $this->StoreService->deleteStore($id);
         return $this->successResponse(null, __('message.success'));
     }
-    public function stats()
+    public function vendorStats()
     {
-        $store = $this->StoreService->stats();
+        $store = $this->StoreService->vendorStats();
         return $this->successResponse([
             "stats" => $store,
         ], __("message.success"));

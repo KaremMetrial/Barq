@@ -39,7 +39,7 @@ class CreateAddressRequest extends FormRequest
             'apartment_number' =>  ['nullable', 'string'],
             'house_number' =>  ['nullable', 'string'],
             'street' =>  ['nullable', 'string'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:25'],
         ];
     }
 

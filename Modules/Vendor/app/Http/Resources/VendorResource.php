@@ -5,9 +5,9 @@ namespace Modules\Vendor\Http\Resources;
 use Illuminate\Http\Request;
 use App\Enums\VendorTypeEnum;
 use App\Enums\VendorStatusEnum;
-use Modules\Store\Http\Resources\StoreResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Section\Http\Resources\SectionResource;
+use Modules\Store\Http\Resources\Admin\StoreResource;
 
 class VendorResource extends JsonResource
 {

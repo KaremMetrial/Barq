@@ -4,9 +4,15 @@ namespace Modules\Order\Observers;
 
 use Modules\Order\Models\Order;
 use Modules\Order\Models\OrderStatusHistory;
+use Modules\Order\Services\OrderNotificationService;
 
 class OrderObserver
 {
+
+    public function __construct(protected OrderNotificationService $orderNotificationService)
+    {
+    }
+
     /**
      * Handle the OrderObserver "created" event.
      */
@@ -20,6 +26,13 @@ class OrderObserver
             'changed_at' => now(),
             'note' => 'Order created',
         ]);
+        if ($order->user) {
+            $this->orderNotificationService->sendOrderStatusNotification(
+                $order->user,
+                $order->id,
+                'Order created'
+            );
+        }
     }
 
     /**
@@ -28,6 +41,13 @@ class OrderObserver
     public function updated(Order $order): void
     {
         $order->refresh();
+         if ($order->user) {
+                $this->orderNotificationService->sendOrderStatusNotification(
+                    $order->user,
+                    $order->id,
+                    $order->status->value
+                );
+            }
         // Check if status has changed
         if ($order->isDirty('status')) {
             OrderStatusHistory::create([

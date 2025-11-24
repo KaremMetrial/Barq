@@ -101,7 +101,10 @@ class OtpService
             ];
         }
         if (request()->input('update_profile') != 'true') {
-            $token = $user->createToken('auth_token',['user'])->plainTextToken;
+            $newToken = $user->createToken('auth_token',['user']);
+            $newToken->accessToken->fcm_device = request()->input('fcm_device');
+            $newToken->accessToken->save();
+            $token = $newToken->plainTextToken;
         }
         return [
             'success' => true,

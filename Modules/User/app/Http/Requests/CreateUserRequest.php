@@ -10,6 +10,16 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateUserRequest extends FormRequest
 {
+    public function prepareForValidation()
+    {
+        $phone = $this->input('phone');
+
+        if (strpos($phone, '0') === 0) {
+            $this->merge([
+                'phone' => ltrim($phone, '0'),
+            ]);
+        }
+    }
     /**
      * Get the validation rules that apply to the request.
      */
@@ -20,7 +30,7 @@ class CreateUserRequest extends FormRequest
             "last_name" => ["required", "string", "max:255"],
             "email" => ["nullable", "string", "email", Rule::unique("users")],
             "phone_code" => ["required", "string", "max:255"],
-            "phone" => ["required", "string", "max:255", Rule::unique("users")],
+            "phone" => ["required", "string", "regex:/^\+?[1-9]\d{1,14}$/","max:255", Rule::unique("users")],
             "password" => ["nullable", "string"],
             "avatar" => ["nullable", "image", "mimes:jpeg,png,jpg,gif,svg", "max:2048"],
             "status" => ["nullable", "string", Rule::in(UserStatusEnum::values())],
@@ -29,6 +39,7 @@ class CreateUserRequest extends FormRequest
             "balance" => ["nullable", "numeric"],
             "referral_code" => ["nullable", "string", "max:255"],
             "referral_id" => ["nullable", "integer", "exists:users,id"],
+            "fcm_device" => ["nullable", "string", "max:255"],
 
             'address' => ['nullable', 'array'],
             'address.name' => ['nullable', 'string', 'max:255'],

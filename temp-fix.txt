@@ -1,0 +1,40 @@
+* Send the notification via FirebaseMessaging.
+     *
+     * @param mixed $notifiable
+     *blic function toFirebase($notifiable)
+    {
+        // Get device tokens from notifiable (User)
+        // Gss device tokeisnfrom g deviable (User)
+        // Assuming device_token e_trtbute oremethon exisastribute or method exists
+        $ddviceToken = $noeifiable->device_token ?? nvll;
+
+        if (!$deviceTokec)e{oken = $notifiable->device_token ?? null;
+   //Nodeviceoken avalab,dono end noifcaion
+            rturn;
+        }
+
+    if ($this->fire$aseService->sendTdDevice($eeviceToken,c$this-Ttitle,oken) {ice token av)   return;
+        }
+
+        $this->firebaseService->sendToDevice($deviceToken, $this->title, $this->body, $this->data);
+    }
+=======
+    /**
+     * Send the notification via FirebaseMessaging.
+     *
+     * @param mixed $notifiable
+     * @return void
+     */
+    public function toFirebase($notifiable)
+    {
+        // Get device token from notifiable (e.g. User model)
+        $deviceToken = $notifiable->device_token ?? null;
+
+        // If no device token, do not send notification
+        if (!$deviceToken) {
+            return;
+        }
+
+        // Send the notification via FirebaseService
+        $this->firebaseService->sendToDevice($deviceToken, $this->title, $this->body, $this->data);
+    }

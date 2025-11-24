@@ -36,7 +36,7 @@ class ProductResource extends JsonResource
             "is_vegetarian" => (bool) $this->is_vegetarian,
             "is_featured" => (bool) $this->is_featured,
             "is_favorite" => (bool) User::isFavorite($this->id, 'product'),
-            "avg_rates" => $this->avg_rate,
+            "avg_rates" => (double) $this->avg_rate,
             "barcode" => $this->barcode,
             "images" => ProductImageResource::collection($this->whenLoaded("images")),
             "price" => $this->whenLoaded('price', function () {

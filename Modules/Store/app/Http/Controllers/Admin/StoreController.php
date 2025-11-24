@@ -56,7 +56,7 @@ class StoreController extends Controller implements HasMiddleware
     {
         $Store = $this->StoreService->createAdminStore($request->all());
         return $this->successResponse([
-            'Store' => new StoreCollectionResource($Store)
+            'Store' => new StoreCollectionResource($Store->refresh())
         ], __('message.success'));
     }
 
@@ -76,7 +76,7 @@ class StoreController extends Controller implements HasMiddleware
      */
     public function update(UpdateStoreRequest $request, int $id): JsonResponse
     {
-        $Store = $this->StoreService->updateStore($id, $request->validated());
+        $Store = $this->StoreService->updateStore($id, $request->all());
         return $this->successResponse([
             'Store' => new StoreResource($Store)
         ], __('message.success'));
@@ -97,7 +97,6 @@ class StoreController extends Controller implements HasMiddleware
             'store_count' => $statsCount['storeCount'],
             'pos_count' => $statsCount['posCount'],
             ], __('message.success'));
-
     }
     public function deliveryStore()
     {

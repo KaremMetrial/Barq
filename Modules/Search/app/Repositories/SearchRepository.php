@@ -86,8 +86,8 @@ class SearchRepository implements SearchRepositoryInterface
     {
         return Product::query()
             ->with([
-                'store' => fn ($query) => $query->withTranslation()->with('storeSetting', 'section.translations', 'address.zone.city.governorate.country'),
-                'category' => fn ($query) => $query->withTranslation(),
+                'store' => fn ($query) => $query->with('storeSetting', 'section.translations', 'address.zone.city.governorate.country'),
+                'category' => fn ($query) => $query,
                 'images',
                 'price',
                 'offers' => fn ($query) => $query->where('is_active', true)

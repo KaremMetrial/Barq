@@ -14,11 +14,22 @@ class SendOtpRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
+    public function prepareForValidation()
+    {
+        $phone = $this->input('phone');
+
+        if (strpos($phone, '0') === 0) {
+            $this->merge([
+                'phone' => ltrim($phone, '0'),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
             // 'phone' => ['required','string', 'regex:/^\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/'],
-            'phone' => ['required','string'],
+            'phone' => ['required','string', 'regex:/^\+?[1-9]\d{1,14}$/'],
             'phone_code' => ['required','string'],
             'model_type' => ['required','string'],
         ];

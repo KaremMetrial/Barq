@@ -143,7 +143,7 @@ class Product extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
-        $query->withTranslation()
+        $query
             ->withAvg('reviews', 'rating');
         if (isset($filters['search'])) {
             $searchTerm = $filters['search'];

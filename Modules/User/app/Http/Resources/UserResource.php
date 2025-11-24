@@ -31,7 +31,7 @@ class UserResource extends JsonResource
             'loyalty_points' => $this->loyalty_points,
             'available_loyalty_points' => $this->getAvailablePoints(),
             'points_expire_at' => $this->points_expire_at,
-            'address_id' => (int) $this->addresses()->first()->id,
+            // 'address_id' => $this->addresses()->first() ? (int) $this->addresses()->first()->id : null,
         ];
     }
 }

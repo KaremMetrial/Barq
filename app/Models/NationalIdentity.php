@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class NationalIdentity extends Model
 {
     protected $fillable = [
-        'type',
+        'identityable_id',
+        "identityable_type",
         'national_id',
         'front_image',
         'back_image'

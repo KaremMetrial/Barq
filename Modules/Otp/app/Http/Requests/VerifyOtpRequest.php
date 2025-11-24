@@ -10,13 +10,23 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class VerifyOtpRequest extends FormRequest
 {
+        public function prepareForValidation()
+    {
+        $phone = $this->input('phone');
+
+        if (strpos($phone, '0') === 0) {
+            $this->merge([
+                'phone' => ltrim($phone, '0'),
+            ]);
+        }
+    }
     /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string'],
+            'phone' => ['required','string', 'regex:/^\+?[1-9]\d{1,14}$/'],
             'phone_code' => ['required', 'string'],
             'otp' => ['required', 'string'],
             'model_type' => ['required', 'string'],

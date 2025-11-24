@@ -70,4 +70,11 @@ class CouierController extends Controller
         $deleted = $this->couierService->deleteCouier($id);
         return $this->successResponse(null, __("message.success"));
     }
+    public function stats()
+    {
+        $stats = $this->couierService->stats();
+        return $this->successResponse(
+        $stats
+        , __('message.success'));
+    }
 }

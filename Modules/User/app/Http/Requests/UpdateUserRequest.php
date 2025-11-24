@@ -13,6 +13,17 @@ class UpdateUserRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
+    public function prepareForValidation()
+    {
+        $phone = $this->input('phone');
+
+        if (strpos($phone, '0') === 0) {
+            $this->merge([
+                'phone' => ltrim($phone, '0'),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         $userId = $this->route('user') ?? auth('user')->id();
@@ -21,7 +32,7 @@ class UpdateUserRequest extends FormRequest
             "first_name" => ["nullable", "string", "max:255"],
             "last_name" => ["nullable", "string", "max:255"],
             "email" => ["nullable", "string", "email", Rule::unique("users")->ignore($userId)],
-            "phone" => ["nullable", "string", "max:255", Rule::unique("users")->ignore($userId)],
+            "phone" => ["nullable", "string", "regex:/^\+?[1-9]\d{1,14}$/","max:255", Rule::unique("users")->ignore($userId)],
             "phone_code" => ["nullable", "string", "max:255"],
             "password" => ["nullable", "string", "min:8"],
             "avatar" => ["nullable", "image", "mimes:jpeg,png,jpg,gif,svg", "max:2048"],

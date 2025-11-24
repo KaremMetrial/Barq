@@ -20,14 +20,13 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
     public function getHomeStores(array $relations = [], array $filters = [])
     {
         if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-            $firstSection = Section::latest()->first();
+            $firstSection = Section::where('type', '!=', 'delivery_company')->latest()->first();
             if ($firstSection) {
                 $filters['section_id'] = $firstSection->id;
             }
         }
 
         $featured = $this->model
-            ->withTranslation()
             ->with($relations)
             ->filter($filters)
             ->whereIsFeatured(true)
@@ -36,7 +35,6 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             ->get();
 
         $topReviews = $this->model
-            ->withTranslation()
             ->with($relations)
             ->filter($filters)
             ->withCount('reviews')
@@ -47,7 +45,6 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             ->get();
 
         $newStore = $this->model
-            ->withTranslation()
             ->with($relations)
             ->filter($filters)
             ->latest()

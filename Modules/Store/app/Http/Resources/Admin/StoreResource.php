@@ -41,11 +41,43 @@ class StoreResource extends JsonResource
             "banners" => $this->getProductBanners(),
             "categories" => $this->getCategoriesString(),
             'store_setting' => new StoreSettingResource($this->whenLoaded('storeSetting')),
-            "delivery_fee" => $this->getDeliveryFee() ? (string) $this->getDeliveryFee() : null,
-            "active_sale" => $this->whenLoaded('offers', function () {
-                return $this->getActiveOffers();
-            }),
+
         ];
     }
-  
+        private function getProductBanners(): array
+    {
+        $banners = [];
+        if ($this->storeSetting?->free_delivery_enabled) {
+            $banners[] = [
+                'type' => 'free_delivery',
+            ];
+        }
+
+        if ($this->created_at && $this->created_at->greaterThan(now()->subDays(30))) {
+            $banners[] = [
+                'type' => 'new',
+            ];
+        } else {
+            $banners[] = [
+                'type' => 'regular',
+            ];
+        }
+
+        return $banners;
+    }
+    private function getCategoriesString(): string
+    {
+        if (!$this->relationLoaded('section') || !$this->section->relationLoaded('categories')) {
+            return '';
+        }
+
+        return $this->section->categories
+            ->pluck('translations.*.name')
+            ->flatten()
+            ->filter()
+            ->unique()
+            ->implode(', ');
+    }
+
+
 }

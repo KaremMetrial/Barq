@@ -10,6 +10,7 @@ use App\Models\NationalIdentity;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\CouierAvaliableStatusEnum;
+use App\Enums\PlanTypeEnum;
 use Illuminate\Notifications\Notifiable;
 use Modules\Conversation\Models\Message;
 use Modules\Conversation\Models\Conversation;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Modules\Order\Models\Order;
 
 class Couier extends Authenticatable
 {
@@ -32,16 +34,20 @@ class Couier extends Authenticatable
         "password",
         "avatar",
         "license_number",
-        "avaliable_status",
+        "available_status",
         "avg_rate",
         "status",
         "store_id",
-        "birthday"
+        "birthday",
+        "commission_type",
+        "commission_amount",
+        "driving_license",
     ];
     protected $casts = [
         "avaliable_status" => CouierAvaliableStatusEnum::class,
         "status" => UserStatusEnum::class,
         "password" => "hashed",
+        "commission_type" => PlanTypeEnum::class,
     ];
     protected $hidden = [
         "password",
@@ -78,5 +84,10 @@ class Couier extends Authenticatable
     public function zones()
     {
         return $this->belongsToMany(Zone::class, 'couier_zone', 'couier_id', 'zone_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'couier_id');
     }
 }

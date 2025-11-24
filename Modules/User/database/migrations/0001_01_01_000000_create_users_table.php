@@ -25,7 +25,7 @@ return new class extends Migration
             $table->decimal('balance', 10, 3)->default(0);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->string('referral_code')->nullable();
+            $table->string('referral_code')->unique()->nullable();
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

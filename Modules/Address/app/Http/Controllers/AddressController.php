@@ -76,6 +76,7 @@ class AddressController extends Controller
     {
         $zone = null;
         $addressName = null;
+        $currentAddress = null;
         if ($request->header('address-id')) {
             $currentAddress = $this->addressService->getAddressById(request()->header('address-id'));
             $zone = $currentAddress?->zone;
@@ -91,6 +92,7 @@ class AddressController extends Controller
             "address_name" => $addressName,
             "user_addresses" => [],
             "current_address_id" => null,
+            "is_available"=> $zone ? true : false,
         ];
 
         // If user is authenticated
@@ -106,8 +108,8 @@ class AddressController extends Controller
                         ->sortByDesc('created_at')
                         ->first();
                 }
-                $response["current_address_id"] = $currentAddress?->id ? (string) $currentAddress->id : null;
             }
+            $response["current_address_id"] = $currentAddress?->id ? (string) $currentAddress->id : null;
         }
 
         return $this->successResponse($response, __("message.success"));

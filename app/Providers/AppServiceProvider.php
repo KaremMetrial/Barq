@@ -5,12 +5,14 @@ namespace App\Providers;
 use Modules\User\Models\User;
 use Modules\Admin\Models\Admin;
 use Modules\Store\Models\Store;
+use App\Services\FirebaseService;
+use Modules\Couier\Models\Couier;
 use Modules\Vendor\Models\Vendor;
 use Modules\Product\Models\Product;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Intervention\Image\Laravel\Facades\Image;
 use Modules\Category\Models\Category;
+use Illuminate\Support\ServiceProvider;
+use Intervention\Image\Laravel\Facades\Image;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
             'admin' => Admin::class,
             'product' => Product::class,
             'category' => Category::class,
+            'courier' => Couier::class
         ]);
     }
 }

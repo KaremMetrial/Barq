@@ -266,7 +266,7 @@ class ProductService
 
         $sectionId = $filters['section_id'] ?? 0;
         if (array_key_exists('section_id', $filters) && (int)$filters['section_id'] == 0) {
-            $latestSection = \Modules\Section\Models\Section::latest()->first();
+            $latestSection = \Modules\Section\Models\Section::where('type', '!=', 'delivery_company')->latest()->first();
             $sectionId = $latestSection?->id;
         }
 

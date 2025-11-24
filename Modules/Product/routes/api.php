@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DeepLinkController;
 use Modules\Product\Http\Controllers\ProductController;
 use Modules\Product\Http\Controllers\Admin\ProductController as AdminProductController;
 use Modules\Product\Http\Controllers\Vendor\ProductController as VendorProductController;
@@ -14,6 +15,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'index')->name('product.index');
         Route::get('/{id}', 'show')->name('product.show');
     });
+    Route::post('/generate/product/{id}', [DeepLinkController::class,'generateProduct']);
+
     Route::prefix('admin')->middleware(['auth:sanctum','ability:admin,vendor'])->name('admin.')->group(function () {
         Route::apiResource('products', AdminProductController::class)->names('product');
     });

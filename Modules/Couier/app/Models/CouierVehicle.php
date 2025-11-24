@@ -13,7 +13,8 @@ class CouierVehicle extends Model
         "color",
         "model",
         "courier_id",
-        "vehicle_id"
+        "vehicle_id",
+        "car_license",
     ];
     public function vehicle(): BelongsTo
     {

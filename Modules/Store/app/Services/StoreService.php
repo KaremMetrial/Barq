@@ -86,8 +86,8 @@ class StoreService
                 'uploads/cover_images',
                 'public'
             );
-            $data = array_filter($data, fn($value) => !blank($value));
-            $store = $this->StoreRepository->update($id, $data);
+            $data['store'] = array_filter($data['store'], fn($value) => !blank($value));
+            $store = $this->StoreRepository->update($id, $data['store']);
 
             // Sync zones to cover if provided
             if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
@@ -126,7 +126,7 @@ class StoreService
         ];
         return $this->StoreRepository->getHomeStores($relation, $filters);
     }
-    public function stats()
+    public function vendorStats()
     {
         $store = auth('vendor')->user()->store;
         $today = Carbon::today()->toDateString();
@@ -139,10 +139,11 @@ class StoreService
                 AVG(total_amount) as average_order
             ', [$today])
             ->first();
+
         $latestOrders = $store->orders()
             ->latest()
             ->take(5)
-            ->with('store', 'user', 'courier', 'items.product', 'items.productOptionValue', 'items.addOns')
+            ->with('store', 'user', 'courier', 'items.product')
             ->get();
 
         $topProducts = \DB::table('order_items')
@@ -165,9 +166,9 @@ class StoreService
                     'name' => $product->name ?? 'N/A',
                     'category' => $product->category->name ?? 'N/A',
                     'total_sold' => (int) $sold,
+                    "image" => $product->images->first()?->image_path ? asset('storage/' . $product->images->first()->image_path) : null,
                 ];
             });
-
 
         return [
             'total_orders' => (string) $stats['total_orders'],
@@ -188,9 +189,7 @@ class StoreService
             $filters,
             5,
             [
-                'section' => function ($query) {
-                    $query->withTranslation();
-                },
+                'section',
                 'translations',
                 'owner'
             ]

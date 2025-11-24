@@ -130,9 +130,12 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Cart::class, 'cart_user');
     }
-    public function generateToken()
+    public function generateToken($data = null)
     {
-        return $this->createToken('api-user-token')->plainTextToken;
+        $token =  $this->createToken('auth_token',['user']);
+        $token->accessToken->fcm_device = $data['fcm_device'];
+        $token->accessToken->save();
+        return $token->plainTextToken;
     }
 
     /**
@@ -234,5 +237,14 @@ class User extends Authenticatable
             return $address->zone->city->governorate->country->currency_symbol;
         }
         return 'EGP'; // Default currency
+    }
+    public function referrer()
+    {
+        return $this->belongsTo(User::class,'referral_id');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class,'referral_id');
     }
 }

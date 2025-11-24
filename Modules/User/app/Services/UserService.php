@@ -2,11 +2,12 @@
 
 namespace Modules\User\Services;
 
+use Illuminate\Support\Str;
 use Modules\User\Models\User;
 use App\Traits\FileUploadTrait;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\User\Repositories\UserRepository;
 
@@ -59,7 +60,44 @@ class UserService
             $addressData = $filteredData['address'] ?? null;
             unset($filteredData['address']);
 
-            $user = $this->UserRepository->create($filteredData);
+            // Check if a soft-deleted user exists with the same email or phone
+            $existingUser = User::withTrashed()
+                ->where('email', $filteredData['email'] ?? null)
+                ->orWhere('phone', $filteredData['phone'] ?? null)
+                ->first();
+
+            if ($existingUser && $existingUser->trashed()) {
+                // Restore the soft-deleted user
+                $existingUser->restore();
+
+                // Update the user data (hash password if provided)
+                $updateData = $filteredData;
+                if (isset($updateData['password'])) {
+                    $updateData['password'] = Hash::make($updateData['password']);
+                }
+
+                $user = $this->UserRepository->update($existingUser->id, $updateData);
+
+                // Delete existing addresses to recreate them
+                $user->addresses()->delete();
+            } else {
+                $refCode = request()->referral_code ?? null;
+                // Hash password for new user
+                if (isset($filteredData['password'])) {
+                    $filteredData['password'] = Hash::make($filteredData['password']);
+                }
+                $filteredData['referral_code'] =Str::upper(Str::random(8));
+
+                $user = $this->UserRepository->create($filteredData);
+
+                if($refCode){
+                    $referrer = User::where('referral_code',$refCode)->first();
+                    if($referrer){
+                        $user->update(['referral_id'=>$referrer->id]);
+                        $referrer->increment('loyalty_points',100);
+                    }
+                }
+            }
 
             if ($addressData) {
                 $user->addresses()->create($addressData);

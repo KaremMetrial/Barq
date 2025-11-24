@@ -19,7 +19,7 @@ class SetApiLocale
         // Get language from header, default to config value
         $locale = $request->header('Accept-Language', config('app.locale'));
         // Set the locale - translatable package will handle fallback for unsupported locales
-        if (in_array($locale, config('translatable.locales', ['en', 'ar']))) {
+        if (in_array($locale, config('translatable.locales'))) {
             app()->setLocale($locale);
         }
 

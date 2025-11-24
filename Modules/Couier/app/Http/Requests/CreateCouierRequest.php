@@ -2,6 +2,7 @@
 
 namespace Modules\Couier\Http\Requests;
 
+use App\Enums\PlanTypeEnum;
 use App\Enums\UserStatusEnum;
 use App\Traits\FileUploadTrait;
 use Illuminate\Validation\Rule;
@@ -20,7 +21,10 @@ class CreateCouierRequest extends FormRequest
         $this->merge([
             'courier' => $this->filterArray($this->input('courier', [])),
             'address' => $this->filterArray($this->input('address', [])),
-            'nationalID'
+            'nationalID' => $this->filterArray($this->input('nationalID', [])),
+            'zones_to_cover' => $this->filterArray($this->input('zones_to_cover', [])),
+            'vehicle' => $this->filterArray($this->input('vehicle', [])),
+            'attachment' => $this->filterArray($this->input('attachment', []))
         ]);
     }
     private function filterArray(array $data): array
@@ -31,6 +35,7 @@ class CreateCouierRequest extends FormRequest
     }
     public function rules(): array
     {
+
         return [
             // Courier
             "courier" => ["required", "array"],
@@ -41,11 +46,14 @@ class CreateCouierRequest extends FormRequest
             "courier.password" => ["required", "string", "max:255"],
             "courier.avatar" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
             "courier.license_number" => ["required", "string", "unique:couiers,license_number"],
-            "courier.avaliable_status" => ["nullable", "string", Rule::in(CouierAvaliableStatusEnum::values())],
-            "courier.avg_rate" => ["nullable", "double"],
+            "courier.available_status" => ["nullable", "string", Rule::in(CouierAvaliableStatusEnum::values())],
+            "courier.avg_rate" => ["nullable", "numeric"],
             "courier.status" => ["nullable", "string", Rule::in(UserStatusEnum::values())],
-            "courier.store_id" => ["required", "integer","exist:stores,id"],
+            "courier.store_id" => ["required", "integer","exists:stores,id"],
             "courier.birthday" => ["required", "date", "date_format:Y-m-d"],
+            "courier.commission_type" => ["required", "string", Rule::in(PlanTypeEnum::values())],
+            "courier.commission_amount" => ["required", "numeric"],
+            "courier.driving_license" => ["required", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
 
             // Address
             'address' => ['required', 'array'],
@@ -67,8 +75,10 @@ class CreateCouierRequest extends FormRequest
             // Courier Vehicle
             "vehicle" => ["required", "array"],
             "vehicle.plate_number" => ['required', 'string', 'unique:couier_vehicles,plate_number', 'max:255'],
+            "vehicle.vehicle_id" => ['required', 'integer', 'exists:vehicles,id'],
             "vehicle.color" => ['required', 'string', 'max:255'],
             "vehicle.model" => ['required', 'string', 'max:255'],
+            "vehicle.car_license" => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
 
             // Attachment
             "attachment" => ["required", "array"],

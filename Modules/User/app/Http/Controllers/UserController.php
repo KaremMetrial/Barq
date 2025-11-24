@@ -73,7 +73,7 @@ class UserController extends Controller
         $user = $this->userService->registerUser($request->all());
         return $this->successResponse([
             "user" => new UserResource($user),
-            'token' => $user->generateToken(),
+            'token' => $user->generateToken($request),
         ], __("message.success"));
     }
     public function logout(): JsonResponse

@@ -138,7 +138,7 @@ class Store extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
-        $query->withTranslation();
+        $query;
 
         if(!empty($filters['type'])) {
             $query->where('type', 'delivery');
@@ -146,7 +146,8 @@ class Store extends Model implements TranslatableContract
 
         // Set first section if section_id is 0 or empty
         if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-            $firstSection = Section::where('type', '!=', 'delivery')->latest()->first();
+            $firstSection = Section::where('type', '!=', 'delivery_company')->latest()->first();
+
             if ($firstSection) {
                 $filters['section_id'] = $firstSection->id;
             }
