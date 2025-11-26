@@ -28,6 +28,9 @@ class FirebaseService
      */
     public function sendToDevice($deviceTokens, string $title, string $body, array $data = []): bool
     {
+        Log::info('🚀 FKN Data', [
+            'data' => $data,
+        ]);
         // Normalize tokens
         if ($deviceTokens instanceof \Illuminate\Support\Collection) {
             $tokens = $deviceTokens->toArray();
@@ -118,5 +121,21 @@ class FirebaseService
             ]);
             return false;
         }
+    }
+    public function fknTest()
+    {
+        $tokens = ['fU1rei9cQFiXUt-U76Tk-Y:APA91bE2ye1qmgi10rT8ef_PdO9k9Lwd_x6LtDYfRifyYc9RCbqA6h8eBJJZNx82jpJSe1XK6xTkEBQ5fE8BY9Gh5O_fBe018H6qEHjR-Nd0BZ7yobko-mE'];
+        
+        $title = 'Order DELIVERED';
+        $body = 'Your order has been delivered';
+        $data = [
+            'order_id' => 1,
+            'status' => 'pending',
+        ];
+        $message = CloudMessage::new()
+            ->withNotification(FirebaseNotification::create($title, $body))
+            ->withData($data);
+        $sendReport = $this->messaging->sendMulticast($message, $tokens);
+        dd($sendReport);
     }
 }

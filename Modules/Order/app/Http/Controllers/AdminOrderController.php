@@ -24,11 +24,11 @@ class AdminOrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $filter = $request->only('search','status');
+        $filter = $request->only('search','status','from_date','to_date');
         $orders = $this->orderService->getAllOrders($filter);
 
         return $this->successResponse([
-            'orders' => OrderResource::collection($orders->load('user', 'courier')),
+            'orders' => OrderResource::collection($orders->load('user', 'courier','items.product', 'paymentMethod')),
             'pagination' => new PaginationResource($orders),
         ], __('message.success'));
     }
@@ -77,5 +77,10 @@ class AdminOrderController extends Controller
 
         return $this->successResponse(null, __('message.success'));
     }
+    public function stats(): JsonResponse
+    {
+        $stats = $this->orderService->getStats();
 
+        return $this->successResponse($stats, __('message.success'));
+    }
 }

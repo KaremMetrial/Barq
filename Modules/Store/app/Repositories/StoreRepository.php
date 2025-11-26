@@ -73,7 +73,7 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
     public function stats()
     {
         $vendorCount = Vendor::count();
-        $storeCount = Store::count();
+        $storeCount = Store::where('type', '!=', 'delivery')->count();
         $posCount = PosTerminal::count();
         return [
             'vendorCount' => $vendorCount,

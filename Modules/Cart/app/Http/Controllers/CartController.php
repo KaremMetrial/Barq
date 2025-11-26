@@ -69,10 +69,24 @@ class CartController extends Controller
         }
         $addressId = request()->header('address-id') ?? request()->header('Address-Id');
         $address = null;
+        $statusMessage = null;
         if ($addressId) {
             $address = $this->addressService->getAddressById($addressId);
-        }
+            $canDeliver = $cart->store->canDeliverTo($addressId);
+            $isOpen = $cart->store->isOpenNow();
+            $productsAvailable = $cart->items->every(function ($item) {
+                return $item->product && $item->product->status === \App\Enums\ProductStatusEnum::ACTIVE;
+            });
 
+            if (!$canDeliver) {
+                $statusMessage = __("message.store_cannot_deliver_to_address");
+            } elseif (!$isOpen) {
+                $statusMessage = __("message.store_is_closed");
+            } elseif (!$productsAvailable) {
+                $statusMessage = __("message.some_products_unavailable");
+            }
+        }
+        $isDeliveryToThisArea = $this->cartService->isDeliveryToThisArea($cart, $address);
         return $this->successResponse([
             "cart" => new CartResource($cart->load(
                 'items.product.images',
@@ -85,6 +99,7 @@ class CartController extends Controller
                 'posShift'
             )),
             // "address" => $address ? new AddressResource($address) : null,
+            "status_message" => $statusMessage,
         ], __("message.success"));
     }
 

@@ -40,4 +40,9 @@ return [
         'discount_banner_percentage' => 'خصومات تصل حتى :discount%🔥',
         'discount_banner_fixed' => 'خصومات بقيمة :amount🔥',
     ],
+
+    'store_available_for_delivery' => 'المتجر متاح للتوصيل.',
+    'store_cannot_deliver_to_address' => 'المتجر لا يمكنه التوصيل إلى هذا العنوان.',
+    'store_is_closed' => 'المتجر مغلق حالياً.',
+    'some_products_unavailable' => 'بعض المنتجات في السلة غير متاحة.',
 ];

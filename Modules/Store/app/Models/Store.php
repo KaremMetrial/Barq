@@ -376,4 +376,20 @@ class Store extends Model implements TranslatableContract
     {
        return $this->belongsToMany(Zone::class, 'store_zone', 'store_id', 'zone_id');
     }
+
+    /**
+     * Check if the store is open now based on working days
+     */
+    public function isOpenNow(): bool
+    {
+        $currentDay = date('w'); // 0 = Sunday, 6 = Saturday
+        $workingDay = $this->workingDays()->where('day_of_week', $currentDay)->first();
+
+        if (!$workingDay) {
+            return false;
+        }
+
+        $now = now()->format('H:i:s');
+        return $now >= $workingDay->open_time && $now <= $workingDay->close_time;
+    }
 }

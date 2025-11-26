@@ -504,4 +504,14 @@ class CartService
         $cart->save();
         return $cart;
     }
+        public function isDeliveryToThisArea($cart, $address): bool
+    {
+        if (!$cart->store) {
+            return false;
+        }
+        if (!$address) {
+            return false;
+        }
+        return $cart->store->canDeliverTo($address->id);
+    }
 }

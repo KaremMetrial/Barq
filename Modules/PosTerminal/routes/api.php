@@ -7,5 +7,5 @@ Route::prefix('v1')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::apiResource('posterminals', PosTerminalController::class);
     });
-    Route::apiResource('posterminals', PosTerminalController::class)->names('posterminal');
+    // Route::apiResource('posterminals', PosTerminalController::class)->names('posterminal');
 });

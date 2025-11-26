@@ -25,7 +25,7 @@ class CouierController extends Controller
     {
         $couiers = $this->couierService->getAllCouiers();
         return $this->successResponse([
-            "couiers" => CouierResource::collection($couiers),
+            "couiers" => CouierResource::collection($couiers->load('store')),
         ], __("message.success"));
     }
 
@@ -36,8 +36,8 @@ class CouierController extends Controller
     {
         $couier = $this->couierService->createCouier($request->all());
         return $this->successResponse([
-            "couier" => new CouierResource($couier),
-        ], __("message.success"));
+            "couier" => new CouierResource($couier->load('store')),
+        ], __("message.success"));  
     }
 
     /**
@@ -47,7 +47,7 @@ class CouierController extends Controller
     {
         $couier = $this->couierService->getCouierById($id);
         return $this->successResponse([
-            "couier" => new CouierResource($couier),
+            "couier" => new CouierResource($couier->load('store')),
         ], __("message.success"));
     }
 
@@ -58,7 +58,7 @@ class CouierController extends Controller
     {
         $couier = $this->couierService->updateCouier($id, $request->all());
         return $this->successResponse([
-            "couier" => new CouierResource($couier),
+            "couier" => new CouierResource($couier->load('store')),
         ], __("message.success"));
     }
 

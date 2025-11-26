@@ -40,12 +40,11 @@ class DatabaseSeeder extends Seeder
             OptionSeeder::class,
             AddOnSeeder::class,
             CartSeeder::class,
-            // OrderSeeder::class,
+            OrderSeeder::class,
             BannerSeeder::class,
             AdSeeder::class,
             ReviewSeeder::class,
             FavouriteSeeder::class,
         ]);
-
     }
 }

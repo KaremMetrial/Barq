@@ -16,9 +16,7 @@ class AddressController extends Controller
     use ApiResponse;
 
     // Injecting AddressService for handling business logic
-    public function __construct(protected AddressService $addressService)
-    {
-    }
+    public function __construct(protected AddressService $addressService) {}
 
     /**
      * Display a listing of the resource.
@@ -72,13 +70,14 @@ class AddressController extends Controller
         $this->addressService->deleteAddress($id);
         return $this->successResponse(null, __("message.success"));
     }
-     public function byLatLong(Request $request): JsonResponse
+    public function byLatLong(Request $request): JsonResponse
     {
         $zone = null;
         $addressName = null;
         $currentAddress = null;
-        if ($request->header('address-id')) {
-            $currentAddress = $this->addressService->getAddressById(request()->header('address-id'));
+        $addressId = $request->header('address-id');
+        if ($addressId && $addressId !== '' && $addressId !== 'null' && is_numeric($addressId)) {
+            $currentAddress = $this->addressService->getAddressById($addressId);
             $zone = $currentAddress?->zone;
             $addressName = $currentAddress?->getFullAddressAttribute();
         } else {
@@ -92,7 +91,7 @@ class AddressController extends Controller
             "address_name" => $addressName,
             "user_addresses" => [],
             "current_address_id" => null,
-            "is_available"=> $zone ? true : false,
+            "is_available" => $zone ? true : false,
         ];
 
         // If user is authenticated

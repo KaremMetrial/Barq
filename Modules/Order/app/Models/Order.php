@@ -140,9 +140,15 @@ class Order extends Model
         $query->when(isset($filters['search']), function ($query) use ($filters) {
             $query->where('order_number', 'like', '%' . $filters['search'] . '%');
         })
-        ->when(isset($filters['status']), function ($query) use ($filters) {
-            $query->where('status', $filters['status']);
-        });
+            ->when(isset($filters['from_date']), function ($query) use ($filters) {
+                $query->where('created_at', '>=', $filters['from_date']);
+            })
+            ->when(isset($filters['to_date']), function ($query) use ($filters) {
+                $query->where('created_at', '<=', $filters['to_date']);
+            })
+            ->when(isset($filters['status']), function ($query) use ($filters) {
+                $query->where('status', $filters['status']);
+            });
 
         $user = auth()->user();
         if ($user) {
@@ -207,5 +213,37 @@ class Order extends Model
     public function paymentMethod()
     {
         return $this->belongsTo(PaymentMethod::class);
+    }
+    /**
+     * Get order statistics with optional filtering
+     * 
+     * @param int|null $storeId Filter by store ID
+     * @param int|null $userId Filter by user ID
+     * @return array
+     */
+    public static function getStats(?int $storeId = null, ?int $userId = null): array
+    {
+        $query = static::query();
+
+        // Apply filters based on parameters
+        if ($storeId) {
+            $query->where('store_id', $storeId);
+        }
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        // Get counts efficiently in a single query
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('status', OrderStatus::PENDING)->count(),
+            'confirmed' => (clone $query)->where('status', OrderStatus::CONFIRMED)->count(),
+            'processing' => (clone $query)->where('status', OrderStatus::PROCESSING)->count(),
+            'ready_for_delivery' => (clone $query)->where('status', OrderStatus::READY_FOR_DELIVERY)->count(),
+            'on_the_way' => (clone $query)->where('status', OrderStatus::ON_THE_WAY)->count(),
+            'delivered' => (clone $query)->where('status', OrderStatus::DELIVERED)->count(),
+            'cancelled' => (clone $query)->where('status', OrderStatus::CANCELLED)->count(),
+        ];
     }
 }

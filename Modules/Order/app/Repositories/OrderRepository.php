@@ -16,5 +16,22 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
     {
         return $this->model->orderBy('created_at', 'desc')->first();
     }
- 
+    public function getStats(): array
+    {
+        // Get current user and apply appropriate filtering
+        $user = auth()->user();
+        $storeId = null;
+        $userId = null;
+
+        if ($user) {
+            if ($user->tokenCan('vendor')) {
+                $storeId = $user->store_id;
+            } elseif ($user->tokenCan('user')) {
+                $userId = $user->id;
+            }
+            // Admins see all stats (no filters)
+        }
+
+        return Order::getStats($storeId, $userId);
+    }
 }

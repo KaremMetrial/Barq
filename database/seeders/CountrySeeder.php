@@ -17,6 +17,7 @@ class CountrySeeder extends Seeder
             [
                 'code' => 'EG',
                 'currency_symbol' => 'EGP',
+                'flag' => 'uploads/flags/eg.png',
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -24,6 +25,7 @@ class CountrySeeder extends Seeder
             [
                 'code' => 'SA',
                 'currency_symbol' => 'SAR',
+                'flag' => 'uploads/flags/sa.png',
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),

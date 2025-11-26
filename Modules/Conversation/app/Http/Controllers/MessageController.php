@@ -18,7 +18,10 @@ class MessageController extends Controller
 
     private function getAuthenticatedGuard()
     {
-        return auth('user')->check() ? 'user' : 'vendor';
+        if (auth('user')->check()) return 'user';
+        if (auth('vendor')->check()) return 'vendor';
+        if (auth('sanctum')->check()) return 'admin';
+        return null;
     }
 
     public function index($conversationId)

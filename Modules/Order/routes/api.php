@@ -6,7 +6,8 @@ use Modules\Order\Http\Controllers\AdminOrderController;
 
 // Admin routes - full access to all orders
 Route::prefix('v1')->group(function () {
-    Route::prefix('admin')->middleware(['auth:sanctum', 'ability:admin'])->name('admin.')->group(function () {
+    Route::prefix('admin')->middleware(['auth:sanctum', 'ability:admin,vendor'])->name('admin.')->group(function () {
+        Route::get('orders/stats', [AdminOrderController::class, 'stats'])->name('order.stats');
         Route::put('orders/{id}/status', [OrderController::class, 'updateStatus'])->name('order.update-status');
         Route::apiResource('orders', AdminOrderController::class)->names('order');
     });

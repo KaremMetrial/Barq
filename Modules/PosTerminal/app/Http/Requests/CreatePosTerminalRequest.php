@@ -14,6 +14,15 @@ class CreatePosTerminalRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
+    public function prepareForValidation()
+    {
+        if (auth('vendor')->check()) {
+            $vendor = auth('vendor')->user();
+            $this->merge([
+                'store_id' => $vendor->store_id,
+            ]);
+        }
+    }
     public function rules(): array
     {
         return [

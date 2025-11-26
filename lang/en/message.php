@@ -39,4 +39,9 @@
         'discount_banner_percentage' => 'Discounts up to :discount%🔥',
         'discount_banner_fixed' => 'Discounts worth :amount🔥',
     ],
+
+    'store_available_for_delivery' => 'Store is available for delivery.',
+    'store_cannot_deliver_to_address' => 'Store cannot deliver to this address.',
+    'store_is_closed' => 'Store is currently closed.',
+    'some_products_unavailable' => 'Some products in the cart are unavailable.',
 ];

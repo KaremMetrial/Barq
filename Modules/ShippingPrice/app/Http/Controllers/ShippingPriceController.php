@@ -130,7 +130,7 @@ class ShippingPriceController extends Controller
             ->where('delivery_fee', '>', 0)
             ->avg('delivery_fee');
 
-        $totalCouriers = \Modules\Couier\Models\Couier::where('status', \App\Enums\UserStatusEnum::ACTIVE)->count();
+        $totalCouriers = \Modules\Couier\Models\Couier::count();
 
         $totalDeliveryCompanies = \Modules\Store\Models\Store::where('type', 'delivery')->count();
         return $this->successResponse([

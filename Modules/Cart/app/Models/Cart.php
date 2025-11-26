@@ -44,7 +44,6 @@ class Cart extends Model
     {
         return $this->hasMany(CartItem::class);
     }
-    // إزالة علاقة owner المكررة - استخدم علاقة user بدلاً منها
 
     public function participants(): BelongsToMany
     {

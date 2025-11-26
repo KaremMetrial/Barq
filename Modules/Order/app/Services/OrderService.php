@@ -31,13 +31,31 @@ class OrderService
 
     public function getAllOrders(array $filter = [])
     {
-        return $this->orderRepository->paginate($filter, 15, ['items', 'deliveryAddress', 'statusHistories']);
+        $relations = [
+            'items.product:id,name,price',
+            'store:id,name,is_active',
+            'user:id,first_name,last_name,email',
+            'courier:id,first_name,last_name,phone',
+            'deliveryAddress.zone.city.governorate.country',
+            'statusHistories'
+        ];
+
+        return $this->orderRepository->paginate($filter, 15, $relations);
     }
 
     public function getOrdersByUserId(int $userId, array $filter = [])
     {
         $filter['user_id'] = $userId;
-        return $this->orderRepository->paginate($filter, 15, ['items', 'deliveryAddress', 'statusHistories']);
+
+        $relations = [
+            'items.product:id,name,price',
+            'store:id,name,is_active',
+            'courier:id,first_name,last_name,phone',
+            'deliveryAddress.zone.city.governorate.country',
+            'statusHistories'
+        ];
+
+        return $this->orderRepository->paginate($filter, 15, $relations);
     }
 
     /**
@@ -180,9 +198,9 @@ class OrderService
         $orderData['discount_amount'] = round($discountAmount, 3);
 
         // Calculate fees based on store settings
-        $orderData['delivery_fee'] = $this->calculateDeliveryFee($orderData);
-        $orderData['service_fee'] = $this->calculateServiceFee($orderData);
-        $orderData['tax_amount'] = $this->calculateTaxAmount($orderData);
+        $orderData['delivery_fee'] = (float) $this->calculateDeliveryFee($orderData);
+        $orderData['service_fee'] = (float) $this->calculateServiceFee($orderData);
+        $orderData['tax_amount'] = (float) $this->calculateTaxAmount($orderData);
 
         // OTP for delivery
         $orderData['otp_code'] = ($orderData['requires_otp'] ?? false)
@@ -580,8 +598,8 @@ class OrderService
         $lonDelta = deg2rad($lon2 - $lon1);
 
         $a = sin($latDelta / 2) * sin($latDelta / 2) +
-             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-             sin($lonDelta / 2) * sin($lonDelta / 2);
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($lonDelta / 2) * sin($lonDelta / 2);
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
@@ -746,7 +764,7 @@ class OrderService
             }
 
             // Filter data but allow status updates even if they might be considered "blank"
-            $filtered = array_filter($data, function($v, $k) {
+            $filtered = array_filter($data, function ($v, $k) {
                 // Always allow status updates
                 if ($k === 'status') {
                     return true;
@@ -786,7 +804,7 @@ class OrderService
         $branches = collect([$mainStore])->merge($mainStore->branches);
 
         // Find branches that can fulfill the order
-        $candidateBranches = $branches->filter(function($branch) use ($productIds, $deliveryAddressId) {
+        $candidateBranches = $branches->filter(function ($branch) use ($productIds, $deliveryAddressId) {
             return $this->branchCanFulfillOrder($branch, $productIds, $deliveryAddressId);
         });
 
@@ -834,7 +852,7 @@ class OrderService
 
         if (!$deliveryAddressId) {
             // For pickup orders, prefer main branch or first available
-            return $branches->first(function($branch) {
+            return $branches->first(function ($branch) {
                 return $branch->branch_type === 'main';
             }) ?? $branches->first();
         }
@@ -920,5 +938,10 @@ class OrderService
 
             return $this->orderRepository->delete($id);
         });
+    }
+
+    public function getStats(): array
+    {
+        return $this->orderRepository->getStats();
     }
 }

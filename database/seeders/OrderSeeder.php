@@ -15,58 +15,76 @@ class OrderSeeder extends Seeder
     {
         $users = DB::table('users')->get();
         $stores = DB::table('stores')->get();
-        $products = DB::table('products')->get();
+        $products = DB::table('products')
+            ->join('product_prices', 'products.id', '=', 'product_prices.product_id')
+            ->select('products.*', 'product_prices.price')
+            ->get();
         $coupons = DB::table('coupons')->get();
 
         $statuses = ['pending', 'confirmed', 'preparing', 'ready', 'on_the_way', 'delivered', 'cancelled'];
 
+        if ($users->isEmpty() || $stores->isEmpty() || $products->isEmpty()) {
+            return;
+        }
+
         foreach ($users as $user) {
-            for ($i = 0; $i < 3; $i++) {
+            // Create 5-10 orders per user for more data
+            $orderCount = rand(5, 10);
+
+            for ($i = 0; $i < $orderCount; $i++) {
                 $store = $stores->random();
                 $status = $statuses[array_rand($statuses)];
+                $createdAt = now()->subDays(rand(1, 60))->subHours(rand(1, 24));
 
                 $orderId = DB::table('orders')->insertGetId([
-                    'order_number' => 'ORD' . str_pad($user->id . $i, 6, '5', STR_PAD_LEFT),
-                    'reference_code' => 'REF' . \Illuminate\Support\Str::random(10),
+                    'order_number' => 'ORD-' . date('Ymd') . '-' . str_pad($user->id . $i, 6, '0', STR_PAD_LEFT),
+                    'reference_code' => strtoupper(\Illuminate\Support\Str::random(10)),
                     'type' => 'service',
                     'status' => $status,
-                    'note' => 'ملاحظات خاصة على الطلب',
+                    'note' => rand(0, 1) ? 'Please deliver to the front door' : null,
                     'total_amount' => 0, // Will calculate
                     'discount_amount' => 0,
                     'paid_amount' => 0,
                     'delivery_fee' => 15.000,
                     'tax_amount' => 0,
                     'service_fee' => 0,
-                    'payment_status' => 'paid',
+                    'payment_status' => $status === 'cancelled' ? 'failed' : 'paid',
                     'otp_code' => rand(1000, 9999),
                     'requires_otp' => true,
-                    'delivery_address' => 'عنوان التوصيل للمستخدم',
-                    'tip_amount' => rand(0, 10),
-                    'estimated_delivery_time' => now()->addMinutes(45),
+                    'delivery_address_id' => DB::table('addresses')->where('addressable_type', 'App\\Models\\User')->where('addressable_id', $user->id)->first()->id ?? null,
+                    'tip_amount' => rand(0, 1) ? rand(5, 20) : 0,
+                    'estimated_delivery_time' => $createdAt->copy()->addMinutes(45),
                     'store_id' => $store->id,
                     'user_id' => $user->id,
-                    'coupon_id' => rand(0, 1) ? $coupons->random()->id : null,
-                    'created_at' => now()->subDays(rand(1, 30)),
-                    'updated_at' => now()->subDays(rand(0, 29)),
+                    'coupon_id' => ($coupons->isNotEmpty() && rand(0, 3) === 0) ? $coupons->random()->id : null,
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt->copy()->addMinutes(rand(10, 120)),
                 ]);
 
                 // Order items
-                $orderProducts = $products->random(rand(1, 4));
+                $orderProducts = $products->where('store_id', $store->id);
+                if ($orderProducts->isEmpty()) {
+                    $orderProducts = $products->random(rand(1, 3));
+                } else {
+                    $orderProducts = $orderProducts->random(min($orderProducts->count(), rand(1, 4)));
+                }
+
                 $subtotal = 0;
 
                 foreach ($orderProducts as $product) {
                     $quantity = rand(1, 3);
-                    $itemTotal = '100' * $quantity;
+                    $price = $product->price;
+                    $itemTotal = $price * $quantity;
                     $subtotal += $itemTotal;
 
-                    $orderItemId = DB::table('order_items')->insertGetId([
+                    DB::table('order_items')->insert([
                         'quantity' => $quantity,
                         'total_price' => $itemTotal,
                         'order_id' => $orderId,
                         'product_id' => $product->id,
-                        'product_option_value_id' => 1, // Default option
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'product_option_value_id' => json_encode([]), // Empty JSON array as per schema change
+                        'created_at' => $createdAt,
+                        'updated_at' => $createdAt,
                     ]);
                 }
 
@@ -79,26 +97,34 @@ class OrderSeeder extends Seeder
                     'total_amount' => $totalAmount,
                     'tax_amount' => $taxAmount,
                     'service_fee' => $serviceFee,
-                    'paid_amount' => $totalAmount,
+                    'paid_amount' => $status === 'cancelled' ? 0 : $totalAmount,
                 ]);
 
                 // Order status history
-                $statusHistory = ['pending', 'confirmed', 'preparing'];
-                if ($status === 'delivered') {
-                    $statusHistory = array_merge($statusHistory, ['ready', 'on_the_way', 'delivered']);
+                $historyStatuses = ['pending'];
+                if ($status !== 'pending') {
+                    if ($status === 'cancelled') {
+                        $historyStatuses[] = 'cancelled';
+                    } else {
+                        $historyStatuses[] = 'confirmed';
+                        if (in_array($status, ['preparing', 'ready', 'on_the_way', 'delivered'])) $historyStatuses[] = 'preparing';
+                        if (in_array($status, ['ready', 'on_the_way', 'delivered'])) $historyStatuses[] = 'ready';
+                        if (in_array($status, ['on_the_way', 'delivered'])) $historyStatuses[] = 'on_the_way';
+                        if ($status === 'delivered') $historyStatuses[] = 'delivered';
+                    }
                 }
 
-                $changedAt = now()->subDays(rand(1, 30));
-                foreach ($statusHistory as $historyStatus) {
+                $historyTime = $createdAt->copy();
+                foreach ($historyStatuses as $historyStatus) {
                     DB::table('order_status_histories')->insert([
                         'status' => $historyStatus,
-                        'changed_at' => $changedAt,
-                        'note' => 'تم تغيير حالة الطلب',
+                        'changed_at' => $historyTime,
+                        'note' => 'Status changed to ' . $historyStatus,
                         'order_id' => $orderId,
-                        'created_at' => $changedAt,
-                        'updated_at' => $changedAt,
+                        'created_at' => $historyTime,
+                        'updated_at' => $historyTime,
                     ]);
-                    $changedAt = $changedAt->addMinutes(rand(10, 60));
+                    $historyTime->addMinutes(rand(5, 15));
                 }
             }
         }

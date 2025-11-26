@@ -74,7 +74,7 @@ class OrderController extends Controller
         return $this->successResponse([
             'order' => new OrderResource($order),
         ], __('message.success'));
-    }
+    }   
 
     /**
      * Update the status of the specified order.
@@ -87,7 +87,7 @@ class OrderController extends Controller
             'order' => new OrderResource($order),
         ], __('message.success'));
     }
-
+    
     /**
      * Remove the specified order from storage.
      */

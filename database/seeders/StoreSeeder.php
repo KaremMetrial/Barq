@@ -20,11 +20,11 @@ class StoreSeeder extends Seeder
             ->first();
 
         if (!$restaurantSection) {
-            throw new \Exception("Section with type '".SectionTypeEnum::RESTAURANT->value."' not found. Please seed the sections table first.");
+            throw new \Exception("Section with type '" . SectionTypeEnum::RESTAURANT->value . "' not found. Please seed the sections table first.");
         }
 
         if (!$pharmacySection) {
-            throw new \Exception("Section with type '".SectionTypeEnum::PHARMACY->value."' not found. Please seed the sections table first.");
+            throw new \Exception("Section with type '" . SectionTypeEnum::PHARMACY->value . "' not found. Please seed the sections table first.");
         }
 
         // Get zones
@@ -300,7 +300,6 @@ class StoreSeeder extends Seeder
                 'minimum_order_amount' => rand(30, 100),
                 'delivery_time_min' => rand(20, 40),
                 'delivery_time_max' => rand(45, 90),
-                'delivery_type_unit' => 'minute',
                 'tax_rate' => rand(10, 20),
                 'service_fee_percentage' => rand(3, 8),
                 'order_interval_time' => rand(5, 15),
