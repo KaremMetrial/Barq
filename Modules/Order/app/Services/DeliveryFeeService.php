@@ -49,7 +49,7 @@ class DeliveryFeeService
      */
     public function calculateForCart(Store $store, ?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null): float
     {
-        // Check if free delivery is enabled
+       // Check if free delivery is enabled
         if ($store->storeSetting && $store->storeSetting->free_delivery_enabled) {
             return 0.0;
         }

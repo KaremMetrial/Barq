@@ -32,8 +32,8 @@ class OrderService
     public function getAllOrders(array $filter = [])
     {
         $relations = [
-            'items.product:id,name,price',
-            'store:id,name,is_active',
+            'items.product',
+            'store',
             'user:id,first_name,last_name,email',
             'courier:id,first_name,last_name,phone',
             'deliveryAddress.zone.city.governorate.country',
@@ -48,8 +48,8 @@ class OrderService
         $filter['user_id'] = $userId;
 
         $relations = [
-            'items.product:id,name,price',
-            'store:id,name,is_active',
+            'items.product',
+            'store',
             'courier:id,first_name,last_name,phone',
             'deliveryAddress.zone.city.governorate.country',
             'statusHistories'
@@ -501,6 +501,7 @@ class OrderService
                 'product_option_value_id' => !empty($optionIds) ? $optionIds : null,
                 'quantity' => $quantity,
                 'total_price' => round($totalPrice, 3),
+                'note' => $item['note'] ?? null,
             ]);
 
             // Attach add-ons if any

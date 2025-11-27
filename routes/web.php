@@ -8,10 +8,10 @@ use Modules\Store\Http\Controllers\User\StoreController;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
-Route::get('/r/{token}', [DeepLinkController::class,'redirect']);
+Route::get('/r/{token}', [DeepLinkController::class, 'redirect']);
 
-Route::post('/generate/product/{id}', [DeepLinkController::class,'generateProduct']);
-Route::post('/generate/store/{id}', [DeepLinkController::class,'generateStore']);
+Route::post('/generate/product/{id}', [DeepLinkController::class, 'generateProduct']);
+Route::post('/generate/store/{id}', [DeepLinkController::class, 'generateStore']);
 
-Route::get('/product/{id}', [ProductController::class,'show']);
-Route::get('/store/{id}', [StoreController::class,'show']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/stores/{id}', [StoreController::class, 'show']);

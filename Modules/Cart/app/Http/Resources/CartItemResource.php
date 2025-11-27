@@ -22,12 +22,13 @@ class CartItemResource extends JsonResource
             "quantity" => $this->quantity,
             "note" => $this->note,
             "total_price" => $this->total_price,
+            "selected_options" => $this->getSelectedOptionsString(),
 
             "product" => $this->whenLoaded('product', function () {
                 return new ProductResource($this->product->load('store', 'translations', 'images', 'price', 'offers'));
             }),
 
-            "product_option_values" => $this->when(is_array($this->product_option_value_id), function () {
+            "options" => $this->when(is_array($this->product_option_value_id), function () {
                 $optionIds = $this->product_option_value_id;
                 if (is_array($optionIds)) {
                     $options = \Modules\Product\Models\ProductOptionValue::whereIn('id', $optionIds)->get();
@@ -53,5 +54,33 @@ class CartItemResource extends JsonResource
                 ] : null;
             }),
         ];
+    }
+    private function getSelectedOptionsString(): string
+    {
+        $parts = [];
+
+        // Add Options
+        if (is_array($this->product_option_value_id)) {
+            $options = \Modules\Product\Models\ProductOptionValue::whereIn('id', $this->product_option_value_id)
+                ->with('productValue.translations')
+                ->get();
+
+            foreach ($options as $option) {
+                if ($name = $option->productValue?->name) {
+                    $parts[] = $name;
+                }
+            }
+        }
+
+        // Add Add-ons
+        if ($this->relationLoaded('addOns')) {
+            foreach ($this->addOns as $addOn) {
+                if ($name = $addOn?->name) {
+                    $parts[] = $name;
+                }
+            }
+        }
+
+        return implode(', ', $parts);
     }
 }

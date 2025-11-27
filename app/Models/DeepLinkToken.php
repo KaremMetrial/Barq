@@ -10,9 +10,22 @@ class DeepLinkToken extends Model
 {
     protected $table = 'deeplink_tokens';
     protected $fillable = [
-        'token','type','target_id','referrer_code','platform','status','click_ip','clicked_at'
+        'token',
+        'type',
+        'target_id',
+        'referrer_code',
+        'platform',
+        'status',
+        'click_ip',
+        'clicked_at'
     ];
 
-    public function product() { return $this->belongsTo(Product::class,'target_id'); }
-    public function store() { return $this->belongsTo(Store::class,'target_id'); }
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'target_id');
+    }
+    public function store()
+    {
+        return $this->belongsTo(Store::class, 'target_id');
+    }
 }

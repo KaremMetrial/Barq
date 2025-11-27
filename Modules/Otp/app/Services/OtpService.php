@@ -20,7 +20,7 @@ class OtpService
     ];
 
     // Static Kuwait phone number for testing
-    const TEST_PHONE_KWT = '96512345678';
+    const TEST_PHONE_KWT = '12345678';
 
     public function __construct(protected OtpRepository $otpRepository) {}
 

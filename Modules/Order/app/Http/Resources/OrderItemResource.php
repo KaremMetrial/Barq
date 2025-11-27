@@ -18,6 +18,8 @@ class OrderItemResource extends JsonResource
             'total_price' => (float) $this->total_price,
             'unit_price' => (float) ($this->total_price / $this->quantity),
             'symbol_currency' => $this->order?->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+            'note' => $this->note,
+            "selected_options" => $this->getSelectedOptionsString(),
 
             'product' => $this->when($this->relationLoaded('product'), function() {
                 return [
@@ -98,6 +100,34 @@ class OrderItemResource extends JsonResource
                 'unit_price' => (float) ($addOn->pivot->price_modifier / $addOn->pivot->quantity),
             ];
         })->toArray();
+    }
+    private function getSelectedOptionsString(): string
+    {
+        $parts = [];
+
+        // Add Options
+        if (is_array($this->product_option_value_id)) {
+            $options = \Modules\Product\Models\ProductOptionValue::whereIn('id', $this->product_option_value_id)
+                ->with('productValue.translations')
+                ->get();
+
+            foreach ($options as $option) {
+                if ($name = $option->productValue?->name) {
+                    $parts[] = $name;
+                }
+            }
+        }
+
+        // Add Add-ons
+        if ($this->relationLoaded('addOns')) {
+            foreach ($this->addOns as $addOn) {
+                if ($name = $addOn?->name) {
+                    $parts[] = $name;
+                }
+            }
+        }
+
+        return implode(', ', $parts);
     }
 }
 
