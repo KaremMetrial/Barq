@@ -29,8 +29,9 @@ class OrderResource extends JsonResource
                 'label' => $this->type?->value ? OrderTypeEnum::label($this->type->value) : null,
             ],
             'status' => [
-                'value' => $this->status?->value,
-                'label' => $this->status?->value ? OrderStatus::label($this->status->value) : null,
+                'value' => $this->getUserVisibleStatus($request),
+                'label' => OrderStatus::label($this->getUserVisibleStatus($request)),
+                'actual_value' => $this->when($this->isAdminOrVendor($request), $this->status?->value),
             ],
             'payment_status' => [
                 'value' => $this->payment_status?->value,
@@ -177,5 +178,41 @@ class OrderResource extends JsonResource
         $isArabic = str_contains(strtolower($acceptLanguage), 'ar');
 
         return $isArabic ? ($data['formatted_ar'] ?? null) : ($data['formatted_en'] ?? null);
+    }
+
+    /**
+     * Get user-visible status (maps internal statuses to simplified versions)
+     */
+    private function getUserVisibleStatus(Request $request): ?string
+    {
+        if (!$this->status) {
+            return null;
+        }
+
+        // Admins and vendors see actual status
+        if ($this->isAdminOrVendor($request)) {
+            return $this->status->value;
+        }
+
+        // Map internal statuses to user-visible ones
+        $statusMapping = [
+            'pending' => 'pending',
+            'confirmed' => 'pending',              // Hide 'confirmed' - show as 'pending'
+            'processing' => 'processing',
+            'ready_for_delivery' => 'processing',  // Hide 'ready_for_delivery' - show as 'processing'
+            'on_the_way' => 'on_the_way',
+            'delivered' => 'delivered',
+            'cancelled' => 'cancelled',
+        ];
+
+        return $statusMapping[$this->status->value] ?? $this->status->value;
+    }
+
+    /**
+     * Check if the request is from an admin or vendor
+     */
+    private function isAdminOrVendor(Request $request): bool
+    {
+        return auth('admin')->check() || auth('vendor')->check();
     }
 }
