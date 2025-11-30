@@ -52,7 +52,9 @@ class Section extends Model implements TranslatableContract
             ->whereIsShowOnHome(true)
             ->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY);
         }
-
+        if(isset($filters['type']) && $filters['type'] == 'store'){
+            $query->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY);
+        }
         // Filter by country if address-id is provided in header
         $addressId = request()->header('address-id');
         $lat = request()->header('lat');

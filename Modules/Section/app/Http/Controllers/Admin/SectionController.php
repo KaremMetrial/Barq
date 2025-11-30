@@ -23,9 +23,10 @@ class SectionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $sections = $this->sectionService->getAllSections();
+        $filter = $request->only('type');
+        $sections = $this->sectionService->getAllSections($filter);
         return $this->successResponse([
             "sections" => SectionResource::collection($sections->load('categories'))
         ], __('message.success'));

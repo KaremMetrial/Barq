@@ -27,8 +27,11 @@ class CreateStoreRequest extends FormRequest
                     'store.section_id' => $deliverySection->id,
                 ]);
             }
+        }else{
+            $this->merge([
+                'store.type' => 'store',
+            ]);
         }
-
     }
     public function rules(): array
     {
@@ -78,7 +81,8 @@ class CreateStoreRequest extends FormRequest
             'vendor.email' => ['nullable', 'required_if:store.type,store', 'string', 'email', 'unique:vendors,email'],
             'vendor.phone' => ['nullable', 'required_if:store.type,store', 'string', 'unique:vendors,phone'],
             'vendor.password' => [
-                'nullable', 'required_if:store.type,store',
+                'nullable',
+                'required_if:store.type,store',
                 'string',
                 Password::min(8)
                     ->mixedCase()
@@ -87,9 +91,9 @@ class CreateStoreRequest extends FormRequest
                     ->symbols()
             ],
             'vendor.is_owner' => ['nullable', 'required_if:store.type,store', 'boolean'],
-            'vendor.is_active' => ['nullabel', 'required_if:store.type,store', 'boolean'],
+            'vendor.is_active' => ['nullable', 'required_if:store.type,store', 'boolean'],
             'vendor.store_id' => ['nullable', 'integer', 'exists:stores,id'],
-            'vendor.role_id' => ['nullable','string', 'exists:roles,id'],
+            'vendor.role_id' => ['nullable', 'string', 'exists:roles,id'],
 
             'zones_to_cover' => ['nullable', 'required_if:store.type,store', 'array'],
             'zones_to_cover.*' => ['integer', 'exists:zones,id'],
@@ -117,7 +121,7 @@ class CreateStoreRequest extends FormRequest
             $longitude = $this->input('address.longitude');
 
             if ($zoneId && $latitude && $longitude) {
-                $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($latitude, $longitude);
+                $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates((float) $latitude, (float) $longitude);
                 if (!$zone || $zone->id != $zoneId) {
                     $validator->errors()->add('address.latitude', 'The provided latitude and longitude are not within the specified zone.');
                 }

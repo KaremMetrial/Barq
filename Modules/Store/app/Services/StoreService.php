@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Order\Http\Resources\OrderResource;
 use Modules\Store\Repositories\StoreRepository;
+use Modules\Order\Models\Order;
+use Modules\Couier\Models\Couier;
 
 class StoreService
 {
@@ -157,7 +159,7 @@ class StoreService
 
         $productIds = $topProducts->pluck('product_id')->toArray();
         $products = Product::whereIn('id', $productIds)
-            ->with('translations')
+            ->with(['translations', 'category.translations', 'images'])
             ->get()
             ->map(function ($product) use ($topProducts) {
                 $sold = $topProducts->firstWhere('product_id', $product->id)->total_sold ?? 0;
@@ -183,7 +185,7 @@ class StoreService
     {
         return $this->StoreRepository->stats();
     }
-     public function getAdminAllStores($filters = [])
+    public function getAdminAllStores($filters = [])
     {
         return $this->StoreRepository->paginate(
             $filters,
@@ -205,7 +207,7 @@ class StoreService
                 'public'
             );
             $data['store']['cover_image'] = $this->upload(
-               request(),
+                request(),
                 'store.cover_image',
                 'uploads/cover_images',
                 'public'
@@ -213,7 +215,7 @@ class StoreService
             $data = array_filter($data, fn($value) => !blank($value));
             $store =  $this->StoreRepository->create($data['store'] + ['zone_id' => $data['address']['zone_id']]);
             $store->address()->create($data['address']);
-            if($data['store']['type'] != 'delivery'){
+            if ($data['store']['type'] != 'delivery') {
                 $store->storeSetting()->create([
                     'orders_enabled' => $data['store']['orders_enabled'] ?? false,
                     'delivery_service_enabled' => $data['storeSetting']['delivery_service_enabled'] ?? false,
@@ -227,6 +229,8 @@ class StoreService
                     'tax_rate' => $data['store']['tax_rate'] ?? 0,
                     'order_interval_time' => $data['store']['order_interval_time'] ?? 0,
                     'service_fee_percentage' => $data['store']['service_fee_percentage'] ?? 0,
+                    'commission_amount' => $data['store']['commission_amount'] ?? 0,
+                    'commission_type' => $data['store']['commission_type'] ?? 'percentage',
                 ]);
                 $data['vendor']['role_id'] = Role::where('name', 'store_owner')->first()->id;
                 $store->vendors()->create($data['vendor']);
@@ -241,7 +245,6 @@ class StoreService
                     foreach ($data['working_days'] as $workingDay) {
                         $store->workingDays()->create($workingDay);
                     }
-
                 }
             }
             return $store;
@@ -256,18 +259,14 @@ class StoreService
     {
         $deliveryStores = Store::where('type', 'delivery')->get();
         $totalDeliveryCompanies = $deliveryStores->count();
-        $totalCouriers = $deliveryStores->sum(function ($store) {
-            return $store->couriers()->count();
-        });
-        $totalOrders = $deliveryStores->sum(function ($store) {
-            return $store->orders()->count();
-        });
-        $successfulOrders = $deliveryStores->sum(function ($store) {
-            return $store->orders()->where('status', OrderStatus::DELIVERED)->count();
-        });
-        $totalRevenue = $deliveryStores->sum(function ($store) {
-            return $store->orders()->where('payment_status', 'paid')->sum('total_amount');
-        });
+
+        $storeIds = $deliveryStores->pluck('id');
+
+        $totalCouriers = Couier::whereIn('store_id', $storeIds)->count();
+        $totalOrders = Order::whereIn('store_id', $storeIds)->count();
+        $successfulOrders = Order::whereIn('store_id', $storeIds)->where('status', OrderStatus::DELIVERED)->count();
+        $totalRevenue = Order::whereIn('store_id', $storeIds)->where('payment_status', 'paid')->sum('total_amount');
+
         $successRate = $totalOrders > 0 ? round(($successfulOrders / $totalOrders) * 100, 2) : 0;
 
         return [

@@ -38,6 +38,8 @@ class Address extends Model implements TranslatableContract
     ];
     protected $casts = [
         'is_default' => 'boolean',
+        'latitude' => 'float',
+        'longitude' => 'float',
         'type' => AddressTypeEnum::class,
     ];
     public function addressable(): MorphTo

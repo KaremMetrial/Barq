@@ -233,17 +233,35 @@ class Order extends Model
         if ($userId) {
             $query->where('user_id', $userId);
         }
+        
+        $stats = $query->selectRaw('
+            COUNT(*) as total,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as confirmed,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as processing,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as ready_for_delivery,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as on_the_way,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as delivered,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancelled
+        ', [
+            OrderStatus::PENDING,
+            OrderStatus::CONFIRMED,
+            OrderStatus::PROCESSING,
+            OrderStatus::READY_FOR_DELIVERY,
+            OrderStatus::ON_THE_WAY,
+            OrderStatus::DELIVERED,
+            OrderStatus::CANCELLED
+        ])->first();
 
-        // Get counts efficiently in a single query
         return [
-            'total' => (clone $query)->count(),
-            'pending' => (clone $query)->where('status', OrderStatus::PENDING)->count(),
-            'confirmed' => (clone $query)->where('status', OrderStatus::CONFIRMED)->count(),
-            'processing' => (clone $query)->where('status', OrderStatus::PROCESSING)->count(),
-            'ready_for_delivery' => (clone $query)->where('status', OrderStatus::READY_FOR_DELIVERY)->count(),
-            'on_the_way' => (clone $query)->where('status', OrderStatus::ON_THE_WAY)->count(),
-            'delivered' => (clone $query)->where('status', OrderStatus::DELIVERED)->count(),
-            'cancelled' => (clone $query)->where('status', OrderStatus::CANCELLED)->count(),
+            'total' => (int) $stats->total,
+            'pending' => (int) $stats->pending,
+            'confirmed' => (int) $stats->confirmed,
+            'processing' => (int) $stats->processing,
+            'ready_for_delivery' => (int) $stats->ready_for_delivery,
+            'on_the_way' => (int) $stats->on_the_way,
+            'delivered' => (int) $stats->delivered,
+            'cancelled' => (int) $stats->cancelled,
         ];
     }
 }
