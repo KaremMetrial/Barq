@@ -35,6 +35,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\CompaignParicipation\Models\CompaignParicipation;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Modules\AddOn\Models\AddOn;
+use Modules\Category\Models\Category;
 
 class Store extends Model implements TranslatableContract
 {
@@ -136,21 +138,22 @@ class Store extends Model implements TranslatableContract
     {
         return $this->morphMany(Review::class, 'reviewable');
     }
+    public function addOns(): HasMany
+    {
+        return $this->hasMany(AddOn::class);
+    }
+    public function categories(): HasMany
+    {
+        return $this->hasMany(Category::class);
+    }
     public function scopeFilter($query, $filters)
     {
         $query;
 
-        if(!empty($filters['type'])) {
+        if (!empty($filters['type'])) {
             $query->where('type', 'delivery');
-        }
-
-        // Set first section if section_id is 0 or empty
-        if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-            $firstSection = Section::where('type', '!=', 'delivery_company')->latest()->first();
-
-            if ($firstSection) {
-                $filters['section_id'] = $firstSection->id;
-            }
+        } else {
+            $query->where('type', 'store');
         }
 
         if (!empty($filters['search'])) {
@@ -162,8 +165,8 @@ class Store extends Model implements TranslatableContract
         }
 
         if (!empty($filters['category_id']) && $filters['category_id'] != 0) {
-            $query->whereHas('section.categories', function ($query) use ($filters) {
-                $query->where('category_id', $filters['category_id']);
+            $query->whereHas('categories', function ($query) use ($filters) {
+                $query->where('id', $filters['category_id']);
             });
         }
 
@@ -224,25 +227,36 @@ class Store extends Model implements TranslatableContract
             }
         }
 
-
         if (auth('sanctum')->check()) {
-            if (auth('sanctum')->user()->can('admin')) {
+            $user = auth('sanctum')->user();
+            if ($user && ($user->tokenCan('admin') || $user->tokenCan('vendor'))) {
                 if (!empty($filters['main']) && $filters['main'] == 'true') {
                     $query->where('parent_id', null);
                 }
+            } else {
+                if (empty($filters['section_id']) || $filters['section_id'] == 0) {
+                    $firstSection = Section::where('type', '!=', 'delivery_company')->latest()->first();
+                    if ($firstSection) {
+                        $filters['section_id'] = $firstSection->id;
+                    }
+                }
+                $query->where('status', StoreStatusEnum::APPROVED)
+                    ->where('is_active', true)
+                    ->where('type', '!=', 'delivery');
             }
         } else {
+            // Unauthenticated users get default section and filters
             if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-                $firstSection = Section::latest()->first();
+                $firstSection = Section::where('type', '!=', 'delivery_company')->latest()->first();
                 if ($firstSection) {
                     $filters['section_id'] = $firstSection->id;
                 }
             }
             $query->where('status', StoreStatusEnum::APPROVED)
-            ->where('is_active', true);
-
-
+                ->where('is_active', true)
+                ->where('type', '!=', 'delivery');
         }
+
         if (!empty($filters['section_id'])) {
             $query->where('section_id', $filters['section_id']);
         }
@@ -259,7 +273,6 @@ class Store extends Model implements TranslatableContract
         } elseif ($lat && $lng) {
             $zone = Zone::findZoneByCoordinates($lat, $lng);
         }
-
         if ($zone) {
             $query->whereHas('zoneToCover', function ($q) use ($zone) {
                 $q->where('zones.id', $zone->id);
@@ -269,13 +282,8 @@ class Store extends Model implements TranslatableContract
                 $query->whereRaw('1 = 0');
             }
         }
-
-
         return $query;
     }
-
-
-
 
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
     {
@@ -374,14 +382,18 @@ class Store extends Model implements TranslatableContract
     // area they serve it
     public function zoneToCover()
     {
-       return $this->belongsToMany(Zone::class, 'store_zone', 'store_id', 'zone_id');
+        return $this->belongsToMany(Zone::class, 'store_zone', 'store_id', 'zone_id');
     }
 
     /**
-     * Check if the store is open now based on working days
+     * Check if the store is open now based on working days and is_closed flag
      */
     public function isOpenNow(): bool
     {
+        if ($this->is_closed) {
+            return false;
+        }
+
         $currentDay = date('w'); // 0 = Sunday, 6 = Saturday
         $workingDay = $this->workingDays()->where('day_of_week', $currentDay)->first();
 
@@ -391,5 +403,15 @@ class Store extends Model implements TranslatableContract
 
         $now = now()->format('H:i:s');
         return $now >= $workingDay->open_time && $now <= $workingDay->close_time;
+    }
+    public function workingHours(): ?string
+    {
+        $workingDay = $this->workingDays()->where('day_of_week', date('w'))->first();
+
+        if (!$workingDay) {
+            return null;
+        }
+
+        return $workingDay->open_time . ' - ' . $workingDay->close_time;
     }
 }

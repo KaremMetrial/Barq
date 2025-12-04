@@ -86,4 +86,22 @@ class Address extends Model implements TranslatableContract
         if ($this->country && $this->country->name) $parts[] = $this->country->name;
         return implode(', ', $parts) ?: null;
     }
+    protected static function booted()
+    {
+        $assignZoneFromCoordinates = function ($address) {
+            // If coordinates are provided, always find and assign the zone
+            if ($address->latitude && $address->longitude) {
+                $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($address->latitude, $address->longitude);
+                if ($zone) {
+                    $address->zone_id = $zone->id;
+                    $address->city_id = $zone->city_id;
+                    $address->governorate_id = $zone->city->governorate_id;
+                    $address->country_id = $zone->city->governorate->country_id;
+                }
+            }
+        };
+
+        static::creating($assignZoneFromCoordinates);
+        static::updating($assignZoneFromCoordinates);
+    }
 }

@@ -130,9 +130,17 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Cart::class, 'cart_user');
     }
+    public function wallet()
+    {
+        return $this->morphOne(\Modules\Balance\Models\Balance::class, 'balanceable');
+    }
+    public function rewardRedemptions()
+    {
+        return $this->hasMany(\Modules\Reward\Models\RewardRedemption::class);
+    }
     public function generateToken($data = null)
     {
-        $token =  $this->createToken('auth_token',['user']);
+        $token =  $this->createToken('auth_token', ['user']);
         $token->accessToken->fcm_device = $data['fcm_device'];
         $token->accessToken->save();
         return $token->plainTextToken;
@@ -240,11 +248,11 @@ class User extends Authenticatable
     }
     public function referrer()
     {
-        return $this->belongsTo(User::class,'referral_id');
+        return $this->belongsTo(User::class, 'referral_id');
     }
 
     public function referrals()
     {
-        return $this->hasMany(User::class,'referral_id');
+        return $this->hasMany(User::class, 'referral_id');
     }
 }

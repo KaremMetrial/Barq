@@ -21,6 +21,7 @@ class UpdateCategoryRequest extends FormRequest
             "is_featured" => ["nullable", "boolean"],
             "parent_id" => ["nullable", "numeric", "exists:categories,id"],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
+            'store_id' => ['nullable', 'numeric', 'exists:stores,id'],
         ];
     }
 

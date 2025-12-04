@@ -101,7 +101,7 @@ class OrderService
             'user',
             'courier',
             'deliveryAddress',
-            'statusHistories'
+            'statusHistories',
         ]);
     }
 

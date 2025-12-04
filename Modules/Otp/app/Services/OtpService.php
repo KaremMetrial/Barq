@@ -37,13 +37,17 @@ class OtpService
         }
         $phone = $data['phone'] == self::TEST_PHONE_KWT ? self::TEST_PHONE_KWT : $data['phone'];
 
+        $updateOrCreateData = [
+            'phone'        => $phone,
+            'model_type'   => $modelTypeClass,
+            'otp_verified' => false,
+        ];
+        if ($data['phone_code'] ?? null) {
+            $updateOrCreateData['phone_code'] = $data['phone_code'];
+        }
+
         $otp = $this->otpRepository->updateOrCreate(
-            [
-                'phone'        => $phone,
-                'phone_code'   => $data['phone_code'],
-                'model_type'   => $modelTypeClass,
-                'otp_verified' => false,
-            ],
+            $updateOrCreateData,
             [
                 'otp_hash'       => Hash::make( $otpCode),
                 'otp_expires_at' => Carbon::now()->addMinutes(30),
@@ -78,7 +82,7 @@ class OtpService
             $data['phone'],
             $data['otp'],
             $modelTypeClass,
-            $data['phone_code']
+            $data['phone_code'] ?? null
         );
 
         if (! $isValid) {
@@ -90,7 +94,11 @@ class OtpService
         }
 
         // Find user by phone
-        $user = $modelTypeClass::where('phone', $data['phone'])->where('phone_code', $data['phone_code'])->first();
+        $query = $modelTypeClass::where('phone', $data['phone']);
+        if ($data['phone_code'] ?? null) {
+            $query->where('phone_code', $data['phone_code']);
+        }
+        $user = $query->first();
 
         if (! $user) {
             return [

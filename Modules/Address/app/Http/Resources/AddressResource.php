@@ -17,8 +17,8 @@ class AddressResource extends JsonResource
     {
         return [
             "id"=> $this->id,
-            "latitude"=> $this->latitude,
-            "longitude"=> $this->longitude,
+            "latitude"=>(string) $this->latitude,
+            "longitude"=> (string) $this->longitude,
             "name"=> $this->name,
             "phone"=> $this->phone,
             "is_default"=> request()->header('address-id') == $this->id ? true : false,

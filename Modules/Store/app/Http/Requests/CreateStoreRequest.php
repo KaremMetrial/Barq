@@ -20,19 +20,37 @@ class CreateStoreRequest extends FormRequest
      */
     public function prepareForValidation()
     {
-        if ($this->has('store.type') && $this->input('store.type') === 'delivery') {
-            $deliverySection = \Modules\Section\Models\Section::where('type', SectionTypeEnum::DELIVERY_COMPANY)->first();
+        $store = $this->filterArray($this->input('store', []));
+        $address = $this->filterArray($this->input('address', []));
+        $vendor = $this->filterArray($this->input('vendor', []));
+
+        if (data_get($store, 'type') === 'delivery') {
+            $deliverySection = \Modules\Section\Models\Section::where(
+                'type',
+                SectionTypeEnum::DELIVERY_COMPANY
+            )->first();
+
             if ($deliverySection) {
-                $this->merge([
-                    'store.section_id' => $deliverySection->id,
-                ]);
+                $store['section_id'] = $deliverySection->id;
             }
-        }else{
-            $this->merge([
-                'store.type' => 'store',
-            ]);
+        } else {
+            $store['type'] = 'store';
         }
+
+        $this->merge([
+            'store'   => $store,
+            'address' => $address,
+            'vendor'  => $vendor,
+        ]);
     }
+
+    private function filterArray(array $data): array
+    {
+        return array_filter($data, function ($value) {
+            return !is_null($value) && $value !== '';
+        });
+    }
+
     public function rules(): array
     {
         return [

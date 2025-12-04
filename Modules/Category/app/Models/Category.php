@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Modules\Store\Models\Store;
 
 class Category extends Model implements TranslatableContract
 {
@@ -26,6 +27,7 @@ class Category extends Model implements TranslatableContract
         'sort_order',
         'is_featured',
         'parent_id',
+        'store_id',
     ];
 
     protected $casts = [
@@ -67,10 +69,17 @@ class Category extends Model implements TranslatableContract
     {
         return $this->hasMany(Interest::class);
     }
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
     public function scopeFilter($query, $filters)
     {
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+        }
+        if (isset($filters['store_id'])) {
+            $query->where('store_id', $filters['store_id']);
         }
         if (!auth('admin')->check()) {
             $query->whereIsActive(true);

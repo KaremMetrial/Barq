@@ -1,0 +1,11 @@
+{
+    "name": "LoyaltySetting",
+    "alias": "loyaltysetting",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\LoyaltySetting\\Providers\\LoyaltySettingServiceProvider"
+    ],
+    "files": []
+}

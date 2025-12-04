@@ -15,6 +15,8 @@ use Modules\Order\Http\Resources\OrderResource;
 use Modules\Store\Repositories\StoreRepository;
 use Modules\Order\Models\Order;
 use Modules\Couier\Models\Couier;
+use Modules\Address\Services\AddressService;
+use Illuminate\Support\Facades\Log;
 
 class StoreService
 {
@@ -232,9 +234,11 @@ class StoreService
                     'commission_amount' => $data['store']['commission_amount'] ?? 0,
                     'commission_type' => $data['store']['commission_type'] ?? 'percentage',
                 ]);
-                $data['vendor']['role_id'] = Role::where('name', 'store_owner')->first()->id;
-                $store->vendors()->create($data['vendor']);
-
+                if (isset($data['vendor'])) {
+                    $data['vendor']['role_id'] = \Spatie\Permission\Models\Role::where('name', 'store_owner')->first()->id;
+                    $vendor = $store->vendors()->create($data['vendor']);
+                    $vendor->assignRole('store_owner');
+                }
                 // Attach zones to cover if provided
                 if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
                     $store->zoneToCover()->attach($data['zones_to_cover']);
@@ -247,7 +251,7 @@ class StoreService
                     }
                 }
             }
-            return $store;
+            return $store->refresh();
         });
     }
     public function deliveryStore()
@@ -276,5 +280,10 @@ class StoreService
             'total_couriers' => $totalCouriers,
             'total_delivery_companies' => $totalDeliveryCompanies,
         ];
+    }
+
+    public function getBranches(int $storeId)
+    {
+        return $this->StoreRepository->getBranches($storeId);
     }
 }

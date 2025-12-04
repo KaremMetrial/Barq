@@ -21,6 +21,7 @@ class CreateCategoryRequest extends FormRequest
             "sort_order" => ["nullable", "numeric", "min:0", "unique:categories,sort_order"],
             "is_featured" => ["nullable", "boolean"],
             "parent_id" => ["nullable", "numeric", "exists:categories,id"],
+            "store_id" => ["nullable", "numeric", "exists:stores,id"],
         ];
     }
 
@@ -41,12 +42,24 @@ class CreateCategoryRequest extends FormRequest
     }
     protected function prepareForValidation(): void
     {
+        $mergeData = [];
+
+        // Auto-assign sort_order if not provided
         if ($this->filled('sort_order') === false) {
             $lastSortOrder = Category::max('sort_order') ?? 0;
+            $mergeData['sort_order'] = $lastSortOrder + 1;
+        }
 
-            $this->merge([
-                'sort_order' => $lastSortOrder + 1,
-            ]);
+        // Auto-assign store_id for vendors
+        if (auth('sanctum')->check() && auth('sanctum')->user()->tokenCan('vendor')) {
+            $vendor = auth('sanctum')->user();
+            if ($vendor && $vendor->store_id) {
+                $mergeData['store_id'] = $vendor->store_id;
+            }
+        }
+
+        if (!empty($mergeData)) {
+            $this->merge($mergeData);
         }
     }
 }

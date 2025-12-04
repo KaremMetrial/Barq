@@ -17,9 +17,9 @@ class CouierService
         protected CouierRepository $CouierRepository
     ) {}
 
-    public function getAllCouiers(): Collection
+    public function getAllCouiers($filters = [])
     {
-        return $this->CouierRepository->all();
+        return $this->CouierRepository->paginate($filters);
     }
 
     public function createCouier(array $data): ?Couier

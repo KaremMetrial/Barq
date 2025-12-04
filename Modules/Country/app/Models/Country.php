@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Modules\Section\Models\Section;
+use Modules\LoyaltySetting\Models\LoyaltySetting;
+use Modules\Reward\Models\Reward;
 
 class Country extends Model implements TranslatableContract
 {
@@ -60,12 +62,10 @@ class Country extends Model implements TranslatableContract
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%')->orWhere('code', '%' . $filters['search'] . '%');
         }
-        if (!auth('sanctum')->check())
-        {
+        if (!auth('sanctum')->check()) {
             $query->whereIsActive(true);
         }
-        if (auth('sanctum')->check() && !auth('sanctum')->user()->can('admin'))
-        {
+        if (auth('sanctum')->check() && !auth('sanctum')->user()->can('admin')) {
             $query->whereIsActive(true);
         }
         return $query->latest();
@@ -73,5 +73,13 @@ class Country extends Model implements TranslatableContract
     public function section()
     {
         return $this->belongsToMany(Section::class, 'country_section', 'country_id', 'section_id');
+    }
+    public function loyaltySetting()
+    {
+        return $this->hasOne(LoyaltySetting::class);
+    }
+    public function rewards()
+    {
+        return $this->hasMany(Reward::class);
     }
 }

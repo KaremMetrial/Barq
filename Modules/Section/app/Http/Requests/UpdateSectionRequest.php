@@ -32,7 +32,7 @@ class UpdateSectionRequest extends FormRequest
             "icon" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
             'is_active' => ['nullable', 'boolean'],
             'is_restaurant' => ['nullable', 'boolean'],
-            'type' => ['nullable', 'string', Rule::in(SectionTypeEnum::values())],
+            'type' => ['nullable', 'string', Rule::in(SectionTypeEnum::values()), 'unique:sections,type,' . $this->route('section')],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', Rule::exists('categories', 'id')],
             'countries' => ['required', 'array'],

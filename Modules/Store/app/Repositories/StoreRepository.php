@@ -88,4 +88,14 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             $query->where('status', OrderStatus::DELIVERED);
         }])->paginate(10);
     }
+
+    public function getBranches(int $storeId)
+    {
+        $store = $this->model->find($storeId);
+        if (!$store) {
+            return $this->model->whereRaw('0 = 1')->paginate(10);
+        }
+        $parentId = $store->parent_id ?? $storeId;
+        return $this->model->where('parent_id', $parentId)->paginate(10);
+    }
 }

@@ -122,7 +122,7 @@ class FirebaseService
             return false;
         }
     }
-    public function fknTest()
+    public function fcmTest()
     {
         $tokens = ['fU1rei9cQFiXUt-U76Tk-Y:APA91bE2ye1qmgi10rT8ef_PdO9k9Lwd_x6LtDYfRifyYc9RCbqA6h8eBJJZNx82jpJSe1XK6xTkEBQ5fE8BY9Gh5O_fBe018H6qEHjR-Nd0BZ7yobko-mE'];
         

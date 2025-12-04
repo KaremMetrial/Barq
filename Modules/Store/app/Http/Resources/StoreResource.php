@@ -38,7 +38,7 @@ class StoreResource extends JsonResource
             "is_active" => (bool) $this->is_active,
             "is_closed" => (bool) $this->is_closed,
             "is_favorite" => $this->relationLoaded('currentUserFavourite') && $this->currentUserFavourite !== null,
-            "avg_rate" => $this->avg_rate,
+            "avg_rate" => (float) $this->avg_rate,
             "section" => new SectionResource($this->section),
             "banners" => $this->getProductBanners(),
             "categories" => $this->getCategoriesString(),
@@ -122,11 +122,11 @@ class StoreResource extends JsonResource
     }
     private function getCategoriesString(): string
     {
-        if (!$this->relationLoaded('section') || !$this->section->relationLoaded('categories')) {
+        if (!$this->relationLoaded('categories')) {
             return '';
         }
 
-        return $this->section->categories
+        return $this->categories
             ->pluck('translations.*.name')
             ->flatten()
             ->filter()

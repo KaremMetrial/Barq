@@ -45,5 +45,7 @@
     "Role": true,
     "DeliveryCompany": true,
     "PaymentMethod": true,
-    "ShippingPrice": true
+    "ShippingPrice": true,
+    "LoyaltySetting": true,
+    "Reward": true
 }

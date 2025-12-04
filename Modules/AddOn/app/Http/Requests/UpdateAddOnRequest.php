@@ -21,6 +21,7 @@ class UpdateAddOnRequest extends FormRequest
             'is_active' => ['nullable', 'boolean'],
             'applicable_to' => ['required', Rule::in(AddOnApplicableToEnum::values())],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
+            'store_id' => ['nullable', 'exists:stores,id'],
         ];
     }
 

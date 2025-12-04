@@ -12,6 +12,17 @@ use Illuminate\Foundation\Http\FormRequest;
 class CreateAddOnRequest extends FormRequest
 {
     use FileUploadTrait;
+   protected function prepareForValidation(): void
+    {
+        if (auth('sanctum')->check() && auth('sanctum')->user()->tokenCan('vendor')) {
+            $vendor = auth('sanctum')->user();
+            if ($vendor && $vendor->store_id) {
+                $this->merge([
+                    'store_id' => $vendor->store_id,
+                ]);
+            }
+        }
+    }
     /**
      * Get the validation rules that apply to the request.
      */
@@ -23,6 +34,7 @@ class CreateAddOnRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
             'applicable_to' => ['required', Rule::in(AddOnApplicableToEnum::values())],
+            'store_id' => ['nullable', 'exists:stores,id'],
         ];
     }
 

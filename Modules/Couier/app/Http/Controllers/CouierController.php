@@ -9,7 +9,8 @@ use Modules\Couier\Http\Requests\UpdateCouierRequest;
 use Modules\Couier\Http\Resources\CouierResource;
 use Modules\Couier\Services\CouierService;
 use Illuminate\Http\JsonResponse;
-
+use App\Http\Resources\PaginationResource;
+use Illuminate\Http\Request;
 class CouierController extends Controller
 {
     use ApiResponse;
@@ -21,11 +22,13 @@ class CouierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $couiers = $this->couierService->getAllCouiers();
+        $filters = $request->all();
+        $couiers = $this->couierService->getAllCouiers($filters);
         return $this->successResponse([
             "couiers" => CouierResource::collection($couiers->load('store')),
+            "pagination" => new PaginationResource($couiers),
         ], __("message.success"));
     }
 

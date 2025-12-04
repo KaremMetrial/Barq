@@ -17,17 +17,25 @@ class Otp extends Model
         'otp_verified',
         'otp',
     ];
+
     protected $casts = [
         'otp_verified' => 'boolean',
+        'phone_code' => 'string', // Allow null
     ];
-    public static function validateOtp(string $phone, string $otp, string $modelType, string $phoneCode): bool
+
+    public static function validateOtp(string $phone, string $otp, string $modelType, ?string $phoneCode): bool
     {
-        $record = self::where('phone', $phone)
-            ->where('phone_code', $phoneCode)
+        $query = self::where('phone', $phone)
             ->where('model_type', $modelType)
             ->where('otp_verified', false)
-            ->where('otp_expires_at', '>=', now())
-            ->first();
+            ->where('otp_expires_at', '>=', now());
+
+        if ($phoneCode !== null) {
+            $query->where('phone_code', $phoneCode);
+        }
+
+        $record = $query->first();
+
         if (!$record || !Hash::check($otp, $record->otp_hash)) {
             return false;
         }
@@ -35,6 +43,4 @@ class Otp extends Model
         $record->update(['otp_verified' => true]);
         return true;
     }
-
-
 }

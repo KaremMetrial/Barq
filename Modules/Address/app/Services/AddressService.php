@@ -7,7 +7,7 @@ use Modules\Address\Models\Address;
 use Modules\Address\Repositories\AddressRepository;
 use Illuminate\Support\Facades\Cache;
 use Modules\Zone\Repositories\ZoneRepository;
-
+use Illuminate\Support\Facades\Log;
 class AddressService
 {
     public function __construct(
@@ -21,17 +21,6 @@ class AddressService
 
     public function createAddress(array $data): ?Address
     {
-        // Auto-determine zone_id based on latitude and longitude if not provided
-        if (!isset($data['zone_id']) && isset($data['latitude']) && isset($data['longitude'])) {
-            $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($data['latitude'], $data['longitude']);
-            if ($zone) {
-                $data['zone_id'] = $zone->id;
-                $data['city_id'] = $zone->city_id;
-                $data['governorate_id'] = $zone->city->governorate_id;
-                $data['country_id'] = $zone->city->governorate->country_id;
-            }
-        }
-
         return $this->AddressRepository->create($data);
     }
 

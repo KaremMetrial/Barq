@@ -30,7 +30,11 @@ class SendOtpRequest extends FormRequest
         return [
             // 'phone' => ['required','string', 'regex:/^\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/'],
             'phone' => ['required','string', 'regex:/^\+?[1-9]\d{1,14}$/'],
-            'phone_code' => ['required','string'],
+            'phone_code' => [
+                'nullable',
+                'string',
+                Rule::requiredIf(fn() => $this->input('model_type') !== 'vendor')
+            ],
             'model_type' => ['required','string'],
         ];
     }

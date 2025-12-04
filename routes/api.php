@@ -10,6 +10,6 @@ use App\Services\FirebaseService;
 // })->middleware('auth:sanctum');
 Route::get('v1/deeplink/resolve', [DeepLinkController::class,'resolve']);
 
-Route::post('fknTest', function (FirebaseService $firebaseService) {
-   return $firebaseService->fknTest();
+Route::post('fcmTest', function (FirebaseService $firebaseService) {
+   return $firebaseService->fcmTest();
 });

@@ -14,15 +14,33 @@ class CreateShippingPriceRequest extends FormRequest
      */
     public function rules(): array
     {
+        $zoneId = $this->input('zone_id');
+
         return [
             'zone_id' => ['required', 'integer', 'exists:zones,id'],
             'vehicles' => ['required', 'array', 'min:1'],
-            'vehicles.*.vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
+            'vehicles.*.vehicle_id' => [
+                'required',
+                'integer',
+                'exists:vehicles,id',
+                Rule::unique('shipping_prices', 'vehicle_id')
+                    ->where('zone_id', $zoneId)
+            ],
             'vehicles.*.base_price' => ['required', 'numeric'],
             'vehicles.*.max_price' => ['required', 'numeric'],
             'vehicles.*.per_km_price' => ['required', 'numeric'],
             'vehicles.*.max_cod_price' => ['required', 'numeric'],
             'vehicles.*.enable_cod' => ['required', 'boolean'],
+        ];
+    }
+
+    /**
+     * Get custom validation messages.
+     */
+    public function messages(): array
+    {
+        return [
+            'vehicles.*.vehicle_id.unique' => 'A shipping price already exists for this vehicle in the selected zone.',
         ];
     }
 

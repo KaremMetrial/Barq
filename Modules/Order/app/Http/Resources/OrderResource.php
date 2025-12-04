@@ -69,8 +69,8 @@ class OrderResource extends JsonResource
                         'type' => $this->deliveryAddress->type?->value,
                         'address_line_1' => $this->deliveryAddress->address_line_1,
                         'address_line_2' => $this->deliveryAddress->address_line_2,
-                        'latitude' => $this->deliveryAddress->latitude,
-                        'longitude' => $this->deliveryAddress->longitude,
+                        'latitude' => (string) $this->deliveryAddress->latitude,
+                        'longitude' => (string) $this->deliveryAddress->longitude,
                         'full_address' => $this->deliveryAddress->getFullAddressAttribute(),
                     ] : null;
                 }),

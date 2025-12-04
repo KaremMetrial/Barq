@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\LoyaltySetting\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\LoyaltyTrransactionTypeEnum;

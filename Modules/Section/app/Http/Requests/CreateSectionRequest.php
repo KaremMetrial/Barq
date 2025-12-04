@@ -18,7 +18,7 @@ class CreateSectionRequest extends FormRequest
             'icon' => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg,webp', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
             'is_restaurant' => ['nullable', 'boolean'],
-            'type' => ['nullable', 'string', Rule::in(SectionTypeEnum::values())],
+            'type' => ['required', 'string', Rule::in(SectionTypeEnum::values()), 'unique:sections,type'],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', Rule::exists('categories', 'id')],
             'countries' => ['required', 'array'],

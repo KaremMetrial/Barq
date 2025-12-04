@@ -90,13 +90,14 @@ class StoreController extends Controller implements HasMiddleware
         $isDeleted = $this->StoreService->deleteStore($id);
         return $this->successResponse(null, __('message.success'));
     }
-    public function stats(){
+    public function stats()
+    {
         $statsCount = $this->StoreService->adminStats();
         return $this->successResponse([
             'vendor_count' => $statsCount['vendorCount'],
             'store_count' => $statsCount['storeCount'],
             'pos_count' => $statsCount['posCount'],
-            ], __('message.success'));
+        ], __('message.success'));
     }
     public function deliveryStore()
     {
@@ -104,11 +105,20 @@ class StoreController extends Controller implements HasMiddleware
         return $this->successResponse([
             'delivery_company' => DeliveryCompanyResource::collection($deliveryCompany->getCollection()),
             'pagination' => new PaginationResource($deliveryCompany)
-        ],__('message.success'));
+        ], __('message.success'));
     }
     public function deliveryStoreStats()
     {
         $stats = $this->StoreService->deliveryStoreStats();
-        return $this->successResponse($stats,__('message.success'));
+        return $this->successResponse($stats, __('message.success'));
+    }
+
+    public function branches(int $id): JsonResponse
+    {
+        $branches = $this->StoreService->getBranches($id);
+        return $this->successResponse([
+            'branches' => StoreCollectionResource::collection($branches),
+            'pagination' => new PaginationResource($branches)
+        ], __('message.success'));
     }
 }

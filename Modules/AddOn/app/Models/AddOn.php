@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Modules\Store\Models\Store;
 
 class AddOn extends Model implements TranslatableContract
 {
@@ -21,6 +22,7 @@ class AddOn extends Model implements TranslatableContract
         'price',
         'is_active',
         'applicable_to',
+        'store_id',
     ];
     protected $casts = [
         'is_active' => 'boolean',
@@ -44,5 +46,19 @@ class AddOn extends Model implements TranslatableContract
     {
         return $this->belongsToMany(OrderItem::class, 'add_on_order_item')
             ->withPivot('quantity', 'price_modifier');
+    }
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+    public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['store_id'])) {
+            $query->where('store_id', $filters['store_id']);
+        }
+        if (!auth('admin')->check()) {
+            $query->whereIsActive(true);
+        }
+        return $query->latest();
     }
 }

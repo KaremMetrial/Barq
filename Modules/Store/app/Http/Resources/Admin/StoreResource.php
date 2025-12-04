@@ -7,11 +7,14 @@ use App\Enums\StoreTypeEnum;
 use Illuminate\Http\Request;
 use Modules\User\Models\User;
 use App\Enums\OfferStatusEnum;
+use App\Enums\OrderStatus;
 use App\Enums\StoreStatusEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Section\Http\Resources\SectionResource;
 use Modules\Category\Http\Resources\CategoryResource;
 use Modules\StoreSetting\Http\Resources\StoreSettingResource;
+use Modules\Vendor\Http\Resources\Admin\VendorCollectionResource;
+use Modules\Address\Http\Resources\AddressResource;
 
 class StoreResource extends JsonResource
 {
@@ -41,10 +44,17 @@ class StoreResource extends JsonResource
             "banners" => $this->getProductBanners(),
             "categories" => $this->getCategoriesString(),
             'store_setting' => new StoreSettingResource($this->whenLoaded('storeSetting')),
-
+            'recent_count_order' => $this->orders()->where('status', OrderStatus::PENDING)->count(),
+            'count_order' => $this->countOrders(),
+            'count_branch' => $this->countBranches(),
+            'owner' => new VendorCollectionResource($this->owner),
+            'address' => $this->address->getFullAddressAttribute(),
+            'commission_type' => $this->commission_type->value,
+            'commission_amount' => $this->commission_amount,
+            'active_status' => $this->active_status,
         ];
     }
-        private function getProductBanners(): array
+    private function getProductBanners(): array
     {
         $banners = [];
         if ($this->storeSetting?->free_delivery_enabled) {
@@ -67,17 +77,11 @@ class StoreResource extends JsonResource
     }
     private function getCategoriesString(): string
     {
-        if (!$this->relationLoaded('section') || !$this->section->relationLoaded('categories')) {
-            return '';
-        }
-
-        return $this->section->categories
-            ->pluck('translations.*.name')
+        return $this->products->load('category.translations')
+            ->pluck('category.translations.*.name')
             ->flatten()
             ->filter()
             ->unique()
             ->implode(', ');
     }
-
-
 }

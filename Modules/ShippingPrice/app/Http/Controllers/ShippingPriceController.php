@@ -24,7 +24,7 @@ class ShippingPriceController extends Controller
      */
     public function index(Request $request)
     {
-        $zones = \Modules\Zone\Models\Zone::with('shippingPrices.vehicle')->whereHas('shippingPrices')->filter($request->query())->paginate($request->get('per_page', 15));
+        $zones = \Modules\Zone\Models\Zone::with('shippingPrices.vehicle')->whereHas('shippingPrices')->filter($request->query())->paginate($request->get('per_page', 5));
 
         $result = $zones->getCollection()->map(function ($zone) {
             return new ShippingPriceCollectionResource($zone->shippingPrices);

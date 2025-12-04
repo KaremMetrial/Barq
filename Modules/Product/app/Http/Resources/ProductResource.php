@@ -131,8 +131,9 @@ class ProductResource extends JsonResource
             "add_ons" => AddOnResource::collection($this->whenLoaded("addOns")),
             'symbol_currency' => $this->whenLoaded('store', function () {
                 return $this->store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP';
-            })
-
+            }),
+            'preparation_time' => $this->preparation_time,
+            'preparation_time_unit' => $this->preparation_time_unit,
         ];
     }
     protected function getCartQuantity(): int

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
-
+use Modules\Reward\Models\Reward;
 class Coupon extends Model implements TranslatableContract
 {
     use Translatable;
@@ -100,5 +100,8 @@ class Coupon extends Model implements TranslatableContract
 
         return $couponUsage ? $couponUsage->usage_count : 0;
     }
-
+   public function rewards()
+   {
+       return $this->hasMany(Reward::class);
+   }
 }
