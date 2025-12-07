@@ -107,4 +107,12 @@ class ProductController extends Controller
             "pagination" => new PaginationResource($result['products']),
         ], __("message.success"));
     }
+
+    public function stats(int $id): JsonResponse
+    {
+        $stats = $this->productService->getStats($id);
+        return $this->successResponse([
+            "stats" => $stats,
+        ], __("message.success"));
+    }
 }

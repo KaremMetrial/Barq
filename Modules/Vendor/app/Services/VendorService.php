@@ -98,7 +98,11 @@ class VendorService
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-        $token = $vendor->createToken('token',['vendor'])->plainTextToken;
+        $newToken = $vendor->createToken('token',['vendor']);
+        $newToken->accessToken->fcm_device = request()->input('fcm_device');
+        $newToken->accessToken->save();
+        $token = $newToken->plainTextToken;
+
         return [
             'vendor' => $vendor,
             'token' => $token

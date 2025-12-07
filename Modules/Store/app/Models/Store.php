@@ -36,7 +36,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\CompaignParicipation\Models\CompaignParicipation;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Modules\AddOn\Models\AddOn;
-use Modules\Category\Models\Category;
 
 class Store extends Model implements TranslatableContract
 {

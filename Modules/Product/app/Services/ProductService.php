@@ -366,4 +366,9 @@ class ProductService
     {
         $product->addOns()->sync($addOns);
     }
+
+    public function getStats(int $productId): array
+    {
+        return $this->ProductRepository->getStats($productId);
+    }
 }

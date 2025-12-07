@@ -34,4 +34,10 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             'newProduct' => $newProduct
         ];
     }
+
+    public function getStats(int $productId): array
+    {
+        $product = $this->model->findOrFail($productId);
+        return $product->getStats();
+    }
 }

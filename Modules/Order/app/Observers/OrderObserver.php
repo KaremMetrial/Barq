@@ -2,16 +2,19 @@
 
 namespace Modules\Order\Observers;
 
+use App\Enums\OrderStatus;
 use Modules\Order\Models\Order;
 use Modules\Order\Models\OrderStatusHistory;
 use Modules\Order\Services\OrderNotificationService;
+use Modules\User\Services\LoyaltyService;
 
 class OrderObserver
 {
 
-    public function __construct(protected OrderNotificationService $orderNotificationService)
-    {
-    }
+    public function __construct(
+        protected OrderNotificationService $orderNotificationService,
+        protected LoyaltyService $loyaltyService
+    ) {}
 
     /**
      * Handle the OrderObserver "created" event.
@@ -41,13 +44,13 @@ class OrderObserver
     public function updated(Order $order): void
     {
         $order->refresh();
-         if ($order->user) {
-                $this->orderNotificationService->sendOrderStatusNotification(
-                    $order->user,
-                    $order->id,
-                    $order->status->value
-                );
-            }
+        if ($order->user) {
+            $this->orderNotificationService->sendOrderStatusNotification(
+                $order->user,
+                $order->id,
+                $order->status->value
+            );
+        }
         // Check if status has changed
         if ($order->isDirty('status')) {
             OrderStatusHistory::create([
@@ -56,6 +59,15 @@ class OrderObserver
                 'changed_at' => now(),
                 'note' => 'Status updated',
             ]);
+
+            // Award referral points when order is delivered
+            if ($order->status === OrderStatus::DELIVERED && $order->user && $order->user->referral_id) {
+                $this->loyaltyService->awardReferralPoints(
+                    $order->user->referral_id,
+                    $order->user_id,
+                    $order
+                );
+            }
         }
     }
 

@@ -151,7 +151,7 @@ class User extends Authenticatable
      */
     public function loyaltyTransactions()
     {
-        return $this->hasMany(\App\Models\LoyaltyTransaction::class);
+        return $this->hasMany(\Modules\LoyaltySetting\Models\LoyaltyTransaction::class);
     }
 
     /**
@@ -159,7 +159,7 @@ class User extends Authenticatable
      */
     public function awardPoints(float $points, string $description = null, $referenceable = null): bool
     {
-        $settings = \App\Models\LoyaltySetting::getSettings();
+        $settings = \Modules\LoyaltySetting\Models\LoyaltySetting::getSettings();
 
         if (!$settings->isEnabled()) {
             return false;

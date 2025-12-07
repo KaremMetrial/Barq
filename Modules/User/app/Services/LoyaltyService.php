@@ -2,10 +2,12 @@
 
 namespace Modules\User\Services;
 
-use App\Models\LoyaltySetting;
-use App\Models\LoyaltyTransaction;
 use Modules\User\Models\User;
 use Illuminate\Support\Collection;
+use Modules\LoyaltySetting\Models\LoyaltySetting;
+use Modules\LoyaltySetting\Models\LoyaltyTransaction;
+use Modules\Order\Models\Order;
+use Modules\Review\Models\Review;
 
 class LoyaltyService
 {
@@ -43,15 +45,12 @@ class LoyaltyService
         $settings = $this->getSettings();
 
         return [
-            'available_points' => $user->getAvailablePoints(),
             'total_points' => $user->loyalty_points,
-            'points_expire_at' => $user->points_expire_at,
             'settings' => [
-                'is_enabled' => $settings->is_enabled,
-                'points_per_currency' => $settings->points_per_currency,
-                'redemption_rate' => $settings->redemption_rate,
-                'minimum_redemption_points' => $settings->minimum_redemption_points,
-                'maximum_redemption_percentage' => $settings->maximum_redemption_percentage,
+                'earn_rate' => $settings->earn_rate,
+                'min_order_for_earn' => $settings->min_order_for_earn,
+                'referral_points' => $settings->referral_points,
+                'rating_points' => $settings->rating_points,
             ],
         ];
     }
@@ -75,7 +74,8 @@ class LoyaltyService
         $user = User::findOrFail($userId);
         $settings = $this->getSettings();
 
-        if (!$settings->isEnabled()) {
+        // Check if amount meets minimum order requirement
+        if ($amount < $settings->min_order_for_earn) {
             return false;
         }
 
@@ -86,11 +86,14 @@ class LoyaltyService
 
     /**
      * Calculate redemption value for points
+     * Note: This is a simplified calculation. Adjust based on your business logic.
      */
     public function calculateRedemptionValue(float $points): float
     {
         $settings = $this->getSettings();
-        return $settings->calculateRedemptionValue($points);
+        // Convert points to currency value using earn_rate
+        // If earn_rate is 0.10 (10%), then 100 points = $10
+        return $points / ($settings->earn_rate * 10);
     }
 
     /**
@@ -103,27 +106,24 @@ class LoyaltyService
 
         $errors = [];
 
-        // Check if loyalty is enabled
-        if (!$settings->isEnabled()) {
-            $errors[] = 'Loyalty program is not available';
-        }
-
-        // Check minimum points requirement
-        if ($points < $settings->minimum_redemption_points) {
-            $errors[] = "Minimum redemption is {$settings->minimum_redemption_points} points";
+        // Check minimum points requirement (use 100 as default minimum)
+        $minimumPoints = 100;
+        if ($points < $minimumPoints) {
+            $errors[] = "Minimum redemption is {$minimumPoints} points";
         }
 
         // Check user has enough points
-        if (!$user->hasEnoughPoints($points)) {
+        if ($user->loyalty_points < $points) {
             $errors[] = 'Insufficient loyalty points';
         }
 
-        // Check maximum redemption percentage
+        // Check maximum redemption percentage (50% of order total as default)
         $redemptionValue = $this->calculateRedemptionValue($points);
-        $maxAllowed = $orderTotal * ($settings->maximum_redemption_percentage / 100);
+        $maxPercentage = 50; // 50% max
+        $maxAllowed = $orderTotal * ($maxPercentage / 100);
 
         if ($redemptionValue > $maxAllowed) {
-            $errors[] = "Maximum redemption is {$settings->maximum_redemption_percentage}% of order total";
+            $errors[] = "Maximum redemption is {$maxPercentage}% of order total";
         }
 
         return [
@@ -172,5 +172,65 @@ class LoyaltyService
         }
 
         return $expiredCount;
+    }
+
+    /**
+     * Award referral points to referrer when referred user completes their first order
+     */
+    public function awardReferralPoints(int $referrerId, int $referredUserId, Order $order): bool
+    {
+        $referrer = User::find($referrerId);
+        if (!$referrer) {
+            return false;
+        }
+
+        // Check if this is the referred user's first completed order
+        $completedOrdersCount = Order::where('user_id', $referredUserId)
+            ->where('status', \App\Enums\OrderStatus::DELIVERED)
+            ->count();
+
+        // Only award points for the first completed order
+        if ($completedOrdersCount > 1) {
+            return false;
+        }
+
+        $settings = $this->getSettings();
+        $points = $settings->referral_points;
+
+        return $referrer->awardPoints(
+            $points,
+            "Referral bonus for user #{$referredUserId}",
+            $order
+        );
+    }
+
+    /**
+     * Award rating points to user for rating an order
+     */
+    public function awardRatingPoints(int $userId, Review $review): bool
+    {
+        $user = User::find($userId);
+        if (!$user) {
+            return false;
+        }
+
+        // Check if user already received points for this review
+        $existingTransaction = LoyaltyTransaction::where('user_id', $userId)
+            ->where('referenceable_type', get_class($review))
+            ->where('referenceable_id', $review->id)
+            ->exists();
+
+        if ($existingTransaction) {
+            return false;
+        }
+
+        $settings = $this->getSettings();
+        $points = $settings->rating_points;
+
+        return $user->awardPoints(
+            $points,
+            "Rating bonus for order #{$review->order_id}",
+            $review
+        );
     }
 }

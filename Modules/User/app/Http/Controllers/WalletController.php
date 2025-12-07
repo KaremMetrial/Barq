@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Modules\User\Services\LoyaltyService;
-use App\Http\Resources\LoyaltyTransactionResource;
+use Modules\LoyaltySetting\Http\Resources\LoyaltyTransactionResource;
 
 class WalletController extends Controller
 {
@@ -22,14 +22,10 @@ class WalletController extends Controller
      */
     public function index(): JsonResponse
     {
-        $userId = auth('user')->id();
-        $user = auth('user')->user();
-
-        // Get loyalty information
-        $loyaltyInfo = $this->loyaltyService->getUserLoyaltyInfo($userId);
+        $user = auth('user')->user();   
 
         // Get recent transactions (last 10)
-        $recentLoyaltyTransactions = $this->loyaltyService->getUserTransactionHistory($userId, 10);
+        $recentLoyaltyTransactions = $this->loyaltyService->getUserTransactionHistory($user->id, 10);
 
         // Get recent transactions
         $recentTransactions = $user->transactions()->latest()->take(10)->get();
@@ -40,10 +36,7 @@ class WalletController extends Controller
                 'currency_symbol' => $user->getCurrencySymbol(),
             ],
             'loyalty_points' => [
-                'available_points' => $loyaltyInfo['available_points'],
-                'total_points' => $loyaltyInfo['total_points'],
-                'points_expire_at' => $loyaltyInfo['points_expire_at'],
-                // 'settings' => $loyaltyInfo['settings'],
+                'total_points' => $user->loyalty_points,
             ],
             'recent_loyalty_transactions' => LoyaltyTransactionResource::collection($recentLoyaltyTransactions),
             'recent_transactions' => $recentTransactions->map(function ($transaction) {

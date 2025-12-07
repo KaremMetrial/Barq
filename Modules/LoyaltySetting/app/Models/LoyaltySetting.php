@@ -44,6 +44,17 @@ class LoyaltySetting extends Model
     {
         return round($amount * $this->earn_rate, 2);
     }
+
+    /**
+     * Check if loyalty system is enabled
+     */
+    public function isEnabled(): bool
+    {
+        // Loyalty system is always enabled if settings exist
+        // You can add an 'is_enabled' column later if needed
+        return true;
+    }
+
     public function country()
     {
         return $this->belongsTo(Country::class);

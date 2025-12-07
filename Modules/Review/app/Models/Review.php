@@ -36,4 +36,18 @@ class Review extends Model
         return $this->morphTo();
     }
 
+    /**
+     * Get the user who created this review (through the order)
+     */
+    public function user()
+    {
+        return $this->hasOneThrough(
+            \Modules\User\Models\User::class,
+            Order::class,
+            'id',           // Foreign key on orders table
+            'id',           // Foreign key on users table
+            'order_id',     // Local key on reviews table
+            'user_id'       // Local key on orders table
+        );
+    }
 }

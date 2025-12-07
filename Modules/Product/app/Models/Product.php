@@ -174,8 +174,7 @@ class Product extends Model implements TranslatableContract
             return  $query->where('store_id', $vendor->store_id);
         }
 
-        if(!$admin)
-        {
+        if (!$admin) {
             $query->whereStatus(ProductStatusEnum::ACTIVE);
         }
         return $query->latest();
@@ -191,5 +190,40 @@ class Product extends Model implements TranslatableContract
     public function requiredOptions()
     {
         return $this->hasMany(ProductOption::class);
+    }
+    public function getStats(): array
+    {        // Total orders (count of order items for this product)
+        $totalOrders = $this->orderItems()
+            ->whereHas('order', function ($query) {
+                $query->where('status', \App\Enums\OrderStatus::DELIVERED);
+            })
+            ->count();
+
+        // Total reviews
+        $totalReviews = $this->reviews()->count();
+
+        // Total rating (sum of all ratings)
+        $totalRating = $this->reviews()->sum('rating');
+
+        // Average rating
+        $avgRating = $totalReviews > 0 ? round($totalRating / $totalReviews, 2) : 0;
+
+        // Conversion rate (معدل التحويل)
+        // Calculate how many times product was added to cart (all order items, not just delivered)
+        $totalCartAdditions = $this->orderItems()->count();
+
+        // Conversion rate = (Completed Orders / Cart Additions) × 100
+        // This shows what percentage of cart additions resulted in actual purchases
+        $conversionRate = $totalCartAdditions > 0
+            ? round(($totalOrders / $totalCartAdditions) * 100, 2)
+            : 0;
+
+        return [
+            'total_orders' => $totalOrders,
+            'total_reviews' => $totalReviews,
+            'total_rating' => $totalRating,
+            'average_rating' => $avgRating,
+            'conversion_rate' => $conversionRate, // معدل التحويل (Completed Orders / Cart Additions)
+        ];
     }
 }

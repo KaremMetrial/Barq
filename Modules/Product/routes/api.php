@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/generate/product/{id}', [DeepLinkController::class,'generateProduct']);
 
     Route::prefix('admin')->middleware(['auth:sanctum','ability:admin,vendor'])->name('admin.')->group(function () {
+        Route::get('products/{id}/stats',[AdminProductController::class,'stats']);
         Route::apiResource('products', AdminProductController::class)->names('product');
     });
 });

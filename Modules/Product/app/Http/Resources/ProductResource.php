@@ -59,6 +59,7 @@ class ProductResource extends JsonResource
                     "delivery_time_min" => $dynamicDeliveryTimes['min'],
                     "delivery_time_max" => $dynamicDeliveryTimes['max'],
                     "delivery_type_unit" => $deliveryTypeUnit->value,
+                    "is_open" => $this->store->is_open,
                 ];
             }),
             "category"   => $this->whenLoaded('category', function () {
@@ -201,6 +202,5 @@ class ProductResource extends JsonResource
 
         return null;
     }
-
 
 }

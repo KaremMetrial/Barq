@@ -14,7 +14,8 @@ class ReviewService
     use FileUploadTrait;
 
     public function __construct(
-        protected ReviewRepository $reviewRepository
+        protected ReviewRepository $reviewRepository,
+        protected \Modules\User\Services\LoyaltyService $loyaltyService
     ) {}
 
     /**
@@ -35,7 +36,17 @@ class ReviewService
             }
             $data = array_filter($data, fn($value) => !blank($value));
 
-            return $this->reviewRepository->create($data);
+            $review = $this->reviewRepository->create($data);
+
+            // Award rating points to the user
+            if ($review && $review->order && $review->order->user_id) {
+                $this->loyaltyService->awardRatingPoints(
+                    $review->order->user_id,
+                    $review
+                );
+            }
+
+            return $review;
         });
     }
 

@@ -70,7 +70,11 @@ class AdminService
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-        $token = $admin->createToken('token',['admin'])->plainTextToken;
+        $newToken = $admin->createToken('token',['admin']);
+        $newToken->accessToken->fcm_device = request()->input('fcm_device');
+        $newToken->accessToken->save();
+        $token = $newToken->plainTextToken;
+
         return [
             'admin' => $admin,
             'token' => $token
