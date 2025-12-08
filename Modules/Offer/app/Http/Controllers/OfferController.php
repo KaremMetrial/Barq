@@ -37,7 +37,7 @@ class OfferController extends Controller
     {
         $offer = $this->offerService->createOffer($request->all());
         return $this->successResponse([
-            'offer' => new OfferResource($offer)
+            'offer' => new OfferResource($offer->refresh())
         ], __('message.success'));
     }
 
@@ -59,7 +59,7 @@ class OfferController extends Controller
     {
         $offer = $this->offerService->updateOffer($id, $request->all());
         return $this->successResponse([
-            'offer' => new OfferResource($offer)
+            'offer' => new OfferResource($offer->refresh())
         ], __('message.success'));
     }
 

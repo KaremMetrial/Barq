@@ -13,9 +13,9 @@ class WorkingDayService
         protected WorkingDayRepository $WorkingDayRepository
     ) {}
 
-    public function getAllWorkingDays(): Collection
+    public function getAllWorkingDays($filters = [])
     {
-        return $this->WorkingDayRepository->all();
+        return $this->WorkingDayRepository->allWithTranslations($filters);
     }
 
     public function createWorkingDay(array $data): ?WorkingDay

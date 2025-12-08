@@ -13,7 +13,7 @@ use Modules\AddOn\Http\Resources\AddOnResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Product\Traits\DeliveryTimeTrait;
 
-class ProductResource extends JsonResource
+class AdminProductResource extends JsonResource
 {
     use DeliveryTimeTrait;
     /**
@@ -39,6 +39,7 @@ class ProductResource extends JsonResource
             "avg_rates" => (float) $this->avg_rate,
             "barcode" => $this->barcode,
             "images" => ProductImageResource::collection($this->whenLoaded("images")),
+            "quantity" => $this->availability?->stock_quantity ?? 0,
             "price" => $this->whenLoaded('price', function () {
                 return number_format($this->price->price, 0);
             }),
@@ -139,6 +140,8 @@ class ProductResource extends JsonResource
             }),
             'preparation_time' => $this->preparation_time,
             'preparation_time_unit' => $this->preparation_time_unit,
+            'weight' => $this->weight,
+            'purchase_price' => $this->price->purchase_price,
         ];
     }
     protected function getCartQuantity(): int

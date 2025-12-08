@@ -9,21 +9,21 @@ use Modules\WorkingDay\Http\Requests\CreateWorkingDayRequest;
 use Modules\WorkingDay\Http\Requests\UpdateWorkingDayRequest;
 use Modules\WorkingDay\Http\Resources\WorkingDayResource;
 use Modules\WorkingDay\Services\WorkingDayService;
+use Illuminate\Http\Request;
 
 class WorkingDayController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected WorkingDayService $workingDayService)
-    {
-    }
+    public function __construct(protected WorkingDayService $workingDayService) {}
 
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $workingDays = $this->workingDayService->getAllWorkingDays();
+        $filters = $request->only('store_id');
+        $workingDays = $this->workingDayService->getAllWorkingDays($filters);
         return $this->successResponse([
             'working_days' => WorkingDayResource::collection($workingDays),
         ], __('message.success'));

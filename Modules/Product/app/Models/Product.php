@@ -141,6 +141,10 @@ class Product extends Model implements TranslatableContract
     {
         return $this->morphMany(Review::class, 'reviewable');
     }
+    public function getQuantityAttribute()
+    {
+        return $this->availability->stock_quantity;
+    }
     public function scopeFilter($query, $filters)
     {
         $query

@@ -23,4 +23,10 @@ class WorkingDay extends Model
     {
         return $this->belongsTo(Store::class);
     }
+    public function scopeFilter($query, $filters)
+    {
+        return $query->when($filters['store_id'] ?? null, function ($query) use ($filters) {
+            return $query->where('store_id', $filters['store_id']);
+        });
+    }
 }

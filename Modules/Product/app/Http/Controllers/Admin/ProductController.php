@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
 use Modules\Product\Services\ProductService;
+use Modules\Product\Http\Resources\AdminProductResource;
 use Modules\Product\Http\Resources\ProductResource;
 use Modules\Product\Http\Requests\CreateProductRequest;
 use Modules\Product\Http\Requests\UpdateProductRequest;
@@ -49,7 +50,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->getProductById($id);
         return $this->successResponse([
-            "product" => new ProductResource($product),
+            "product" => new AdminProductResource($product),
         ], __("message.success"));
     }
 
