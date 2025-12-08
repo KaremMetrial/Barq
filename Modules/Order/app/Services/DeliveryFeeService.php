@@ -49,7 +49,7 @@ class DeliveryFeeService
      */
     public function calculateForCart(Store $store, ?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null): float
     {
-       // Check if free delivery is enabled
+        // Check if free delivery is enabled
         if ($store->storeSetting && $store->storeSetting->free_delivery_enabled) {
             return 0.0;
         }
@@ -158,7 +158,15 @@ class DeliveryFeeService
             return $this->getStoreDefaultFee($store);
         }
 
-        $fee = $shippingPrice->base_price + ($shippingPrice->per_km_price * $distanceKm);
+        $minDistance = $shippingPrice->min_distance ?? 0;
+        $basePrice = $shippingPrice->base_price;
+        $perKmPrice = $shippingPrice->per_km_price;
+
+        $fee = $basePrice;
+        if ($distanceKm > $minDistance) {
+            $fee += $perKmPrice * ($distanceKm - $minDistance);
+        }
+
         if ($shippingPrice->max_price && $fee > $shippingPrice->max_price) {
             $fee = $shippingPrice->max_price;
         }
@@ -197,7 +205,15 @@ class DeliveryFeeService
             return $this->getStoreDefaultFee($store);
         }
 
-        $fee = $shippingPrice->base_price + ($shippingPrice->per_km_price * $distanceKm);
+        $minDistance = $shippingPrice->min_distance ?? 0;
+        $basePrice = $shippingPrice->base_price;
+        $perKmPrice = $shippingPrice->per_km_price;
+
+        $fee = $basePrice;
+        if ($distanceKm > $minDistance) {
+            $fee += $perKmPrice * ($distanceKm - $minDistance);
+        }
+
         if ($shippingPrice->max_price && $fee > $shippingPrice->max_price) {
             $fee = $shippingPrice->max_price;
         }
@@ -236,8 +252,8 @@ class DeliveryFeeService
         $lonDelta = deg2rad($lon2 - $lon1);
 
         $a = sin($latDelta / 2) * sin($latDelta / 2) +
-             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-             sin($lonDelta / 2) * sin($lonDelta / 2);
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($lonDelta / 2) * sin($lonDelta / 2);
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 

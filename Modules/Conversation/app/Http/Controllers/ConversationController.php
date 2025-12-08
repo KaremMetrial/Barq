@@ -9,6 +9,7 @@ use Modules\Conversation\Services\ConversationService;
 use Modules\Conversation\Http\Resources\ConversationResource;
 use Modules\Conversation\Http\Requests\CreateConversationRequest;
 use Modules\Conversation\Http\Requests\UpdateConversationRequest;
+use App\Http\Resources\PaginationResource;
 
 class ConversationController extends Controller
 {
@@ -24,15 +25,17 @@ class ConversationController extends Controller
         return null;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $guard = $this->getAuthenticatedGuard();
         $userId = auth($guard)->id();
 
-        $conversations = $this->conversationService->getConversationsByGuard($userId, $guard);
+        $perPage = $request->get('per_page', 15);
+        $conversations = $this->conversationService->getConversationsByGuard($userId, $guard, $perPage);
 
         return $this->successResponse([
             'conversations' => ConversationResource::collection($conversations),
+            'pagination' => new PaginationResource($conversations),
         ], __('message.success'));
     }
 

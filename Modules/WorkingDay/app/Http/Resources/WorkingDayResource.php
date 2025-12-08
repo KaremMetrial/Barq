@@ -19,9 +19,10 @@ class WorkingDayResource extends JsonResource
             "id" => $this->id,
             "day_of_week" => $this->day_of_week->value,
             "day_of_week_label" => WorkingDayEnum::label($this->day_of_week->value),
-            "open_time" => $this->open_time ?? null,
-            "close_time" => $this->close_time ?? null,
+            "open_time" => $this->open_time ? \Carbon\Carbon::parse($this->open_time)->format('H:i') : null,
+            "close_time" => $this->close_time ? \Carbon\Carbon::parse($this->close_time)->format('H:i') : null,
             "store_id" => $this->store?->id,
         ];
     }
 }
+    

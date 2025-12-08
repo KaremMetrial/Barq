@@ -46,6 +46,43 @@ class CourierShiftController extends Controller
     }
 
     /**
+     * Start a shift for a courier manually
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $request->validate([
+            'couier_id' => 'required|exists:couiers,id',
+            'shift_template_id' => 'required|exists:shift_templates,id'
+        ]);
+
+        try {
+            // Verify if the courier belongs to the vendor's store (if vendor)
+            if (auth('vendor')->check()) {
+                $vendorStoreId = auth('vendor')->user()->store_id;
+                $courier = \Modules\Couier\Models\Couier::find($request->couier_id);
+
+                if ($courier->store_id !== $vendorStoreId) {
+                    return $this->errorResponse(__('You can only assign shifts to your own couriers'), 403);
+                }
+
+                // Verify if template belongs to vendor's store
+                $template = \Modules\Couier\Models\ShiftTemplate::find($request->shift_template_id);
+                if ($template->store_id !== $vendorStoreId) {
+                    return $this->errorResponse(__('You can only use your own shift templates'), 403);
+                }
+            }
+
+            $shift = $this->courierShiftService->startShift($request->couier_id, $request->shift_template_id);
+
+            return $this->successResponse([
+                'shift' => new CourierShiftResource($shift)
+            ], __('Shift started successfully'));
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    /**
      * Close a shift
      */
     public function close(int $id): JsonResponse

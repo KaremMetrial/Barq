@@ -16,20 +16,20 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
     {
         return $this->model->where('user_id', $userId)->get();
     }
-    public function findByGuard($id, $guard)
+    public function findByGuard($id, $guard,$perPage = 15)
     {
         $column = $guard . '_id';
-        return Conversation::with(['user:id,first_name,last_name', 'admin:id,name'])
+        return Conversation::with(['user', 'admin'])
             ->where($column, $id)
             ->where('end_time', null)
-            ->get();
+            ->paginate($perPage);
     }
 
     /**
      * Find conversations for admin/support (all conversations)
      */
-    public function findAllForAdmin()
+    public function findAllForAdmin($perPage = 15)
     {
-        return Conversation::with(['user', 'vendor', 'admin', 'order'])->get();
+        return Conversation::with(['user', 'vendor', 'admin', 'order'])->paginate($perPage);
     }
 }

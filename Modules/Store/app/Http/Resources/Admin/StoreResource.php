@@ -15,6 +15,8 @@ use Modules\Category\Http\Resources\CategoryResource;
 use Modules\StoreSetting\Http\Resources\StoreSettingResource;
 use Modules\Vendor\Http\Resources\Admin\VendorCollectionResource;
 use Modules\Address\Http\Resources\AddressResource;
+use Modules\Zone\Http\Resources\ZoneResource;
+use Modules\WorkingDay\Http\Resources\WorkingDayResource;
 
 class StoreResource extends JsonResource
 {
@@ -52,6 +54,10 @@ class StoreResource extends JsonResource
             'commission_type' => $this->commission_type->value,
             'commission_amount' => $this->commission_amount,
             'active_status' => $this->active_status,
+            'branch_type' => $this->branch_type,
+            "address_data" => new AddressResource($this->address),
+            "zone_to_cover" => ZoneResource::collection($this->whenLoaded('zoneToCover')),
+            "working_days" => WorkingDayResource::collection($this->whenLoaded('workingDays')),
         ];
     }
     private function getProductBanners(): array

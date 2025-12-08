@@ -27,6 +27,7 @@ Route::prefix('v1')->group(function () {
         // Courier Shift Management
         Route::prefix('courier-shifts')->group(function () {
             Route::get('/', [AdminCourierShiftController::class, 'index']);
+            Route::post('/', [AdminCourierShiftController::class, 'store']);
             Route::post('/{id}/close', [AdminCourierShiftController::class, 'close']);
             Route::get('/stats', [AdminCourierShiftController::class, 'stats']);
         });

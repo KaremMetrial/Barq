@@ -15,6 +15,7 @@ class ShippingPrice extends Model implements TranslatableContract
     public $translatedAttributes = ['name'];
     protected $fillable = [
         'base_price',
+        'min_distance',
         'max_price',
         'per_km_price',
         'max_cod_price',

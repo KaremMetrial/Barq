@@ -58,12 +58,12 @@ class ConversationService
     {
         return $this->ConversationRepository->delete($id);
     }
-    public function getConversationsByGuard($id, $guard): Collection
+    public function getConversationsByGuard($id, $guard, $perPage = 15)
     {
         if ($guard === 'admin') {
-            return $this->ConversationRepository->findAllForAdmin();
+            return $this->ConversationRepository->findAllForAdmin($perPage);
         }
-        return $this->ConversationRepository->findByGuard($id, $guard);
+        return $this->ConversationRepository->findByGuard($id, $guard, $perPage);
     }
 
     /**

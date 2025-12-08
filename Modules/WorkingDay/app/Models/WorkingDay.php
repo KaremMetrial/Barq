@@ -25,6 +25,10 @@ class WorkingDay extends Model
     }
     public function scopeFilter($query, $filters)
     {
+        if (auth('vendor')->check()) {
+            return $query->where('store_id', auth('vendor')->user()->store_id);
+        }
+
         return $query->when($filters['store_id'] ?? null, function ($query) use ($filters) {
             return $query->where('store_id', $filters['store_id']);
         });

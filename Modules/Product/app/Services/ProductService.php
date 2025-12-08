@@ -83,8 +83,12 @@ class ProductService
             $this->syncPrice($product, $data['prices'] ?? []);
             $this->syncTags($product, $data['tags'] ?? []);
             $this->syncUnits($product, $data['units'] ?? []);
-            $this->syncProductOptions($product, $data['productOptions'] ?? []);
-            $this->syncAddOns($product, $data['add_ons'] ?? []);
+            if (isset($data['productOptions'])) {
+                $this->syncProductOptions($product, $data['productOptions']);
+            }
+            if (isset($data['add_ons'])) {
+                $this->syncAddOns($product, $data['add_ons']);
+            }
 
             if (isset($data['images'])) {
                 $product->images()->delete();
@@ -186,6 +190,9 @@ class ProductService
     {
         if (empty($options))
             return;
+
+        $product->productOptions()->delete();
+
         foreach ($options as $option) {
             $productOption = $product->productOptions()->create([
                 'option_id' => $option['option_id'],
@@ -196,22 +203,17 @@ class ProductService
             ]);
 
             if (!empty($option['values'])) {
-                // Create product values
-                $productValues = $productOption->values()->createMany(
-                    collect($option['values'])->map(fn($value) => ['name' => $value['name']])->toArray()
-                );
+                foreach ($option['values'] as $value) {
+                    $productValue = $productOption->values()->create(['name' => $value['name']]);
 
-                // Create option values for each product value
-                foreach ($productValues as $productValue) {
-                    foreach ($option['values'] as $value) {
-                        $productValue->optionValues()->create([
-                            'product_value_id' => $productValue->id,
-                            'product_option_id' => $productOption->id,
-                            'price' => $value['price'] ?? 0,
-                            'stock' => $value['stock'] ?? 0,
-                            'is_default' => $value['is_default'] ?? false,
-                        ]);
-                    }
+                    $productValue->optionValues()->create([
+                        'product_value_id' => $productValue->id,
+                        'product_option_id' => $productOption->id,
+                        'price' => $value['price'] ?? 0,
+                        'stock' => $value['stock'] ?? 0,
+                        'is_default' => $value['is_default'] ?? false,
+                        'is_in_stock' => $value['is_in_stock'] ?? 0,
+                    ]);
                 }
             }
         }
@@ -286,12 +288,11 @@ class ProductService
             $this->defaultProductRelations(),
             ['offers' => $offerConstraint]
         ))
-            ->whereHas('offers', $offerConstraint) // ✅ يتحقق من وجود عروض في النطاق
+            ->whereHas('offers', $offerConstraint)
             ->when($storeId, fn($q) => $q->where('store_id', $storeId))
             ->when($sectionId, fn($q) => $q->whereHas('store', fn($q2) => $q2->where('section_id', $sectionId)))
             ->where('is_active', true)
             ->where('status', ProductStatusEnum::ACTIVE->value)
-            // ✅ ORDER BY مصحح - استبعاد العروض المنتهية
             ->orderByRaw('(
         SELECT MIN(end_date) FROM offers
         WHERE offerable_id = products.id
@@ -299,8 +300,8 @@ class ProductService
         AND is_active = 1
         AND status = "active"
         AND end_date IS NOT NULL
-        AND end_date >= ?  -- 🔥 استبعاد العروض المنتهية
-        AND end_date <= ?  -- حتى نهاية اليوم المحدد
+        AND end_date >= ?
+        AND end_date <= ?
     ) ASC', [
                 Product::class,
                 $now,

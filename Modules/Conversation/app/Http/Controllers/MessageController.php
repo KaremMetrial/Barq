@@ -41,6 +41,10 @@ class MessageController extends Controller
 
         $message = $this->messageService->createMessage($data);
 
+        if ($guard === 'admin' && $message->conversation->admin_id === null) {
+            $message->conversation->update(['admin_id' => auth($guard)->id()]);
+        }
+
         return $this->successResponse([
             'message' => new MessageResource($message),
         ], __('message.success'));

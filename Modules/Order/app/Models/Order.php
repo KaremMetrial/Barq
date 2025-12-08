@@ -233,7 +233,7 @@ class Order extends Model
         if ($userId) {
             $query->where('user_id', $userId);
         }
-        
+
         $stats = $query->selectRaw('
             COUNT(*) as total,
             SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending,
