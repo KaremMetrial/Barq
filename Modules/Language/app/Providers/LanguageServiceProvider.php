@@ -32,10 +32,10 @@ class LanguageServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 
-        if (Schema::hasTable('languages')) {
-            $languages = $languageService->getAllCodes();
-            Config::set('translatable.locales', $languages);
-        }
+        // if (Schema::hasTable('languages')) {
+        //     $languages = $languageService->getAllCodes();
+        //     Config::set('translatable.locales', $languages);
+        // }
 
     }
 
