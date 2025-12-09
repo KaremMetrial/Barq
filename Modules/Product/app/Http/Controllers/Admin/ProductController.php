@@ -24,7 +24,7 @@ class ProductController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only('store_id');
+        $filters = $request->only('store_id', 'search', 'category_id');
         $products = $this->productService->getAllProducts($filters);
         return $this->successResponse([
             "products" => ProductResource::collection($products),
@@ -61,7 +61,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->updateProduct($id, $request->all());
         return $this->successResponse([
-            "product" => new ProductResource($product),
+            "product" => new ProductResource($product->refresh()),
         ], __("message.success"));
     }
 
@@ -114,6 +114,13 @@ class ProductController extends Controller
         $stats = $this->productService->getStats($id);
         return $this->successResponse([
             "stats" => $stats,
+        ], __("message.success"));
+    }
+    public function toggleActive(int $id): JsonResponse
+    {
+        $product = $this->productService->toggleActive($id);
+        return $this->successResponse([
+            "product" => new ProductResource($product),
         ], __("message.success"));
     }
 }

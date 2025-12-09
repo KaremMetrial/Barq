@@ -6,6 +6,7 @@ enum RewardType: string
 {
     case WALLET = "wallet";
     case COUPON = "coupon";
+    case PRIZE = "prize";
 
     public static function values(): array
     {
@@ -16,6 +17,7 @@ enum RewardType: string
         return [
             self::WALLET->value => __('enums.reward_type.wallet'),
             self::COUPON->value => __('enums.reward_type.coupon'),
+            self::PRIZE->value => __('enums.reward_type.prize'),
         ];
     }
     public static function label(string $value): string

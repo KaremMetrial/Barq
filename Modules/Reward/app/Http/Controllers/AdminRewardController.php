@@ -9,6 +9,7 @@ use Modules\Reward\Http\Requests\CreateRewardRequest;
 use Modules\Reward\Http\Requests\UpdateRewardRequest;
 use Modules\Reward\Http\Resources\RewardResource;
 use App\Http\Resources\PaginationResource;
+use Modules\User\Http\Resources\UserResource;
 
 class AdminRewardController extends Controller
 {
@@ -68,5 +69,26 @@ class AdminRewardController extends Controller
     {
         $this->rewardService->deleteReward($id);
         return $this->successResponse(null, __('message.success'));
+    }
+
+    /**
+     * Get dashboard stats
+     */
+    public function dashboard()
+    {
+        $stats = $this->rewardService->getDashboardStats();
+
+        // Transform users and append extra data if needed
+        $topSpenders = $stats['top_spenders']->map(function ($user) {
+            $data = (new UserResource($user))->resolve();
+            $data['total_orders_amount'] = $user->orders_sum_total_amount ?? 0;
+            return $data;
+        });
+
+        return $this->successResponse([
+            'top_points_users' => UserResource::collection($stats['top_points_users']),
+            'top_spenders' => $topSpenders,
+            'rewards' => RewardResource::collection($stats['rewards']),
+        ], __('message.success'));
     }
 }

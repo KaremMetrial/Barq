@@ -75,7 +75,12 @@ class ProductService
     public function updateProduct(int $id, array $data): ?Product
     {
         return DB::transaction(function () use ($data, $id) {
-            $product = $this->ProductRepository->update($id, $data['product']);
+            $product = $this->ProductRepository->find($id);
+
+            if (isset($data['product'])) {
+                $product = $this->ProductRepository->update($id, $data['product']);
+            }
+
             $this->syncPharmacyInfo($product, $data['pharmacyInfo'] ?? []);
             $this->syncProductAllergen($product, $data['productAllergen'] ?? []);
             $this->syncAvailability($product, $data['availability'] ?? []);
@@ -371,5 +376,9 @@ class ProductService
     public function getStats(int $productId): array
     {
         return $this->ProductRepository->getStats($productId);
+    }
+    public function toggleActive(int $productId)
+    {
+        return $this->ProductRepository->toggleActive($productId);
     }
 }

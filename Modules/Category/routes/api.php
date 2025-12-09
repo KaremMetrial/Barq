@@ -10,7 +10,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Admin
-    Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->middleware('auth:sanctum', 'ability:admin,vendor')->name('admin.')->group(function () {
         Route::apiResource('categories', AdminCategoryController::class)->names('category');
     });
 });

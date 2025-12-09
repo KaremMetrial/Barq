@@ -198,11 +198,16 @@ return [
         'delivery_company' => 'شركة التوصيل',
         'other' => 'أخرى',
     ],
-        'loyalty_transaction_type' => [
+    'loyalty_transaction_type' => [
         'earned' => 'مكتسب',
         'redeemed' => 'مستبدل',
         'expired' => 'منتهي الصلاحية',
         'adjusted' => 'معدل',
-    ]
+    ],
+    'reward_type' => [
+        'wallet' => 'محفظة',
+        'coupon' => 'كوبون',
+        'prize' => 'جائزة',
+    ],
 
 ];

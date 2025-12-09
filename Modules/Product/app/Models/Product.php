@@ -230,4 +230,11 @@ class Product extends Model implements TranslatableContract
             'conversion_rate' => $conversionRate, // معدل التحويل (Completed Orders / Cart Additions)
         ];
     }
+    public function toggleActive()
+    {
+        $this->is_active = !$this->is_active;
+        $this->status = $this->is_active ? ProductStatusEnum::ACTIVE : ProductStatusEnum::INACTIVE;
+        $this->save();
+        return $this->refresh();
+    }
 }

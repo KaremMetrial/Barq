@@ -197,6 +197,10 @@ return [
         'redeemed' => 'Redeemed',
         'expired' => 'Expired',
         'adjusted' => 'Adjusted',
-    ]
-
+    ],
+    'reward_type' => [
+        'wallet' => 'Wallet',
+        'coupon' => 'Coupon',
+        'prize' => 'Prize',
+    ],
 ];

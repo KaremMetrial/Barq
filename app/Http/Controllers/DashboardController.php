@@ -584,9 +584,11 @@ class DashboardController extends Controller
                     ->select(
                         'stores.id',
                         \DB::raw('MAX(stores.status) as status'),
+                        \DB::raw('MAX(stores.avg_rate) as avg_rate'),
                         \DB::raw('MAX(stores.is_active) as is_active'),
                         \DB::raw('MAX(stores.deleted_at) as deleted_at'),
-                        \DB::raw('SUM(orders.total_amount) as total_sales')
+                        \DB::raw('SUM(orders.total_amount) as total_sales'),
+                        \DB::raw('COUNT(orders.id) as order_count')
                     )
                     ->whereNull('stores.deleted_at')
                     ->groupBy('stores.id');
@@ -597,6 +599,8 @@ class DashboardController extends Controller
                         'id' => $store->id,
                         'name' => $store->name,
                         'total_sales' => round($store->total_sales, 2),
+                        'order_count' => $store->order_count,
+                        'avg_rate' => $store->avg_rate,
                         'symbol_currency' => $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
                     ];
                 })->toArray();
@@ -625,6 +629,7 @@ protected function latestOrders(array $filters = []): array
                     'orders.total_amount',
                     'orders.created_at',
                     'stores.id as store_id', 
+                    'orders.status'
                 )
                 ->whereNull('orders.deleted_at')
                 ->limit(10);
@@ -638,6 +643,8 @@ protected function latestOrders(array $filters = []): array
                 return [
                     'id' => $order->id,
                     'order_number' => $order->order_number,
+                    'status' => $order->status->value,
+                    'status_label' => OrderStatus::label($order->status->value),
                     'total_amount' => round($order->total_amount, 2),
                     'created_at' => $order->created_at->format('Y-m-d H:i:s'),
                     'store_name' => $storeName, 

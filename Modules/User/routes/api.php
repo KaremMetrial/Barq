@@ -28,4 +28,7 @@ Route::prefix('v1')->group(function () {
 
     // Profile update route
     Route::put('profile', [UserController::class, 'updateProfile'])->middleware('auth:user')->name('profile.update');
+
+    // Profits/Earnings page route
+    Route::get('profits', [UserController::class, 'profits'])->middleware('auth:user')->name('profits');
 });

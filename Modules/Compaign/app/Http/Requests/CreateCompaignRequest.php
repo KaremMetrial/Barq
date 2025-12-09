@@ -20,6 +20,7 @@ class CreateCompaignRequest extends FormRequest
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after:start_date'],
             'is_active' => ['nullable', 'boolean'],
+            'reward_id' => ['nullable', 'exists:rewards,id'],
         ];
     }
 

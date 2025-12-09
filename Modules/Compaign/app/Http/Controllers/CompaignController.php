@@ -15,9 +15,7 @@ class CompaignController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected CompaignService $compaignService)
-    {
-    }
+    public function __construct(protected CompaignService $compaignService) {}
 
     /**
      * Display a listing of the resource.
@@ -70,5 +68,21 @@ class CompaignController extends Controller
     {
         $isDeleted = $this->compaignService->deleteCompaign($id);
         return $this->successResponse(null, __('message.success'));
+    }
+
+    /**
+     * Get participants leaderboard.
+     */
+    public function participants(int $id): JsonResponse
+    {
+        $participants = \Modules\CompaignParicipation\Models\CompaignParicipation::where('compaign_id', $id)
+            ->with(['store' => function ($q) {
+                $q->select('id', 'logo');
+                $q->withTranslation();
+            }])
+            ->orderByDesc('points')
+            ->paginate(50);
+
+        return $this->successResponse($participants, __('message.success'));
     }
 }

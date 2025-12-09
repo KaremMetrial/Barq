@@ -10,6 +10,9 @@ use Modules\LoyaltySetting\Models\LoyaltyTransaction;
 use App\Enums\LoyaltyTrransactionTypeEnum;
 use App\Enums\RewardType;
 
+use App\Enums\OrderStatus;
+use Modules\User\Models\User;
+
 class RewardService
 {
     use FileUploadTrait;
@@ -165,5 +168,36 @@ class RewardService
         if ($reward->type === RewardType::COUPON && !$reward->coupon) {
             throw new \Exception('This reward\'s coupon is not available.');
         }
+    }
+
+    /**
+     * Get dashboard statistics
+     */
+    public function getDashboardStats()
+    {
+        // Top 3 users by loyalty points
+        $topPointsUsers = User::orderByDesc('loyalty_points')
+            ->take(3)
+            ->get();
+
+        // Top 3 users by order total amount (completed/delivered orders)
+        $topSpenders = User::withSum(['orders' => function ($query) {
+            $query->where('status', OrderStatus::DELIVERED);
+        }], 'total_amount')
+            ->orderByDesc('orders_sum_total_amount')
+            ->take(3)
+            ->get();
+
+        // Active rewards
+        $filters = [
+            'type' => RewardType::PRIZE,
+        ];
+        $rewards = $this->getAvailableRewards($filters);
+
+        return [
+            'top_points_users' => $topPointsUsers,
+            'top_spenders' => $topSpenders,
+            'rewards' => $rewards,
+        ];
     }
 }

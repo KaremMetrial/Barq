@@ -40,4 +40,9 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         $product = $this->model->findOrFail($productId);
         return $product->getStats();
     }
+    public function toggleActive(int $productId)
+    {
+        $product = $this->model->findOrFail($productId);
+        return $product->toggleActive();
+    }
 }

@@ -16,6 +16,7 @@ class CompaignParicipation extends Model
         'status',
         'notes',
         'responded_at',
+        'points',
     ];
     protected $casts = [
         'responded_at' => 'date',
@@ -23,10 +24,10 @@ class CompaignParicipation extends Model
     ];
     public function compaign(): BelongsTo
     {
-        return $this->belongsTo(Compaign::class,'compaign_id');
+        return $this->belongsTo(Compaign::class, 'compaign_id');
     }
     public function store(): BelongsTo
     {
-        return $this->belongsTo(Store::class,'store_id');
+        return $this->belongsTo(Store::class, 'store_id');
     }
 }

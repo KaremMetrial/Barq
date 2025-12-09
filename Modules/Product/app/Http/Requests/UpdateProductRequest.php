@@ -33,6 +33,7 @@ class UpdateProductRequest extends FormRequest
             'units' => $this->filterArray($this->input('units', [])),
             'watermarks' => $this->filterArray($this->input('watermarks', [])),
             'productOptions' => $this->filterArray($this->input('productOptions', [])),
+            'add_ons' => $this->filterArray($this->input('add_ons', [])),
         ]);
     }
 
@@ -46,14 +47,14 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             // Product Table
-            'product' => ['required', 'array'],
+            'product' => ['nullable', 'array'],
             'product.barcode' => [
                 'nullable',
                 'string',
                 'max:255',
                 Rule::unique('products', 'barcode')->ignore($this->route('product'))
             ],
-            'product.name' => ['required', 'string', 'max:255'],
+            'product.name' => ['nullable', 'string', 'max:255'],
             'product.description' => ['nullable', 'string'],
             'product.status' => ['nullable', 'string', Rule::in(ProductStatusEnum::values())],
             'product.note' => ['nullable', 'string'],
@@ -61,7 +62,7 @@ class UpdateProductRequest extends FormRequest
             'product.is_reviewed' => ['nullable', 'boolean'],
             'product.is_featured' => ['nullable', 'boolean'],
             'product.is_active' => ['nullable', 'boolean'],
-            'product.store_id' => ['required', 'integer', 'exists:stores,id'],
+            'product.store_id' => ['nullable', 'integer', 'exists:stores,id'],
             'product.category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'product.max_cart_quantity' => ['nullable', 'integer', 'min:1'],
             'product.weight'             => ['nullable', 'numeric', 'min:0'],
@@ -70,18 +71,18 @@ class UpdateProductRequest extends FormRequest
 
             // Pharmacy Info
             'pharmacyInfo' => ['nullable', 'array'],
-            'pharmacyInfo.*.generic_name' => ['required', 'string', 'max:255'],
-            'pharmacyInfo.*.common_use' => ['required', 'string', 'max:255'],
-            'pharmacyInfo.*.prescription_required' => ['required', 'boolean'],
+            'pharmacyInfo.*.generic_name' => ['nullable', 'string', 'max:255'],
+            'pharmacyInfo.*.common_use' => ['nullable', 'string', 'max:255'],
+            'pharmacyInfo.*.prescription_nullable' => ['nullable', 'boolean'],
 
             // Product Allergen
             'productAllergen' => ['nullable', 'array'],
-            'productAllergen.*.name' => ['required', 'string', 'max:255'],
+            'productAllergen.*.name' => ['nullable', 'string', 'max:255'],
 
             // Availability
-            'availability' => ['required', 'array'],
-            'availability.stock_quantity' => ['required', 'integer', 'min:0'],
-            'availability.is_in_stock' => ['required', 'boolean'],
+            'availability' => ['nullable', 'array'],
+            'availability.stock_quantity' => ['nullable', 'integer', 'min:0'],
+            'availability.is_in_stock' => ['nullable', 'boolean'],
             'availability.available_start_date' => ['nullable', 'date'],
             'availability.available_end_date' => ['nullable', 'date', 'after_or_equal:availability.available_start_date'],
 
@@ -100,31 +101,31 @@ class UpdateProductRequest extends FormRequest
             'productNutrition.fiber' => ['nullable', 'integer'],
 
             // Prices
-            'prices' => ['required', 'array'],
-            'prices.price' => ['required', 'numeric', 'min:0'],
-            'prices.purchase_price' => ['required', 'numeric', 'min:0'],
+            'prices' => ['nullable', 'array'],
+            'prices.price' => ['nullable', 'numeric', 'min:0'],
+            'prices.purchase_price' => ['nullable', 'numeric', 'min:0'],
 
             // Tags
             'tags' => ['nullable', 'array'],
-            'tags.*' => ['required', 'integer', 'exists:tags,id'],
+            'tags.*' => ['nullable', 'integer', 'exists:tags,id'],
 
             // Units
             'units' => ['nullable', 'array'],
-            'units.*.unit_id' => ['required', 'integer', 'exists:units,id'],
-            'units.*.unit_value' => ['required', 'numeric', 'min:0'],
+            'units.*.unit_id' => ['nullable', 'integer', 'exists:units,id'],
+            'units.*.unit_value' => ['nullable', 'numeric', 'min:0'],
 
             // Watermarks
             'watermarks' => ['nullable', 'array'],
             'watermarks.image_url' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'watermarks.position' => ['required_with:watermarks.image_url', 'string', 'max:255'],
-            'watermarks.opacity' => ['required_with:watermarks.image_url', 'integer', 'min:0', 'max:100'],
+            'watermarks.position' => ['nullable_with:watermarks.image_url', 'string', 'max:255'],
+            'watermarks.opacity' => ['nullable_with:watermarks.image_url', 'integer', 'min:0', 'max:100'],
 
             // Product Options + Values
             'productOptions' => ['nullable', 'array'],
-            'productOptions.*.option_id' => ['required', 'integer', 'exists:options,id'],
+            'productOptions.*.option_id' => ['nullable', 'integer', 'exists:options,id'],
             'productOptions.*.min_select' => ['nullable', 'integer', 'min:0'],
             'productOptions.*.max_select' => ['nullable', 'integer', 'min:1'],
-            'productOptions.*.is_required' => ['nullable', 'boolean'],
+            'productOptions.*.is_nullable' => ['nullable', 'boolean'],
             'productOptions.*.sort_order' => ['nullable', 'integer', 'min:1'],
 
             'productOptions.*.values' => ['nullable', 'array'],
@@ -133,8 +134,12 @@ class UpdateProductRequest extends FormRequest
             'productOptions.*.values.*.stock' => ['nullable', 'integer', 'min:0'],
             'productOptions.*.values.*.is_default' => ['nullable', 'boolean'],
 
+            // Add Ons
+            'add_ons' => ['nullable', 'array'],
+            'add_ons.*' => ['nullable', 'integer', 'exists:add_ons,id'],
+
             // Language
-            'lang' => ['required', 'string', Rule::in(Cache::get('languages.codes'))],
+            'lang' => ['nullable', 'string', Rule::in(Cache::get('languages.codes'))],
         ];
     }
 

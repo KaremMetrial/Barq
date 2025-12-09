@@ -19,6 +19,7 @@ class UpdateCompaignRequest extends FormRequest
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after:start_date'],
             'is_active' => ['nullable', 'boolean'],
+            'reward_id' => ['nullable', 'exists:rewards,id'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }

@@ -8,6 +8,7 @@ use Modules\Reward\Services\RewardService;
 use Modules\Reward\Http\Requests\RedeemRewardRequest;
 use Modules\Reward\Http\Resources\RewardResource;
 use Modules\Reward\Http\Resources\RewardRedemptionResource;
+use Modules\User\Http\Resources\UserResource;
 
 class RewardController extends Controller
 {
@@ -84,6 +85,28 @@ class RewardController extends Controller
                 'current_page' => $redemptions->currentPage(),
                 'last_page' => $redemptions->lastPage(),
             ]
+        ], __('message.success'));
+    }
+
+    /**
+     * Get dashboard stats (top users and rewards)
+     */
+    public function dashboard()
+    {
+        $stats = $this->rewardService->getDashboardStats();
+
+        // Transform users and append extra data if needed
+        $topSpenders = $stats['top_spenders']->map(function ($user) {
+            $data = (new UserResource($user))->resolve();
+            $data['total_orders_amount'] = $user->orders_sum_total_amount ?? 0;
+            return $data;
+        });
+
+        return $this->successResponse([
+            'top_points_users' => UserResource::collection($stats['top_points_users']),
+            'top_spenders' => $topSpenders,
+            'rewards' => RewardResource::collection($stats['rewards']),
+            'user_loyalty_points' => (int) auth()->user()->loyalty_points ?? 0,
         ], __('message.success'));
     }
 }
