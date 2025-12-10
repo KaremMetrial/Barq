@@ -49,6 +49,20 @@ class ConversationController extends Controller
             $data[$guard . '_id'] = auth($guard)->id();
         }
 
+        // Check if user already has an active conversation (end_time is null)
+        if ($guard !== 'admin') {
+            $userId = auth($guard)->id();
+            $existingConversation = $this->conversationService->getConversationsByGuard($userId, $guard, 1)->first();
+
+            if ($existingConversation && is_null($existingConversation->end_time)) {
+                // Return the existing active conversation
+                return $this->successResponse([
+                    'conversation' => new ConversationResource($existingConversation),
+                ], __('message.success'));
+            }
+        }
+
+        // Create new conversation if no active one exists
         $conversation = $this->conversationService->createConversation($data);
 
         return $this->successResponse([

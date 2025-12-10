@@ -12,6 +12,7 @@ use App\Enums\RewardType;
 
 use App\Enums\OrderStatus;
 use Modules\User\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class RewardService
 {
@@ -188,16 +189,32 @@ class RewardService
             ->take(3)
             ->get();
 
-        // Active rewards
+        // Active rewards filtered by user's country
         $filters = [
             'type' => RewardType::PRIZE,
         ];
-        $rewards = $this->getAvailableRewards($filters);
+
+        // Add user's country filter if available
+        $user = Auth::user();
+        if ($user && $user->country_id) {
+            $filters['country_id'] = $user->country_id;
+        }
+
+        // Get loyalty reward
+        $loyaltyFilters = $filters;
+        $loyaltyFilters['is_it_for_loyalty_points'] = true;
+        $loyaltyReward = $this->getAvailableRewards($loyaltyFilters)->first();
+
+        // Get spending reward
+        $spendingFilters = $filters;
+        $spendingFilters['is_it_for_spendings'] = true;
+        $spendingReward = $this->getAvailableRewards($spendingFilters)->first();
 
         return [
             'top_points_users' => $topPointsUsers,
             'top_spenders' => $topSpenders,
-            'rewards' => $rewards,
+            'loyalty_reward' => $loyaltyReward,
+            'spending_reward' => $spendingReward,
         ];
     }
 }

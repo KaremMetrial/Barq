@@ -58,6 +58,8 @@ class StoreResource extends JsonResource
             "address_data" => new AddressResource($this->address),
             "zone_to_cover" => ZoneResource::collection($this->whenLoaded('zoneToCover')),
             "working_days" => WorkingDayResource::collection($this->whenLoaded('workingDays')),
+            'parent' => new StoreResource($this->whenLoaded('parent')),
+            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
         ];
     }
     private function getProductBanners(): array

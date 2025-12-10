@@ -9,7 +9,7 @@ use Modules\Reward\Http\Requests\RedeemRewardRequest;
 use Modules\Reward\Http\Resources\RewardResource;
 use Modules\Reward\Http\Resources\RewardRedemptionResource;
 use Modules\User\Http\Resources\UserResource;
-
+use App\Http\Resources\PaginationResource;
 class RewardController extends Controller
 {
     use ApiResponse;
@@ -79,12 +79,7 @@ class RewardController extends Controller
 
         return $this->successResponse([
             'redemptions' => RewardRedemptionResource::collection($redemptions),
-            'pagination' => [
-                'total' => $redemptions->total(),
-                'per_page' => $redemptions->perPage(),
-                'current_page' => $redemptions->currentPage(),
-                'last_page' => $redemptions->lastPage(),
-            ]
+            'pagination' => new PaginationResource($redemptions),
         ], __('message.success'));
     }
 
@@ -96,17 +91,29 @@ class RewardController extends Controller
         $stats = $this->rewardService->getDashboardStats();
 
         // Transform users and append extra data if needed
-        $topSpenders = $stats['top_spenders']->map(function ($user) {
+        $topSpenders = $stats['top_spenders']->mapWithKeys(function ($user, $key) {
             $data = (new UserResource($user))->resolve();
             $data['total_orders_amount'] = $user->orders_sum_total_amount ?? 0;
-            return $data;
+            $data['rank'] = $key + 1;
+            return ['top' . ($key + 1) => $data];
         });
 
+        $topPointsUsers = $stats['top_points_users']->mapWithKeys(function ($user, $key) {
+            $data = (new UserResource($user))->resolve();
+            $data['rank'] = $key + 1;
+            return ['top' . ($key + 1) => $data];
+        });
+
+        $loyalty = $stats['loyalty_reward'] ? new RewardResource($stats['loyalty_reward']) : null;
+        $spending = $stats['spending_reward'] ? new RewardResource($stats['spending_reward']) : null;
+
         return $this->successResponse([
-            'top_points_users' => UserResource::collection($stats['top_points_users']),
+            'top_points_users' => $topPointsUsers,
             'top_spenders' => $topSpenders,
-            'rewards' => RewardResource::collection($stats['rewards']),
+            'rewards' => ($loyalty || $spending) ? ['loyalty' => $loyalty, 'spending' => $spending] : null,
             'user_loyalty_points' => (int) auth()->user()->loyalty_points ?? 0,
+            'user_spending_value' => (int) auth()->user()->spending_value ?? 0,
+            'currency_symbol' => auth()->user()->getCurrencySymbol(),
         ], __('message.success'));
     }
 }

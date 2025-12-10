@@ -26,6 +26,8 @@ class Reward extends Model
         'usage_count',
         'max_redemptions_per_user',
         'total_redemptions',
+        'is_it_for_loyalty_points',
+        'is_it_for_spendings'
     ];
 
     protected $casts = [

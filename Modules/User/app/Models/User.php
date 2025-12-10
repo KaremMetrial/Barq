@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\Order\Models\Order;
+use App\Enums\OrderStatus;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -238,7 +239,7 @@ class User extends Authenticatable
     /**
      * Get the user's currency symbol based on their address
      */
-    public function getCurrencySymbol(): string
+    public function getCurrencySymbol()
     {
         $address = $this->addresses()->first();
         if ($address && $address->zone && $address->zone->city && $address->zone->city->governorate && $address->zone->city->governorate->country) {
@@ -254,5 +255,9 @@ class User extends Authenticatable
     public function referrals()
     {
         return $this->hasMany(User::class, 'referral_id');
+    }
+    public function getSpendingValueAttribute()
+    {
+        return $this->orders()->where('status', OrderStatus::DELIVERED)->sum('total_amount');
     }
 }

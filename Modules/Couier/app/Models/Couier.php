@@ -90,4 +90,22 @@ class Couier extends Authenticatable
     {
         return $this->hasMany(Order::class, 'couier_id');
     }
+    public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['search'])) {
+            $query->where('first_name', 'like', '%' . $filters['search'] . '%')
+                ->orWhere('last_name', 'like', '%' . $filters['search'] . '%')
+                ->orWhere('phone', 'like', '%' . $filters['search'] . '%');
+        }
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+        if (isset($filters['avaliable_status'])) {
+            $query->where('avaliable_status', $filters['avaliable_status']);
+        }
+        if(isset($filters['store_id'])){
+            $query->where('store_id', $filters['store_id']);
+        }
+        return $query->latest();
+    }
 }

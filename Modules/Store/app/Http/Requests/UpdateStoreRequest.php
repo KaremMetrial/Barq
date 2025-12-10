@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Modules\Store\Http\Requests;
@@ -76,7 +75,7 @@ class UpdateStoreRequest extends FormRequest
             'vendor.is_owner' => ['nullable', 'boolean'],
             'vendor.is_active' => ['nullable', 'boolean'],
             'vendor.store_id' => ['nullable', 'integer', 'exists:stores,id'],
-            'vendor.role_id' => ['nullable','string', 'exists:roles,id'],
+            'vendor.role_id' => ['nullable', 'string', 'exists:roles,id'],
 
             'zones_to_cover' => ['nullable', 'array'],
             'zones_to_cover.*' => ['integer', 'exists:zones,id'],

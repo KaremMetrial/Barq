@@ -67,7 +67,7 @@ class StoreController extends Controller implements HasMiddleware
     {
         $Store = $this->StoreService->getStoreById($id);
         return $this->successResponse([
-            'Store' => new StoreResource($Store->load(['address', 'zoneToCover', 'workingDays', 'owner']))
+            'Store' => new StoreResource($Store->load(['address', 'zoneToCover', 'workingDays', 'owner', 'storeSetting', 'parent']))
         ], __('message.success'));
     }
 

@@ -413,4 +413,19 @@ class Store extends Model implements TranslatableContract
 
         return $workingDay->open_time . ' - ' . $workingDay->close_time;
     }
+    protected static function booted()
+    {
+        $handleStatusChanges = function ($store) {
+            if ($store->isDirty('is_closed') && $store->is_closed) {
+                $store->active_status = "close";
+            }
+            if ($store->isDirty('is_closed') && !$store->is_closed) {
+                $store->active_status = "open";
+            }
+            if ($store->isDirty('active_status')) {
+                $store->is_closed = $store->active_status === "close";
+            }
+        };
+        static::updating($handleStatusChanges);
+    }
 }

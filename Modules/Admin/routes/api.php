@@ -16,6 +16,8 @@ Route::prefix('v1')->group(function () {
             Route::post('update-password', 'updatePassword');
 
             Route::get('profile', 'profile');
+
+            Route::get('reports', 'reports');
         });
     });
 });

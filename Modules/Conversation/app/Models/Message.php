@@ -14,6 +14,12 @@ class Message extends Model
         'conversation_id',
         'messageable_type',
         'messageable_id',
+        'read_at',
+        'read_by',
+    ];
+
+    protected $casts = [
+        'read_by' => 'array',
     ];
     public function conversation(): BelongsTo
     {

@@ -59,6 +59,14 @@ class RewardRepository implements RewardRepositoryInterface
             $query->where('points_cost', '<=', $filters['max_points']);
         }
 
+        if (isset($filters['is_it_for_loyalty_points'])) {
+            $query->where('is_it_for_loyalty_points', $filters['is_it_for_loyalty_points']);
+        }
+
+        if (isset($filters['is_it_for_spendings'])) {
+            $query->where('is_it_for_spendings', $filters['is_it_for_spendings']);
+        }
+
         return $query->with($relations)->get();
     }
 

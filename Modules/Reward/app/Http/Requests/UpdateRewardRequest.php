@@ -27,6 +27,8 @@ class UpdateRewardRequest extends FormRequest
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'usage_count' => ['nullable', 'integer', 'min:1'],
             'max_redemptions_per_user' => ['nullable', 'integer', 'min:1'],
+            'is_it_for_loyalty_points' => ['nullable', 'boolean', 'required_if:type,' . RewardType::PRIZE],
+            'is_it_for_spendings' => ['nullable', 'boolean', 'required_if:type,' . RewardType::PRIZE],
         ];
     }
 

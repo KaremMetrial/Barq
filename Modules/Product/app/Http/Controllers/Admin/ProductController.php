@@ -61,7 +61,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->updateProduct($id, $request->all());
         return $this->successResponse([
-            "product" => new ProductResource($product->refresh()),
+            "product" => new ProductResource($product->load('images')->refresh()),
         ], __("message.success"));
     }
 

@@ -30,7 +30,14 @@ Route::prefix('v1')->group(function () {
                 Route::get('/{id}', 'show');
                 Route::put('/{id}', 'update');
                 Route::delete('/{id}', 'destroy');
+                Route::post('/{messageId}/read', 'markAsRead');
+                Route::post('/conversation/{conversationId}/typing', 'typingIndicator');
             });
+
+        // Pusher authentication endpoint (for private channels)
+        Route::post('/broadcasting/auth', [MessageController::class, 'pusherAuth']);
+        // Optional alias if you’re already using this somewhere:
+        Route::post('/pusher/auth', [MessageController::class, 'pusherAuth']);
     });
     /*
     |--------------------------------------------------------------------------

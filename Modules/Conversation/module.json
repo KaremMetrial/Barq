@@ -7,5 +7,6 @@
     "providers": [
         "Modules\\Conversation\\Providers\\ConversationServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "requires": []
 }

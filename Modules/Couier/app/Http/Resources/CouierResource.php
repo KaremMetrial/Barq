@@ -7,6 +7,7 @@ use App\Enums\CouierTypeEnum;
 use App\Enums\UserStatusEnum;
 use App\Enums\CouierAvaliableStatusEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Vehicle\Http\Resources\VehicleResource;
 
 class CouierResource extends JsonResource
 {
@@ -39,6 +40,7 @@ class CouierResource extends JsonResource
             }),
             "total_order" => $this->total_order ?? 0,
             "total_earning" => $this->total_earning ?? 0,
+            "vehicle" => new VehicleResource($this->whenLoaded('vehicle')),
         ];
     }
 }
