@@ -90,6 +90,7 @@ class Couier extends Authenticatable
     {
         return $this->hasMany(Order::class, 'couier_id');
     }
+
     public function scopeFilter($query, $filters)
     {
         if (isset($filters['search'])) {
@@ -107,5 +108,16 @@ class Couier extends Authenticatable
             $query->where('store_id', $filters['store_id']);
         }
         return $query->latest();
+    }
+
+    /**
+     * Generate authentication token for the courier.
+     */
+    public function generateToken($data = null)
+    {
+        $token = $this->createToken('auth_token', ['courier']);
+        $token->accessToken->fcm_device = $data['fcm_device'] ?? null;
+        $token->accessToken->save();
+        return $token->plainTextToken;
     }
 }

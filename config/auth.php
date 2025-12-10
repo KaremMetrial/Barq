@@ -49,9 +49,14 @@ return [
             'driver' => 'sanctum',
             'provider' => 'users',
         ],
+
         'vendor' => [
             'driver' => 'sanctum',
             'provider' => 'vendors',
+        ],
+        'courier' => [
+            'driver' => 'sanctum',
+            'provider' => 'couriers',
         ],
     ],
 
@@ -82,9 +87,14 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_ADMIN_MODEL', \Modules\Admin\Models\Admin::class),
         ],
+
         'vendors' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_VENDOR_MODEL', \Modules\Vendor\Models\Vendor::class),
+        ],
+        'couriers' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_COURIER_MODEL', \Modules\Couier\Models\Couier::class),
         ],
     ],
 

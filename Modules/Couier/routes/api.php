@@ -1,12 +1,22 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Couier\Http\Controllers\CouierController;
+use Modules\Couier\Http\Controllers\CourierController;
+use Modules\Couier\Http\Controllers\CourierAuthController;
 use Modules\Couier\Http\Controllers\Admin\ShiftTemplateController;
 use Modules\Couier\Http\Controllers\Admin\CourierShiftController as AdminCourierShiftController;
 use Modules\Couier\Http\Controllers\CourierShiftController;
 
 Route::prefix('v1')->group(function () {
+    // Public Courier Authentication Routes
+    Route::prefix('courier')->group(function () {
+        Route::post('register', [CourierAuthController::class, 'register'])->name('courier.register');
+        Route::post('login', [CourierAuthController::class, 'login'])->name('courier.login');
+        Route::post('logout', [CourierAuthController::class, 'logout'])->middleware('auth:sanctum')->name('courier.logout');
+        Route::put('profile', [CourierAuthController::class, 'updateProfile'])->middleware('auth:sanctum')->name('courier.profile.update');
+        Route::delete('delete-account', [CourierAuthController::class, 'deleteAccount'])->middleware('auth:sanctum')->name('courier.delete-account');
+    });
     Route::prefix('admin')->middleware(['auth:sanctum', 'ability:admin'])->group(function () {
         Route::prefix('couiers')->group(function () {
             Route::get('stats', [CouierController::class, 'stats']);
