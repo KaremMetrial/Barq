@@ -34,7 +34,7 @@ class Couier extends Authenticatable
         "password",
         "avatar",
         "license_number",
-        "available_status",
+        "avaliable_status",
         "avg_rate",
         "status",
         "store_id",
@@ -71,6 +71,55 @@ class Couier extends Authenticatable
     public function shifts(): HasMany
     {
         return $this->hasMany(CouierShift::class);
+    }
+
+    /**
+     * Get assigned shift templates for this courier
+     */
+    public function shiftTemplateAssignments(): HasMany
+    {
+        return $this->hasMany(CourierShiftTemplate::class, 'courier_id');
+    }
+
+    /**
+     * Get active shift template assignments
+     */
+    public function activeShiftTemplates()
+    {
+        return $this->shiftTemplateAssignments()->active()->with('shiftTemplate.days');
+    }
+
+    /**
+     * Get weekly schedule from assigned templates
+     */
+    public function getWeeklyScheduleAttribute(): array
+    {
+        $schedule = [];
+
+        foreach ($this->activeShiftTemplates as $assignment) {
+            foreach ($assignment->weekly_schedule as $day) {
+                $dayKey = $day['day_of_week'];
+                if (!isset($schedule[$dayKey])) {
+                    $schedule[$dayKey] = $day;
+                } else {
+                    // If multiple templates assign same day, keep the first assignment
+                    // Could implement conflict resolution logic here if needed
+                }
+            }
+        }
+
+        // Sort by day of week
+        ksort($schedule);
+
+        return array_values($schedule);
+    }
+
+    /**
+     * Check if courier has any active shift template assignments
+     */
+    public function hasActiveAssignments(): bool
+    {
+        return $this->activeShiftTemplates()->exists();
     }
     public function conversations(): HasMany
     {

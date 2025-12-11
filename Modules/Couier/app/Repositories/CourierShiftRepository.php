@@ -73,4 +73,13 @@ class CourierShiftRepository extends BaseRepository
 
         return $query->get();
     }
+
+    public function findScheduledShift($courierId, $scheduledDate)
+    {
+        return $this->model->where('couier_id', $courierId)
+            ->whereDate('start_time', $scheduledDate)
+            ->where('is_open', false)
+            ->whereNull('end_time') // Not completed shifts, but scheduled
+            ->first();
+    }
 }

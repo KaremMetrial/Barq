@@ -33,7 +33,7 @@ class CourierAuthController extends Controller
         $token = $courier->generateToken($request->only('fcm_device'));
 
         return $this->successResponse([
-            "courier" => new CourierResource($courier->load('store')),
+            "courier" => new CourierResource($courier->load('store.address')),
             'token' => $token,
         ], __('message.success'));
     }
@@ -58,7 +58,7 @@ class CourierAuthController extends Controller
         $token = $courier->generateToken($request->only('fcm_device'));
 
         return $this->successResponse([
-            "courier" => new CourierResource($courier->load('store')),
+            "courier" => new CourierResource($courier->load('store.address')),
             'token' => $token,
         ], __('message.success'));
     }
@@ -88,7 +88,7 @@ class CourierAuthController extends Controller
         $courier->update($data);
 
         return $this->successResponse([
-            "courier" => new CourierResource($courier->load('store'))
+            "courier" => new CourierResource($courier->load('store.address'))
         ], __('message.success'));
     }
 

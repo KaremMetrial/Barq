@@ -45,6 +45,30 @@ class ShiftTemplate extends Model
     }
 
     /**
+     * Get couriers assigned to this template
+     */
+    public function courierAssignments(): HasMany
+    {
+        return $this->hasMany(CourierShiftTemplate::class);
+    }
+
+    /**
+     * Get active courier assignments for this template
+     */
+    public function activeCourierAssignments()
+    {
+        return $this->courierAssignments()->active()->with('courier');
+    }
+
+    /**
+     * Get the count of assigned couriers
+     */
+    public function getAssignedCouriersCountAttribute(): int
+    {
+        return $this->activeCourierAssignments()->count();
+    }
+
+    /**
      * Get active templates only
      */
     public function scopeActive($query)

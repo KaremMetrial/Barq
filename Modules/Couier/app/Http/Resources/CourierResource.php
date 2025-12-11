@@ -3,7 +3,6 @@
 namespace Modules\Couier\Http\Resources;
 
 use Illuminate\Http\Request;
-use App\Enums\CouierTypeEnum;
 use App\Enums\UserStatusEnum;
 use App\Enums\CouierAvaliableStatusEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -47,18 +46,14 @@ class CourierResource extends JsonResource
                     'name' => $this->store->name,
                     'logo' => $this->store->logo ? asset('storage/' . $this->store->logo) : null,
                     'phone' => $this->store->phone,
-                    'address' => $this->store->address?->getFullAddressAttribute(),
+                    'address' => $this->store->address ? $this->store->address->getFullAddressAttribute() : null,
                 ];
             }),
 
             // Performance Metrics
             "total_order" => $this->orders()->count(),
-            "completed_orders" => $this->orders()->whereHas('status', function($query) {
-                $query->where('status', 'delivered');
-            })->count(),
-            "total_earning" => $this->orders()->whereHas('status', function($query) {
-                $query->where('status', 'delivered');
-            })->sum('courier_commission'),
+            "completed_orders" => $this->orders()->where('status', 'delivered')->count(),
+            "total_earning" => $this->calculateCommission($this->orders()->where('status', 'delivered')),
 
             // Vehicle Information
             "vehicle" => new VehicleResource($this->whenLoaded('vehicle')),
@@ -100,18 +95,40 @@ class CourierResource extends JsonResource
                 'week_orders' => $this->orders()
                     ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
                     ->count(),
-                'month_earnings' => $this->orders()
-                    ->whereMonth('created_at', now()->month)
-                    ->whereYear('created_at', now()->year)
-                    ->whereHas('status', function($query) {
-                        $query->where('status', 'delivered');
-                    })
-                    ->sum('courier_commission'),
+                'month_earnings' => $this->calculateCommission(
+                    $this->orders()
+                        ->where('status', 'delivered')
+                        ->whereMonth('created_at', now()->month)
+                        ->whereYear('created_at', now()->year)
+                ),
             ],
 
             // Timestamps
             "created_at" => $this->created_at,
             "updated_at" => $this->updated_at,
         ];
+    }
+
+    /**
+     * Calculate total commission for given orders
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $ordersQuery
+     * @return float
+     */
+    private function calculateCommission($ordersQuery): float
+    {
+        $commission = 0;
+
+        $orders = $ordersQuery->get();
+
+        foreach ($orders as $order) {
+            if ($this->commission_type === 'percentage') {
+                $commission += $order->delivery_fee * ($this->commission_amount / 100);
+            } elseif ($this->commission_type === 'fixed') {
+                $commission += $this->commission_amount;
+            }
+        }
+
+        return round($commission, 2);
     }
 }

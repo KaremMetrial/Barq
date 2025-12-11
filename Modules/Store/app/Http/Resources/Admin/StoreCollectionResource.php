@@ -38,7 +38,7 @@ class StoreCollectionResource extends JsonResource
             'count_branches' => $this->countBranches(),
             'count_orders' => $this->countOrders(),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'address' => $this->address->getFullAddressAttribute(),
+            'address' => $this->address?->getFullAddressAttribute(),
             'working_hours' => $this->workingHours() ?? null,
         ];
     }

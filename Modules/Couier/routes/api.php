@@ -2,7 +2,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Couier\Http\Controllers\CourierController;
+use Modules\Couier\Http\Controllers\CouierController;
 use Modules\Couier\Http\Controllers\CourierAuthController;
 use Modules\Couier\Http\Controllers\Admin\ShiftTemplateController;
 use Modules\Couier\Http\Controllers\Admin\CourierShiftController as AdminCourierShiftController;
@@ -34,10 +34,18 @@ Route::prefix('v1')->group(function () {
             Route::patch('/{id}/toggle', [ShiftTemplateController::class, 'toggle']);
         });
 
+        // Courier Shift Template Assignments
+        Route::prefix('couriers/{courierId}/templates')->group(function () {
+            Route::post('/', [AdminCourierShiftController::class, 'assignTemplate']);
+            Route::get('/', [AdminCourierShiftController::class, 'getCourierTemplates']);
+            Route::delete('/{templateId}', [AdminCourierShiftController::class, 'removeTemplate']);
+        });
+
         // Courier Shift Management
         Route::prefix('courier-shifts')->group(function () {
             Route::get('/', [AdminCourierShiftController::class, 'index']);
             Route::post('/', [AdminCourierShiftController::class, 'store']);
+            Route::post('/schedule', [AdminCourierShiftController::class, 'schedule']);
             Route::post('/{id}/close', [AdminCourierShiftController::class, 'close']);
             Route::get('/stats', [AdminCourierShiftController::class, 'stats']);
         });
@@ -54,8 +62,10 @@ Route::prefix('v1')->group(function () {
         // Shift Operations
         Route::prefix('shifts')->group(function () {
             Route::get('/', [CourierShiftController::class, 'index']);
+            Route::get('/schedule', [CourierShiftController::class, 'schedule']);
             Route::post('/start', [CourierShiftController::class, 'start']);
             Route::get('/current', [CourierShiftController::class, 'current']);
+            Route::get('/next', [CourierShiftController::class, 'next']);
             Route::post('/{id}/end', [CourierShiftController::class, 'end']);
             Route::post('/{id}/break/start', [CourierShiftController::class, 'startBreak']);
             Route::post('/{id}/break/end', [CourierShiftController::class, 'endBreak']);

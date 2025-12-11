@@ -44,4 +44,22 @@ class ShiftTemplateRepository extends BaseRepository
 
         return $query->get();
     }
+
+    public function getActiveTemplatesForCourierStore(?int $storeId = null)
+    {
+        $query = $this->model->where('is_active', true)->with('days');
+
+        if ($storeId) {
+            // For couriers, prioritize their store's templates, fallback to general templates
+            $query->where(function ($q) use ($storeId) {
+                $q->where('store_id', $storeId)
+                  ->orWhereNull('store_id');
+            });
+        } else {
+            // If no store provided, only return general templates
+            $query->whereNull('store_id');
+        }
+
+        return $query->get();
+    }
 }

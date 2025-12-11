@@ -117,20 +117,7 @@ class CourierShiftController extends Controller
     }
 
     /**
-     * Get current active shift
-     */
-    public function current(): JsonResponse
-    {
-        $courierId = auth('sanctum')->id();
-        $shift = $this->courierShiftService->getCurrentShift($courierId);
-
-        return $this->successResponse([
-            'shift' => $shift ? new CourierShiftResource($shift) : null
-        ], __('message.success'));
-    }
-
-    /**
-     * Get my statistics
+     * Get personal statistics
      */
     public function stats(Request $request): JsonResponse
     {
@@ -139,6 +126,55 @@ class CourierShiftController extends Controller
 
         return $this->successResponse([
             'stats' => $stats
+        ], __('message.success'));
+    }
+
+    /**
+     * Get courier's assigned shift schedule (templates)
+     */
+    public function schedule(): JsonResponse
+    {
+        $courierId = auth('sanctum')->id();
+
+        try {
+            $courier = \Modules\Couier\Models\Couier::with('activeShiftTemplates')->find($courierId);
+
+            if (!$courier) {
+                return $this->errorResponse(__('Courier not found'), 404);
+            }
+
+            $weeklySchedule = $courier->weekly_schedule;
+            $assignments = $courier->activeShiftTemplates;
+
+            return $this->successResponse([
+                'has_assigned_schedules' => !empty($weeklySchedule),
+                'weekly_schedule' => $weeklySchedule,
+                'assignments' => $assignments->map(function ($assignment) {
+                    return [
+                        'id' => $assignment->id,
+                        'template_name' => $assignment->shiftTemplate->name,
+                        'assigned_at' => $assignment->assigned_at,
+                        'notes' => $assignment->notes,
+                        'is_flexible' => $assignment->shiftTemplate->is_flexible
+                    ];
+                })
+            ], __('Schedule retrieved successfully'));
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get next available shift for login prompt
+     */
+    public function next(): JsonResponse
+    {
+        $courierId = auth('sanctum')->id();
+        $nextShift = $this->courierShiftService->getNextShift($courierId);
+
+        return $this->successResponse([
+            'next_shift' => $nextShift,
+            'has_next_shift' => $nextShift !== null
         ], __('message.success'));
     }
 }
