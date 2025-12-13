@@ -7,6 +7,8 @@ use Modules\Couier\Http\Controllers\CourierAuthController;
 use Modules\Couier\Http\Controllers\Admin\ShiftTemplateController;
 use Modules\Couier\Http\Controllers\Admin\CourierShiftController as AdminCourierShiftController;
 use Modules\Couier\Http\Controllers\CourierShiftController;
+use Modules\Couier\Http\Controllers\CourierMapController;
+use Modules\Couier\Http\Controllers\Admin\OrderManagementController;
 
 Route::prefix('v1')->group(function () {
     // Public Courier Authentication Routes
@@ -70,6 +72,40 @@ Route::prefix('v1')->group(function () {
             Route::post('/{id}/break/start', [CourierShiftController::class, 'startBreak']);
             Route::post('/{id}/break/end', [CourierShiftController::class, 'endBreak']);
             Route::get('/stats', [CourierShiftController::class, 'stats']);
+        });
+
+        // Order Management Routes
+        Route::prefix('orders')->group(function () {
+            // Map View & Location Updates
+            Route::get('/map/active', [CourierMapController::class, 'activeOrdersMap']);
+
+            // Assignment Response
+            Route::post('/assignments/{assignmentId}/respond', [CourierMapController::class, 'respondToAssignment']);
+
+            // Status Updates
+            Route::put('/assignments/{assignmentId}/status', [CourierMapController::class, 'updateOrderStatus']);
+
+            // Order Details
+            Route::get('/assignments/{assignmentId}/details', [CourierMapController::class, 'orderDetails']);
+            Route::get('/assignments/{assignmentId}/full-details', [CourierMapController::class, 'fullOrderDetails'])->name('courier.full-order-details');
+
+            // Receipt Upload & Management
+            Route::post('/assignments/{assignmentId}/upload-receipt', [CourierMapController::class, 'uploadPickupReceipt'])->name('courier.upload-pickup-receipt');
+            Route::post('/assignments/{assignmentId}/upload-delivery-proof', [CourierMapController::class, 'uploadDeliveryProof'])->name('courier.upload-delivery-proof');
+            Route::delete('/assignments/{assignmentId}/receipts/{receiptId}', [CourierMapController::class, 'deleteReceipt'])->name('courier.delete-receipt');
+
+            // Earnings Summary
+            Route::get('/earnings/summary', [CourierMapController::class, 'earningsSummary']);
+        });
+    });
+
+    // Admin Order Management
+    Route::prefix('admin')->middleware(['auth:sanctum', 'ability:admin'])->group(function () {
+        Route::prefix('orders')->group(function () {
+            // Manual assignment and monitoring (to be implemented)
+            Route::post('/assign/nearest', [OrderManagementController::class, 'assignToNearestCourier']);
+            Route::get('/monitoring/dashboard', [OrderManagementController::class, 'monitoringDashboard']);
+            Route::put('/assignments/{id}/reassign', [OrderManagementController::class, 'reassignOrder']);
         });
     });
 });

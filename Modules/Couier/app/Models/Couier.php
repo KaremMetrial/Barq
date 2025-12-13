@@ -121,6 +121,14 @@ class Couier extends Authenticatable
     {
         return $this->activeShiftTemplates()->exists();
     }
+
+    /**
+     * Get courier order assignments
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(\Modules\Couier\Models\CourierOrderAssignment::class);
+    }
     public function conversations(): HasMany
     {
         return $this->hasMany(Conversation::class, 'couier_id');
