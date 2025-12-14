@@ -20,6 +20,7 @@ class SaveOrderStatusHistory
      */
     public function handle(OrderStatusChanged $event): void
     {
+        \Log::info('Order status changed: ' . $event->order->id . ' from ' . $event->oldStatus->value . ' to ' . $event->newStatus->value);
         OrderStatusHistory::create([
             'order_id' => $event->order->id,
             'status' => $event->newStatus->value,

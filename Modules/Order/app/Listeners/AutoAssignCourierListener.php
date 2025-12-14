@@ -17,15 +17,15 @@ use Illuminate\Support\Facades\Log;
  */
 class AutoAssignCourierListener implements ShouldQueue
 {
-    protected SmartOrderAssignmentService $assignmentService;
+    // protected SmartOrderAssignmentService $assignmentService;
     protected RealTimeCourierService $realtimeService;
 
     public function __construct(
-        SmartOrderAssignmentService $assignmentService,
-        RealTimeCourierService $realtimeService
+        // SmartOrderAssignmentService $assignmentService,
+        // RealTimeCourierService $realtimeService
     ) {
-        $this->assignmentService = $assignmentService;
-        $this->realtimeService = $realtimeService;
+        // $this->assignmentService = $assignmentService;
+        // $this->realtimeService = $realtimeService;
     }
 
     /**
@@ -92,19 +92,25 @@ class AutoAssignCourierListener implements ShouldQueue
      */
     private function processAutoAssignment(OrderStatusChanged $event): void
     {
+        \Log::info('Processing auto-assignment for order: ' . $event->order->id);
         try {
             $orderData = $this->prepareOrderDataForAssignment($event->order);
+            \Log::info('Order data prepared for assignment: ' . json_encode($orderData));
 
             // Attempt automatic assignment with 2-minute timeout
             $assignment = $this->assignmentService->autoAssignOrder($orderData, 120);
+            \Log::info('Assignment result: ' . json_encode($assignment));
 
             if ($assignment) {
                 $this->handleSuccessfulAssignment($event->order, $assignment);
+                \Log::info('Assignment successful for order: ' . $event->order->id);
             } else {
                 $this->handleAssignmentFailure($event->order);
+                \Log::info('Assignment failed for order: ' . $event->order->id);
             }
 
         } catch (\Exception $e) {
+            \Log::error('Assignment failed for order: ' . $event->order->id . ' - ' . $e->getMessage());
             $this->handleAssignmentError($event->order, $e);
         }
     }

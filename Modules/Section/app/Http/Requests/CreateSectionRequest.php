@@ -13,7 +13,7 @@ class CreateSectionRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'icon' => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg,webp', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
@@ -22,8 +22,15 @@ class CreateSectionRequest extends FormRequest
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', Rule::exists('categories', 'id')],
             'countries' => ['required', 'array'],
-            'countries.*' => ['integer', Rule::exists('countries', 'id')],
+            'countries.*' => ['integer', Rule::exists('categories', 'id')],
         ];
+
+        // Make categories required if type is not delivery_company
+        if ($this->type && $this->type !== SectionTypeEnum::DELIVERY_COMPANY->value) {
+            $rules['categories'] = ['required', 'array'];
+        }
+
+        return $rules;
     }
 
     /**

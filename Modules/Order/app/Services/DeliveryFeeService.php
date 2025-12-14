@@ -115,16 +115,22 @@ class DeliveryFeeService
      */
     public function canDeliverTo(Store $store, int $addressId): bool
     {
+        \Log::info("From DeliveryFeeService canDeliverTo - " . $addressId);
         $address = Address::find($addressId);
-        if (!$address || !$address->zone_id) {
+        \Log::info("From DeliveryFeeService canDeliverTo Find - " . $address);
+        if (!$address || !$address->zone_id) {  
+            \Log::info("From DeliveryFeeService canDeliverTo False - " . $address);
             return false;
         }
 
         // Check if any shipping prices are configured in the system
         if (!ShippingPrice::exists()) {
+            \Log::info("From DeliveryFeeService canDeliverTo False - " . $address);
             return false;
         }
 
+        \Log::info("From DeliveryFeeService canDeliverTo True - " . $address);
+        \Log::info("Check if store covers this zone through zoneToCover relationship - " . $store->zoneToCover()->where('zones.id', $address->zone_id)->exists());
         // Check if store covers this zone through zoneToCover relationship
         return $store->zoneToCover()->where('zones.id', $address->zone_id)->exists();
     }

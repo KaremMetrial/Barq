@@ -20,7 +20,7 @@ class CourierMapController extends Controller
     use ApiResponse;
 
     public function __construct(
-        protected SmartOrderAssignmentService $assignmentService,
+        // protected SmartOrderAssignmentService $assignmentService,
         protected GeographicCourierService $geographicService,
         protected OrderReceiptService $receiptService
     ) {}
@@ -41,15 +41,15 @@ class CourierMapController extends Controller
 
         try {
             // Update courier location
-            $this->assignmentService->updateCourierLocation(
-                $courierId,
-                $request->current_lat,
-                $request->current_lng
-            );
+            // $this->assignmentService->updateCourierLocation(
+            //     $courierId,
+            //     $request->current_lat,
+            //     $request->current_lng
+            // );
 
             // Get courier's active assignments
-            $activeAssignments = $this->assignmentService
-                ->getCourierActiveAssignments($courierId);
+            // $activeAssignments = $this->assignmentService
+            //     ->getCourierActiveAssignments($courierId);
 
             // Find nearby pending assignments (that could be assigned to this courier)
             $nearbyPendingOrders = $this->findNearbyPendingOrders(
@@ -60,10 +60,10 @@ class CourierMapController extends Controller
             );
 
             // Prepare map markers
-            $markers = $this->prepareMapMarkers($activeAssignments, $nearbyPendingOrders);
+            // $markers = $this->prepareMapMarkers($activeAssignments, $nearbyPendingOrders);
 
             // Get status summary
-            $statusSummary = $this->getCourierStatusSummary($courierId, $activeAssignments);
+            // $statusSummary = $this->getCourierStatusSummary($courierId, $activeAssignments);
 
             return $this->successResponse([
                 'map_view' => [
@@ -72,9 +72,9 @@ class CourierMapController extends Controller
                         'lng' => $request->current_lng,
                     ],
                     'zoom' => $this->calculateOptimalZoom($radius),
-                    'markers' => $markers,
+                    // 'markers' => $markers,
                 ],
-                'status_summary' => $statusSummary,
+                // 'status_summary' => $statusSummary,
                 'last_location_update' => now()->toISOString(),
             ], __('Map data retrieved successfully'));
 
@@ -97,24 +97,24 @@ class CourierMapController extends Controller
 
         try {
             if ($request->action === 'accept') {
-                $success = $this->assignmentService->acceptAssignment($assignmentId, $courierId);
-                $message = $success ? __('Order accepted successfully') : __('Failed to accept order');
+                // $success = $this->assignmentService->acceptAssignment($assignmentId, $courierId);
+                // $message = $success ? __('Order accepted successfully') : __('Failed to accept order');
             } else {
                 if (!$request->filled('reason')) {
                     return $this->errorResponse(__('Reason is required for rejection'), 422);
                 }
 
-                $success = $this->assignmentService->rejectAssignment($assignmentId, $courierId, $request->reason);
-                $message = $success ? __('Order rejected') : __('Failed to reject order');
+                // $success = $this->assignmentService->rejectAssignment($assignmentId, $courierId, $request->reason);
+                // $message = $success ? __('Order rejected') : __('Failed to reject order');
             }
 
-            $statusCode = $success ? 200 : 400;
+            // $statusCode = $success ? 200 : 400;
 
-            return $this->successResponse([
-                'assignment_id' => $assignmentId,
-                'action' => $request->action,
-                'success' => $success,
-            ], $message, $statusCode);
+            // return $this->successResponse([
+            //     'assignment_id' => $assignmentId,
+            //     'action' => $request->action,
+            //     // 'success' => $success,
+            // ], $message, $statusCode);
 
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);

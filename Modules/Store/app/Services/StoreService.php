@@ -17,6 +17,7 @@ use Modules\Order\Models\Order;
 use Modules\Couier\Models\Couier;
 use Modules\Address\Services\AddressService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class StoreService
 {
@@ -95,6 +96,7 @@ class StoreService
 
             // Sync zones to cover if provided
             if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
+                $data['zones_to_cover'] = array_filter($data['zones_to_cover'], fn($value) => !blank($value));
                 $store->zoneToCover()->sync($data['zones_to_cover']);
             }
 
@@ -115,7 +117,42 @@ class StoreService
 
     public function deleteStore(int $id): bool
     {
-        return $this->StoreRepository->delete($id);
+        return DB::transaction(function () use ($id) {
+            $store = $this->StoreRepository->find($id);
+
+            if (!$store) {
+                return false;
+            }
+
+            // Delete related entities in a specific order to handle foreign key constraints
+            // 1. Delete many-to-many relationships first
+            $store->coupons()->detach();
+            $store->zoneToCover()->detach();
+
+            // 2. Delete has-many relationships
+            $store->products()->delete();
+            $store->orders()->delete();
+            $store->workingDays()->delete();
+            $store->couriers()->delete();
+            $store->reports()->delete();
+            $store->posTerminals()->delete();
+            $store->addOns()->delete();
+            $store->categories()->delete();
+            $store->branches()->delete();
+            $store->CompaignParicipations()->delete();
+
+            // 3. Delete morph-many relationships
+            $store->favourites()->delete();
+            $store->reviews()->delete();
+
+            // 4. Delete has-one relationships
+            $store->storeSetting()->delete();
+            $store->address()->delete();
+            $store->balance()->delete();
+
+            // 5. Finally delete the store itself
+            return $this->StoreRepository->delete($id);
+        });
     }
     public function getHomeStores(array $filters = []): array
     {
@@ -219,11 +256,11 @@ class StoreService
             $store->address()->create($data['address']);
             if ($data['store']['type'] != 'delivery') {
                 $store->storeSetting()->create([
-                    'orders_enabled' => $data['store']['orders_enabled'] ?? false,
-                    'delivery_service_enabled' => $data['storeSetting']['delivery_service_enabled'] ?? false,
+                    'orders_enabled' => $data['store']['orders_enabled'] ?? true,
+                    'delivery_service_enabled' => $data['storeSetting']['delivery_service_enabled'] ?? true,
                     'external_pickup_enabled' => $data['store']['external_pickup_enabled'] ?? false,
                     'product_classification' => $data['store']['product_classification'] ?? false,
-                    'self_delivery_enabled' => $data['store']['self_delivery_enabled'] ?? false,
+                    'self_delivery_enabled' => $data['store']['self_delivery_enabled'] ?? true,
                     'free_delivery_enabled' => $data['store']['free_delivery_enabled'] ?? false,
                     'minimum_order_amount' => $data['store']['minimum_order_amount'] ?? 0,
                     'delivery_time_min' => $data['store']['delivery_time_min'] ?? 0,

@@ -72,17 +72,25 @@ class CartController extends Controller
         $statusMessage = null;
         if ($addressId) {
             $address = $this->addressService->getAddressById($addressId);
+            \Log::info("address - " . $address);
             $canDeliver = $cart->store->canDeliverTo($addressId);
+            \Log::info("canDeliver - " . $canDeliver);
+
             $isOpen = $cart->store->isOpenNow();
+            \Log::info("isOpen - " . $isOpen);
             $productsAvailable = $cart->items->every(function ($item) {
                 return $item->product && $item->product->status === \App\Enums\ProductStatusEnum::ACTIVE;
             });
+            \Log::info("productsAvailable - " . $productsAvailable);
 
             if (!$canDeliver) {
+                \Log::info("canDeliver - " . $canDeliver);
                 $statusMessage = __("message.store_cannot_deliver_to_address");
             } elseif (!$isOpen) {
+                \Log::info("isOpen - " . $isOpen);
                 $statusMessage = __("message.store_is_closed");
             } elseif (!$productsAvailable) {
+                \Log::info("productsAvailable - " . $productsAvailable);
                 $statusMessage = __("message.some_products_unavailable");
             }
         }

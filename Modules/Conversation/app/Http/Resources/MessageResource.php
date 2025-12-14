@@ -9,14 +9,17 @@ class MessageResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $message = $this->resource->toArray();
+
         return [
-            'id'             => $this->id,
-            'content'        => $this->content,
-            'type'           => $this->type,
-            'sender_id'      => $this->messageable_id,
-            'sender_type'    => $this->messageable_type,
-            'conversation_id'=> $this->conversation_id,
-            'created_at'     => $this->created_at->format('Y-m-d H:i:s'),
+            'id'             => $message['id'],
+            'content'        => $message['content'],
+            'type'           => $message['type'],
+            'sender_id'      => $message['messageable_id'],
+            'sender_type'    => $message['messageable_type'],
+            'conversation_id'=> $message['conversation_id'],
+            'created_at'     => $message['created_at'],
         ];
+
     }
 }

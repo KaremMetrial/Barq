@@ -95,6 +95,7 @@ class OrderResource extends JsonResource
                     'name' => $this->user->first_name . ' ' . $this->user->last_name,
                     'phone' => $this->user->phone,
                     'email' => $this->user->email,
+                    'address' => $this->deliveryAddress ? $this->deliveryAddress->getFullAddressAttribute() : null,
                 ];
             }),
 

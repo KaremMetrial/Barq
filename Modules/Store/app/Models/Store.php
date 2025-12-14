@@ -295,6 +295,7 @@ class Store extends Model implements TranslatableContract
      */
     public function canDeliverTo(int $addressId): bool
     {
+        \Log::info("From Store canDeliverTo - " . $addressId);
         $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
         return $deliveryFeeService->canDeliverTo($this, $addressId);
     }
@@ -420,7 +421,7 @@ class Store extends Model implements TranslatableContract
                 $store->active_status = "close";
             }
             if ($store->isDirty('is_closed') && !$store->is_closed) {
-                $store->active_status = "open";
+                $store->active_status = "free";
             }
             if ($store->isDirty('active_status')) {
                 $store->is_closed = $store->active_status === "close";

@@ -10,6 +10,9 @@ use Modules\Conversation\Http\Resources\ConversationResource;
 use Modules\Conversation\Http\Requests\CreateConversationRequest;
 use Modules\Conversation\Http\Requests\UpdateConversationRequest;
 use App\Http\Resources\PaginationResource;
+use Modules\Conversation\Http\Resources\MessageResource;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class ConversationController extends Controller
 {
@@ -33,8 +36,35 @@ class ConversationController extends Controller
         $perPage = $request->get('per_page', 15);
         $conversations = $this->conversationService->getConversationsByGuard($userId, $guard, $perPage);
 
+        // Get messages for each conversation if requested
+        $conversationsWithMessages = $conversations->map(function ($conversation) use ($request) {
+            $conversationData = new ConversationResource($conversation);
+
+            // Only load messages if specifically requested via include_messages parameter
+            // or if it's a paginated request (page parameter exists)
+            if ($request->has('include_messages') || $request->has('page')) {
+                $messagesQuery = $conversation->messages()->orderBy('created_at', 'asc');
+                $totalMessages = $messagesQuery->count();
+
+                // Get messages with pagination
+                $messagesPerPage = $request->get('messages_per_page', 15);
+                $currentPage = $request->get('page', 1);
+
+                $messages = $messagesQuery->paginate($messagesPerPage, ['*'], 'page', $currentPage);
+
+                $conversationData->additional([
+                    'messages' => [
+                        'data' => MessageResource::collection($messages),
+                        'pagination' => new PaginationResource($messages),
+                    ]
+                ]);
+            }
+
+            return $conversationData;
+        });
+
         return $this->successResponse([
-            'conversations' => ConversationResource::collection($conversations),
+            'conversations' => $conversationsWithMessages,
             'pagination' => new PaginationResource($conversations),
         ], __('message.success'));
     }
@@ -55,9 +85,41 @@ class ConversationController extends Controller
             $existingConversation = $this->conversationService->getConversationsByGuard($userId, $guard, 1)->first();
 
             if ($existingConversation && is_null($existingConversation->end_time)) {
-                // Return the existing active conversation
-                return $this->successResponse([
+            $messagesQuery = $existingConversation->messages()->orderBy('created_at', 'asc');
+            
+            // Get the total count of messages in the conversation
+            $totalMessages = $messagesQuery->count();
+            
+            // Pagination parameters
+            $perPage = $request->get('per_page', 15);
+
+            // Check if user wants a specific page or default to last page
+            if ($request->has('page')) {
+                // User specified a page, use standard pagination
+                $page = $request->get('page', 1);
+                $messages = $messagesQuery->paginate($perPage, ['*'], 'page', $page);
+            } else {
+                // Default behavior: show last page (most recent messages)
+                $lastPage = ceil($totalMessages / $perPage);
+                $skip = max(0, $totalMessages - $perPage);
+                $messages = $messagesQuery->skip($skip)->take($perPage)->get();
+
+                // Create a manual paginator to maintain the response structure
+                $messages = new LengthAwarePaginator(
+                    $messages,
+                    $totalMessages,
+                    $perPage,
+                    $lastPage,
+                    ['path' => Paginator::resolveCurrentPath()]
+                );
+            }
+
+            return $this->successResponse([
                     'conversation' => new ConversationResource($existingConversation),
+                    'messages' => [
+                        'data' => MessageResource::collection($messages),
+                        'pagination' => new PaginationResource($messages),
+                    ],
                 ], __('message.success'));
             }
         }
@@ -67,10 +129,11 @@ class ConversationController extends Controller
 
         return $this->successResponse([
             'conversation' => new ConversationResource($conversation),
+            'messages' => null
         ], __('message.success'));
     }
 
-    public function show($id)
+    public function show($id, Request $request)
     {
         $guard = $this->getAuthenticatedGuard();
 
@@ -84,8 +147,39 @@ class ConversationController extends Controller
             }
         }
 
+        $messagesQuery = $conversation->messages()->orderBy('created_at', 'asc');
+        $totalMessages = $messagesQuery->count();
+
+        // Pagination parameters
+        $perPage = $request->get('per_page', 15);
+
+        // Check if user wants a specific page or default to last page
+        if ($request->has('page')) {
+            // User specified a page, use standard pagination
+            $page = $request->get('page', 1);
+            $messages = $messagesQuery->paginate($perPage, ['*'], 'page', $page);
+        } else {
+            // Default behavior: show last page (most recent messages)
+            $lastPage = ceil($totalMessages / $perPage);
+            $skip = max(0, $totalMessages - $perPage);
+            $messages = $messagesQuery->skip($skip)->take($perPage)->get();
+
+            // Create a manual paginator to maintain the response structure
+            $messages = new LengthAwarePaginator(
+                $messages,
+                $totalMessages,
+                $perPage,
+                $lastPage,
+                ['path' => Paginator::resolveCurrentPath()]
+            );
+        }
+
         return $this->successResponse([
             'conversation' => new ConversationResource($conversation),
+            'messages' => [
+                'data' => MessageResource::collection($messages),
+                'pagination' => new PaginationResource($messages),
+            ],
         ], __('message.success'));
     }
 

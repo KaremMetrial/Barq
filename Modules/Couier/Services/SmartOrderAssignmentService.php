@@ -138,6 +138,7 @@ class SmartOrderAssignmentService
             $assignment->save();
 
             // Notify relevant parties
+            \Log::info('Assignment accepted for order: ' . $assignment->order_id . ' - ' . $courierId);
             $this->realtimeService->notifyOrderStatusChanged(
                 $assignment->order_id,
                 'accepted',
@@ -145,12 +146,13 @@ class SmartOrderAssignmentService
             );
 
             // Cancel notification for other couriers
+            \Log::info('Assignment accepted for order: ' . $assignment->order_id . ' - ' . $courierId);
             $this->realtimeService->notifyOrderStatusChanged(
                 $assignment->order_id,
                 'assignment_finalized',
                 ['accepted_courier_id' => $courierId]
             );
-
+            \Log::info('Assignment finalized for order: ' . $assignment->order_id . ' - ' . $courierId);
             DB::commit();
             return true;
 
@@ -284,7 +286,7 @@ class SmartOrderAssignmentService
             }
 
             $assignment->update($updateData);
-
+            \Log::info('Assignment status updated for order: ' . $assignment->order_id . ' - ' . $newStatus);
             // Real-time notification
             $this->realtimeService->notifyOrderStatusChanged(
                 $assignment->order_id,

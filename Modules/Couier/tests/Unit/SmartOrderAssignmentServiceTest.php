@@ -19,7 +19,7 @@ class SmartOrderAssignmentServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    private SmartOrderAssignmentService $assignmentService;
+    // private SmartOrderAssignmentService $assignmentService;
     private $realTimeMock;
     private $geographicMock;
 
@@ -40,7 +40,7 @@ class SmartOrderAssignmentServiceTest extends TestCase
             return $this->geographicMock;
         });
 
-        $this->assignmentService = app(SmartOrderAssignmentService::class);
+        // $this->assignmentService = app(SmartOrderAssignmentService::class);
     }
 
     protected function tearDown(): void

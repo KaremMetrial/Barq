@@ -203,7 +203,7 @@ class ProductService
                 'option_id' => $option['option_id'],
                 'min_select' => $option['min_select'] ?? 0,
                 'max_select' => $option['max_select'] ?? 1,
-                'is_required' => $option['is_required'] ?? false,
+                'is_required' => $option['is_required'] ?? true,
                 'sort_order' => $option['sort_order'] ?? 1,
             ]);
 

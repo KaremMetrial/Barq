@@ -102,11 +102,11 @@ class PusherService
                 config('broadcasting.connections.pusher.options')
             );
 
-            $auth = $pusher->socket_auth($channelName, $socketId, [
+            $auth = $pusher->socket_auth($channelName, $socketId, json_encode([
                 'user_id' => $userId,
                 'user_type' => $userType,
                 'time' => time()
-            ]);
+            ]));
 
             return json_decode($auth, true);
         } catch (\Exception $e) {
