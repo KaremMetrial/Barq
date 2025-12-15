@@ -73,6 +73,11 @@ trait FileUploadTrait
         // Resize the image
         $resizedImage = imagescale($image, $width, $height);
 
+        // Convert palette images to true color format (required for WebP)
+        if (!imageistruecolor($resizedImage)) {
+            imagepalettetotruecolor($resizedImage);
+        }
+
         // Convert the resized image to WebP format
         ob_start();
         imagewebp($resizedImage, null, 80); // 80 is the quality of the WebP (scale 0-100)
@@ -95,6 +100,11 @@ trait FileUploadTrait
     private function convertToWebP($file)
     {
         $image = imagecreatefromstring(file_get_contents($file));
+
+        // Convert palette images to true color format (required for WebP)
+        if (!imageistruecolor($image)) {
+            imagepalettetotruecolor($image);
+        }
 
         // Convert the image to WebP format
         ob_start();

@@ -171,6 +171,10 @@ class Product extends Model implements TranslatableContract
             $query->where('weight', $filters['weight']);
         }
 
+        if(isset($filters['status'])){
+            $query->where('status', $filters['status']);
+        }
+        
         if ($admin) {
             return $query->latest();
         }

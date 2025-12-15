@@ -36,6 +36,7 @@ class CartResource extends JsonResource
         }
 
         $tax = $store ? $store->getTaxAmount() : 0;
+        $serviceFeePercentage = $store ? $store->getServiceFeePercentage() : 0;
         return [
             "id" => $this->id,
             "cart_quantity" => $this->items->sum('quantity'),
@@ -71,6 +72,7 @@ class CartResource extends JsonResource
                 'subtotal' => $subtotal,
                 'delivery_fee' => $deliveryFee,
                 'tax' => $tax,
+                'service_fee' => $serviceFeePercentage,
                 'symbol_currency' => $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'
             ],
         ];

@@ -87,7 +87,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($request->is('api/*') || $request->is('admin/*')) {
                     return response()->json([
                         'success' => (bool)false,
-                        'message' => __('message.unauthorized_access'),
+                        'message' => "Unauthorized access.",
                         'data' => env('APP_DEBUG') ? $e->getMessage() : null,
                     ], 401);
                 }

@@ -59,7 +59,7 @@ class ProductResource extends JsonResource
                     "delivery_time_min" => $dynamicDeliveryTimes['min'],
                     "delivery_time_max" => $dynamicDeliveryTimes['max'],
                     "delivery_type_unit" => $deliveryTypeUnit->value,
-                    "is_open" => $this->store->is_open,
+                    "is_open" => $this->store->isOpenNow(),
                 ];
             }),
             "category"   => $this->whenLoaded('category', function () {
@@ -106,7 +106,7 @@ class ProductResource extends JsonResource
                         'has_stock_limit' =>     null,
                         'stock_limit' => null,
                         'ends_in' => null,
-                        'sale_price' => number_format($originalPrice, 0),
+                        'sale_price' => $this->price->sale_price ? number_format($this->price->sale_price, 0) : null,
                         'banner_text' => null,
                     ];
                 }

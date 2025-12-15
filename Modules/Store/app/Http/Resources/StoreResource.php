@@ -48,7 +48,7 @@ class StoreResource extends JsonResource
                 return $this->getActiveOffers();
             }),
             "banner_text" => $this->getBannerText(),
-            "is_open" => $this->is_open,
+            "is_open" => $this->isOpenNow(),
             // "cart_count" => $this->getCartCount()
             // "cart_total_price" => $this->getCartTotalPrice(),
             // "cart_item_count" => $this->getCartItemCount()
@@ -128,8 +128,7 @@ class StoreResource extends JsonResource
         }
 
         return $this->categories
-            ->pluck('translations.*.name')
-            ->flatten()
+            ->pluck('name')
             ->filter()
             ->unique()
             ->implode(', ');

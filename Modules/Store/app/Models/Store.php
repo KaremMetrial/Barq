@@ -164,15 +164,27 @@ class Store extends Model implements TranslatableContract
         }
 
         if (!empty($filters['category_id']) && $filters['category_id'] != 0) {
-            $query->whereHas('categories', function ($query) use ($filters) {
+            $query->whereHas('products.category', function ($query) use ($filters) {
                 $query->where('id', $filters['category_id']);
             });
         }
 
-        if (!empty($filters['has_offer']) && $filters['has_offer'] == 'true') {
-            $query->whereHas('offers', function ($query) {
-                $query->where('is_active', true);
+        if (!empty($filters['has_offer']) && ($filters['has_offer'] == 'true' || $filters['has_offer'] == 1 || $filters['has_offer'] === true)) {
+            $query->whereHas('products', function ($query) {
+                $query->whereHas('offers', function ($query) {
+                    $query->where('is_active', true)
+                          ->whereDate('start_date', '<=', now()->toDateString())
+                          ->whereDate('end_date', '>=', now()->toDateString());
+                });
             });
+        }
+
+        if(!empty($filters['is_active']) && $filters['is_active'] == 'true'){
+            $query->where('is_active', true);
+        }
+
+        if(!empty($filters['is_active']) && $filters['is_active'] == 'false'){
+            $query->where('is_active', false);
         }
 
         if (!empty($filters['sort_by'])) {
@@ -252,6 +264,7 @@ class Store extends Model implements TranslatableContract
                 }
             }
             $query->where('status', StoreStatusEnum::APPROVED)
+              ->whereHas('products')
                 ->where('is_active', true)
                 ->where('type', '!=', 'delivery');
         }
@@ -350,6 +363,11 @@ class Store extends Model implements TranslatableContract
     {
         return $this->storeSetting->tax_rate ?? 0.0;
     }
+    public function getServiceFeePercentage(): float
+    {
+        return $this->storeSetting->service_fee_percentage ?? 0.0;
+    }
+
     public function getAddressPlaceAttribute(): ?string
     {
         return $this->address ? $this->address->getFullAddressAttribute() : null;

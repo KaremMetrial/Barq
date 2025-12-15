@@ -116,10 +116,7 @@ class ConversationController extends Controller
 
             return $this->successResponse([
                     'conversation' => new ConversationResource($existingConversation),
-                    'messages' => [
-                        'data' => MessageResource::collection($messages),
-                        'pagination' => new PaginationResource($messages),
-                    ],
+                    'messages' => null
                 ], __('message.success'));
             }
         }

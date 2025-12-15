@@ -122,7 +122,10 @@ class CartService
         return DB::transaction(function () use ($key, $data) {
             $cart = $this->getCartByCartKey($key);
             if (!$cart) {
-                $cart = $this->getCartByCartKey(request()->header('Cart-Key') ?? request('cart_key'));
+                $requestCartKey = request()->header('Cart-Key') ?? request('cart_key');
+                if ($requestCartKey != null) {
+                    $cart = $this->getCartByCartKey($requestCartKey);
+                }
             }
             if (!$cart) {
                 return null;
