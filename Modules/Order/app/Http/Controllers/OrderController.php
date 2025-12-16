@@ -36,7 +36,7 @@ class OrderController extends Controller
         $finishedOrders = $this->orderService->getFinishedOrders($userId, $filter);
 
         return $this->successResponse([
-            'current_order' => $currentOrder ? new OrderResource($currentOrder) : null,
+            'current_orders' => $currentOrder ? OrderResource::collection($currentOrder) : null,
             'finished_orders' => OrderResource::collection($finishedOrders),
             'pagination' => new PaginationResource($finishedOrders),
         ], __('message.success'));

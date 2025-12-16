@@ -47,7 +47,7 @@ class ZoneController extends Controller
     {
         $zone = $this->zoneService->getZoneById($id);
         return $this->successResponse([
-            "zone" => new ZoneResource($zone),
+            "zone" => new ZoneResource($zone->load('city.governorate.country')),
         ], __("message.success"));
     }
 

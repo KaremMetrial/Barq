@@ -80,4 +80,8 @@ class ReviewService
     {
         return $this->reviewRepository->delete($id);
     }
+    public function getReviewForStore(int $storeId, array $filters = []): LengthAwarePaginator
+    {
+        return $this->reviewRepository->getReviewForStore($storeId, $filters);
+    }
 }

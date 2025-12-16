@@ -30,6 +30,7 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             ->with($relations)
             ->filter($filters)
             ->whereIsFeatured(true)
+            ->whereHas('products')
             ->latest()
             ->limit(5)
             ->get();
@@ -37,6 +38,7 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
         $topReviews = $this->model
             ->with($relations)
             ->filter($filters)
+            ->whereHas('products')
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
             ->orderByDesc('reviews_count')
@@ -47,6 +49,7 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
         $newStore = $this->model
             ->with($relations)
             ->filter($filters)
+            ->whereHas('products')
             ->latest()
             ->limit(5)
             ->get();

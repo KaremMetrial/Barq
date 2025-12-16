@@ -46,7 +46,7 @@ class CityController extends Controller
     {
         $city = $this->cityService->getCityById($id);
         return $this->successResponse([
-            "city" => new CityResource($city),
+            "city" => new CityResource($city->load('governorate')),
         ], __("message.success"));
     }
 
@@ -57,7 +57,7 @@ class CityController extends Controller
     {
         $city = $this->cityService->updateCity($id, $request->all());
         return $this->successResponse([
-            "city" => new CityResource($city),
+            "city" => new CityResource($city->load('governorate')),
         ], __("message.success"));
     }
 

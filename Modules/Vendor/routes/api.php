@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Vendor\Http\Controllers\VendorController;
 use Modules\Vendor\Http\Controllers\Admin\VendorController as AdminVendorController;
+use Modules\Vendor\Http\Controllers\Vendor\VendorReportController;
 
 Route::prefix('v1')->group(function () {
     Route::apiResource('vendors', VendorController::class)->names('vendor');
@@ -16,6 +17,11 @@ Route::prefix('v1')->group(function () {
 
             Route::get('profile', 'profile');
         });
+    });
+
+    // Vendor Report Endpoints
+    Route::prefix('vendor')->middleware('auth:vendor')->group(function () {
+        Route::get('reports', [VendorReportController::class, 'getVendorReports']);
     });
 
     Route::prefix('admin')->name('admin')->group(function () {

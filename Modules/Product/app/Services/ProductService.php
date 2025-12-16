@@ -172,7 +172,16 @@ class ProductService
     private function syncPrice(Product $product, array $price): void
     {
         if (!empty($price)) {
-            $product->price()->updateOrCreate([], $price);
+            // Get currency information from the store (cached)
+            $currencyInfo = \App\Helpers\CurrencyHelper::getCurrencyInfoFromStore($product->store);
+
+            // Add currency information to price data
+            $priceData = array_merge($price, [
+                'currency_code' => $currencyInfo['currency_code'],
+                'currency_symbol' => $currencyInfo['currency_symbol'],
+            ]);
+
+            $product->price()->updateOrCreate([], $priceData);
         }
     }
 
@@ -270,6 +279,7 @@ class ProductService
         $perPage = Arr::get($filters, 'per_page', 15);
         $storeId = Arr::get($filters, 'store_id');
         $page = Arr::get($filters, 'page', 1);
+        $categoryId = Arr::get($filters, 'category_id');
 
         $sectionId = $filters['section_id'] ?? 0;
         if (array_key_exists('section_id', $filters) && (int)$filters['section_id'] == 0) {
@@ -296,6 +306,7 @@ class ProductService
             ->whereHas('offers', $offerConstraint)
             ->when($storeId, fn($q) => $q->where('store_id', $storeId))
             ->when($sectionId, fn($q) => $q->whereHas('store', fn($q2) => $q2->where('section_id', $sectionId)))
+            ->when($categoryId && $categoryId != 0, fn($q) => $q->where('category_id', $categoryId))
             ->where('is_active', true)
             ->where('status', ProductStatusEnum::ACTIVE->value)
             ->orderByRaw('(

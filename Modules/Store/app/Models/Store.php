@@ -59,7 +59,9 @@ class Store extends Model implements TranslatableContract
         'active_status',
         'commission_type',
         'commission_amount',
-        'type'
+        'type',
+        'currency_code',
+        'currency_symbol'
     ];
     protected $casts = [
         'is_featured' => 'boolean',

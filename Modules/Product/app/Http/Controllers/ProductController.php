@@ -66,7 +66,7 @@ class ProductController extends Controller
     }
     public function getOffersEndingSoon(Request $request): JsonResponse
     {
-        $filters = $request->only(['days', 'store_id', 'per_page', 'page', 'section_id']);
+        $filters = $request->only(['days', 'store_id', 'per_page', 'page', 'section_id', 'category_id']);
         $result = $this->productService->getProductsWithOffersEndingSoon($filters);
 
         return $this->successResponse([

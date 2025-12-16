@@ -46,7 +46,7 @@ class GovernorateController extends Controller
     {
         $governorate = $this->governorateService->getGovernorateById($id);
         return $this->successResponse([
-            "governorate"=> new GovernorateResource($governorate),
+            "governorate"=> new GovernorateResource($governorate->load('country')),
         ], __("message.success"));
     }
 
@@ -57,7 +57,7 @@ class GovernorateController extends Controller
     {
         $governorate = $this->governorateService->updateGovernorate($id, $request->all());
         return $this->successResponse([
-            "governorate"=> new GovernorateResource($governorate),
+            "governorate"=> new GovernorateResource($governorate->load('country')),
         ], __("message.success"));
     }
 

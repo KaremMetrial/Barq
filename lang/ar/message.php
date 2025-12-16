@@ -45,4 +45,5 @@ return [
     'store_cannot_deliver_to_address' => 'المتجر لا يمكنه التوصيل إلى هذا العنوان.',
     'store_is_closed' => 'المتجر مغلق حالياً.',
     'some_products_unavailable' => 'بعض المنتجات في السلة غير متاحة.',
+    'some_products_out_of_stock' => 'بعض المنتجات في السلة غير متاحة.',
 ];

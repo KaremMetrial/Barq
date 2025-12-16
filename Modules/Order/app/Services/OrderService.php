@@ -61,13 +61,13 @@ class OrderService
     /**
      * Get the current (latest active) order for a user
      */
-    public function getCurrentOrder(int $userId): ?Order
+    public function getCurrentOrder(int $userId)
     {
         return Order::where('user_id', $userId)
             ->whereNotIn('status', ['delivered', 'cancelled'])
             ->with(['items.product', 'items.addOns', 'store', 'user', 'courier', 'deliveryAddress', 'statusHistories'])
             ->latest()
-            ->first();
+            ->get();
     }
 
     /**

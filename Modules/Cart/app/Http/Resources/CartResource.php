@@ -35,8 +35,14 @@ class CartResource extends JsonResource
             $deliveryFee = $this->getDeliveryFeeForDisplay($deliveryAddressId);
         }
 
-        $tax = $store ? $store->getTaxAmount() : 0;
+        $taxRate = $store ? $store->getTaxAmount() : 0;
         $serviceFeePercentage = $store ? $store->getServiceFeePercentage() : 0;
+
+        // Calculate actual amounts like in OrderResource
+        $taxAmount = $subtotal * ($taxRate / 100);
+        $serviceFeeAmount = $subtotal * ($serviceFeePercentage / 100);
+
+        
         return [
             "id" => $this->id,
             "cart_quantity" => $this->items->sum('quantity'),
@@ -69,10 +75,10 @@ class CartResource extends JsonResource
             }, []),
             "items" => CartItemResource::collection($this->whenLoaded('items')),
             'price_summary' => [
-                'subtotal' => $subtotal,
-                'delivery_fee' => $deliveryFee,
-                'tax' => $tax,
-                'service_fee' => $serviceFeePercentage,
+                'subtotal' => (float) \App\Helpers\CurrencyHelper::formatPrice($subtotal, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
+                'delivery_fee' => (float) \App\Helpers\CurrencyHelper::formatPrice($deliveryFee, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
+                'tax' => (float) \App\Helpers\CurrencyHelper::formatPrice($taxAmount, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
+                'service_fee' => (float) \App\Helpers\CurrencyHelper::formatPrice($serviceFeeAmount, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
                 'symbol_currency' => $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'
             ],
         ];

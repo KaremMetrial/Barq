@@ -13,6 +13,8 @@ class ProductPrice extends Model
         'purchase_price',
         'product_id',
         'sale_price',
+        'currency_code',
+        'currency_symbol',
     ];
     public function product(): BelongsTo
     {

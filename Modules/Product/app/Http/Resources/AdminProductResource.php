@@ -127,9 +127,10 @@ class AdminProductResource extends JsonResource
                         $this->calculateSalePrice(
                             $originalPrice,
                             $offer->discount_amount,
-                            $offer->discount_type->value
+                            $offer->discount_type->value,
+                            $this->price->currency_code ?? 'EGP'
                         ),
-                        0
+                        \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($this->price->currency_code ?? 'EGP')
                     ),
                     'banner_text' => $this->getBannerTextFromOffer($offer),
                 ];

@@ -7,6 +7,7 @@ use Laravel\Sanctum\Sanctum;
 use Modules\User\Models\User;
 use App\Enums\ProductStatusEnum;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Modules\Tag\Http\Resources\TagResource;
 use Modules\Unit\Http\Resources\UnitResource;
 use Modules\AddOn\Http\Resources\AddOnResource;
@@ -40,7 +41,11 @@ class ProductResource extends JsonResource
             "barcode" => $this->barcode,
             "images" => ProductImageResource::collection($this->whenLoaded("images")),
             "price" => $this->whenLoaded('price', function () {
-                return number_format($this->price->price, 0);
+                $price = (float) $this->price->price;
+                $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
+                $currencySymbol = $this->price->currency_symbol ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'ج.م');
+
+                return \App\Helpers\CurrencyHelper::formatPrice($price, $currencyCode, $currencySymbol);
             }),
             "store"      => $this->whenLoaded('store', function () {
                 $deliveryTypeUnit = $this->store->storeSetting?->delivery_type_unit ?? \App\Enums\DeliveryTypeUnitEnum::MINUTE;
@@ -150,7 +155,7 @@ class ProductResource extends JsonResource
         if ($token) {
             [, $tokenHash] = explode('|', $token, 2);
 
-            $userId = \DB::table('personal_access_tokens')
+            $userId = \Illuminate\Support\Facades\DB::table('personal_access_tokens')
                 ->where('token', hash('sha256', $tokenHash))
                 ->value('tokenable_id');
 
@@ -181,22 +186,22 @@ class ProductResource extends JsonResource
         return 0;
     }
 
-    protected function calculateSalePrice($originalPrice, $discountAmount, $discountType)
+    protected function calculateSalePrice($originalPrice, $discountAmount, $discountType, $currencyCode = 'EGP')
     {
         // Ensure we're working with numeric values
-        $originalPrice = (float) $originalPrice;
-        $discountAmount = (float) $discountAmount;
+        $originalPrice =  $originalPrice;
+        $discountAmount = $discountAmount;
+        $decimalPlaces = \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode);
 
-        if ($discountType === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
-            return round($originalPrice - ($originalPrice * $discountAmount / 100), 2);
-        }
+    if ($discountType === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
+        return round($originalPrice - ($originalPrice * $discountAmount / 100), $decimalPlaces);
+    }
 
-        if ($discountType === \App\Enums\SaleTypeEnum::FIXED->value) {
-            return round(max($originalPrice - $discountAmount, 0), 2);
-        }
+    if ($discountType === \App\Enums\SaleTypeEnum::FIXED->value) {
+        return round(max($originalPrice - $discountAmount, 0), $decimalPlaces);
+    }
 
-        // Return the original price as float (not formatted)
-        return round($originalPrice, 2);
+    return round($originalPrice, $decimalPlaces);
     }
     protected function getBannerTextFromOffer($offer): ?string
     {
