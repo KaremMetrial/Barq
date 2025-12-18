@@ -343,7 +343,7 @@ class ProductService
             ]);
                     if ($zone) {
             $query->whereHas('store', function ($q) use ($zone) {
-                $q->whereHas('storesZones', function ($qz) use ($zone) {
+                $q->whereHas('zoneToCover', function ($qz) use ($zone) {
                     $qz->where('zones.id', $zone->id);
                 });
             });

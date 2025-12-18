@@ -150,7 +150,9 @@ class CourierResource extends JsonResource
                         'name' => $attachment->name,
                     ];
                 });
-            })
+            }),
+            'commission_type' => $this->commission_type->value,
+            'commission_amount' => $this->commission_amount,
         ];
     }
 

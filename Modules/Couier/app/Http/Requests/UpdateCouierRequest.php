@@ -38,11 +38,11 @@ class UpdateCouierRequest extends FormRequest
             "courier" => ["nullable", "array"],
             "courier.first_name" => ["nullable", "string", "max:255"],
             "courier.last_name" => ["nullable", "string", "max:255"],
-            "courier.email" => ["nullable", "email", "unique:couiers,email", "max:255"],
-            "courier.phone" => ["nullable", "string", "unique:couiers,phone", "max:255"],
+            "courier.email" => ["nullable", "email", "unique:couiers,email,". $this->route('couier'), "max:255"],
+            "courier.phone" => ["nullable", "string", "unique:couiers,phone,". $this->route('couier'), "max:255"],
             "courier.password" => ["nullable", "string", "max:255"],
             "courier.avatar" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
-            "courier.license_number" => ["nullable", "string", "unique:couiers,license_number"],
+            "courier.license_number" => ["nullable", "string", "unique:couiers,license_number,". $this->route('couier')],
             "courier.available_status" => ["nullable", "string", Rule::in(CouierAvaliableStatusEnum::values())],
             "courier.avg_rate" => ["nullable", "numeric"],
             "courier.status" => ["nullable", "string", Rule::in(UserStatusEnum::values())],
@@ -71,7 +71,7 @@ class UpdateCouierRequest extends FormRequest
 
             // Courier Vehicle
             "vehicle" => ["nullable", "array"],
-            "vehicle.plate_number" => ['nullable', 'string', 'unique:couier_vehicles,plate_number', 'max:255'],
+            "vehicle.plate_number" => ['nullable', 'string', 'unique:couier_vehicles,plate_number,'. $this->route('couier'), 'max:255'],
             "vehicle.color" => ['nullable', 'string', 'max:255'],
             "vehicle.model" => ['nullable', 'string', 'max:255'],
             "vehicle.car_license" => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
