@@ -16,20 +16,13 @@ class UpdateReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rating'                     => 'nullable|integer|between:1,5',
             'comment'                    => 'nullable|string|max:1000',
-            'food_quality_rating'        => 'nullable|integer|between:1,5',
-            'delivery_speed_rating'      => 'nullable|integer|between:1,5',
-            'order_execution_speed_rating' => 'nullable|integer|between:1,5',
-            'product_quality_rating'     => 'nullable|integer|between:1,5',
-            'shopping_experience_rating' => 'nullable|integer|between:1,5',
-            'overall_experience_rating'  => 'nullable|integer|between:1,5',
-            'delivery_driver_rating'     => 'nullable|integer|between:1,5',
-            'delivery_condition_rating'  => 'nullable|integer|between:1,5',
-            'match_price_rating'         => 'nullable|integer|between:1,5',
             'image'                      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
             'reviewable_id'              => 'nullable|integer',
             'reviewable_type'            => 'nullable|string|in:product,service',
+            'review_ratings'             => 'nullable|array',
+            'review_ratings.*.rating_key_id' => 'required_with:review_ratings|exists:rating_keys,id',
+            'review_ratings.*.rating'     => 'required_with:review_ratings|integer|between:1,5',
         ];
     }
 

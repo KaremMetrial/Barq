@@ -60,19 +60,32 @@ class Couier extends Authenticatable
     {
         return $this->morphOne(NationalIdentity::class, 'identityable');
     }
-    public function attachments(): MorphMany
-    {
-        return $this->morphMany(Attachment::class, 'attachmentable');
-    }
+public function attachments(): MorphMany
+{
+    return $this->morphMany(
+        Attachment::class,
+        'attachmentable',
+        '_type',
+        '_id'
+    );
+}
+
     public function vehicle(): HasOne
     {
         return $this->hasOne(CouierVehicle::class);
     }
     public function shifts(): HasMany
     {
-        return $this->hasMany(CouierShift::class);
+        return $this->hasMany(CouierShift::class, 'couier_id');
     }
-
+    public function activeShifts()
+    {
+        return $this->shifts()->where('is_active', true);
+    }
+    public function address(): MorphOne
+    {
+        return $this->morphOne(\Modules\Address\Models\Address::class, 'addressable');
+    }
     /**
      * Get assigned shift templates for this courier
      */
@@ -138,7 +151,7 @@ class Couier extends Authenticatable
     {
         return $this->morphMany(Message::class,'messageable');
     }
-    public function zones()
+    public function zonesToCover()
     {
         return $this->belongsToMany(Zone::class, 'couier_zone', 'couier_id', 'zone_id');
     }

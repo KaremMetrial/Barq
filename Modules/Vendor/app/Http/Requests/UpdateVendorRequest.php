@@ -24,8 +24,8 @@ class UpdateVendorRequest extends FormRequest
         return [
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'string', 'email', 'unique:vendors,email'],
-            'phone' => ['nullable', 'string', 'unique:vendors,phone'],
+            'email' => ['nullable', 'string', 'email', 'unique:vendors,email,' . $this->route('vendor')],
+            'phone' => ['nullable', 'string', 'unique:vendors,phone,' . $this->route('vendor')],
             'password' => [
                 'nullable',
                 'string',

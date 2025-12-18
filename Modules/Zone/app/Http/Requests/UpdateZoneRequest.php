@@ -16,7 +16,7 @@ class UpdateZoneRequest extends FormRequest
         return [
             'city_id' => ['nullable', 'exists:cities,id'],
             'name' => ['nullable', 'string', 'max:255'],
-            'area' => ['nullable', 'json'],
+            'area' => ['nullable', 'array'],
             'is_active' => ['nullable', 'boolean'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];

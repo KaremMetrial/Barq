@@ -84,4 +84,8 @@ class ReviewService
     {
         return $this->reviewRepository->getReviewForStore($storeId, $filters);
     }
+    public function getReviewStatsForStore(int $storeId, array $filters = []): array
+    {
+        return $this->reviewRepository->getReviewStatsForStore($storeId, $filters);
+    }
 }

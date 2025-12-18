@@ -19,6 +19,8 @@ class UpdateCountryRequest extends FormRequest
             'is_active' => ["nullable", "boolean"],
             'currency_name' => ["nullable", "string", "max:255"],
             'flag' => ["nullable", "image", 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
+            'currency_unit' => ['nullable', 'string', 'max:100'],
+            'currency_factor' => ['nullable', 'integer', 'min:1'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }

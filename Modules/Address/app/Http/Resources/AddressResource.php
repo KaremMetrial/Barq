@@ -39,6 +39,18 @@ class AddressResource extends JsonResource
                     'name'=> $this->zone->city->name,
                 ];
             }),
+            'governorate' => $this->whenLoaded('zone', function () {
+                return [
+                    'id'=> $this->zone->city->governorate_id,
+                    'name'=> $this->zone->city->governorate->name,
+                ];
+            }),
+            'country' => $this->whenLoaded('zone', function () {
+                return [
+                    'id'=> $this->zone->city->governorate->country_id,
+                    'name'=> $this->zone->city->governorate->country->name,
+                ];
+            }),
             'address_line_1' => $this->address_line_1,
         ];
     }

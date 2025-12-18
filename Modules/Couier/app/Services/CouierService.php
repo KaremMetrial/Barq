@@ -9,6 +9,7 @@ use Modules\Couier\Models\Couier;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Couier\Repositories\CouierRepository;
+use Illuminate\Support\Facades\DB;
 
 class CouierService
 {
@@ -97,14 +98,14 @@ class CouierService
                     );
                 }
                 $attachmentData['_id'] = $couier->id;
-                $attachmentData['_type'] = Couier::class;
+                $attachmentData['_type'] = 'courier';
                 Attachment::create($attachmentData);
             }
         }
 
         // Attach Zones
         if (isset($data['zones_to_cover'])) {
-            $couier->zones()->sync($data['zones_to_cover']);
+            $couier->zonesToCover()->sync($data['zones_to_cover']);
         }
 
         return $couier->refresh();
@@ -136,7 +137,6 @@ class CouierService
         }
         $courierData = array_filter($courierData, fn($value) => !blank($value));
         $couier = $this->CouierRepository->update($id, $courierData)->refresh();
-
                 // Create National Identity
         if (isset($data['nationalID'])) {
             $nationalIDData = $data['nationalID'];
@@ -159,7 +159,7 @@ class CouierService
             $couier->nationalIdentity()->update($nationalIDData);
         }
 
-        // Create Vehicle
+        // Update or Create Vehicle
         if (isset($data['vehicle'])) {
             $vehicleData = $data['vehicle'];
             if (isset($data['vehicle']['car_license']) && request()->hasFile('vehicle.car_license')) {
@@ -170,8 +170,12 @@ class CouierService
                     'public'
                 );
             }
-            $vehicleData['courier_id'] = $couier->id;
-            $couier->vehicle()->create($vehicleData);
+            // If a vehicle exists, update it; otherwise create a new one via the relation
+            if ($couier->vehicle) {
+                $couier->vehicle()->update($vehicleData);
+            } else {
+                $couier->vehicle()->create($vehicleData);
+            }
         }
 
         // Create Attachments
@@ -191,7 +195,7 @@ class CouierService
 
         // Attach Zones
         if (isset($data['zones_to_cover'])) {
-            $couier->zones()->attach($data['zones_to_cover']);
+            $couier->zonesToCover()->attach($data['zones_to_cover']);
         }
 
         return $couier->refresh();

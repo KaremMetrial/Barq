@@ -20,21 +20,14 @@ class CreateReviewRequest  extends FormRequest
     public function rules(): array
     {
         return [
-            'rating'                     => 'nullable|integer|between:1,5',
             'comment'                    => 'nullable|string|max:1000',
-            'food_quality_rating'        => 'nullable|integer|between:1,5',
-            'delivery_speed_rating'      => 'nullable|integer|between:1,5',
-            'order_execution_speed_rating' => 'nullable|integer|between:1,5',
-            'product_quality_rating'     => 'nullable|integer|between:1,5',
-            'shopping_experience_rating' => 'nullable|integer|between:1,5',
-            'overall_experience_rating'  => 'nullable|integer|between:1,5',
-            'delivery_driver_rating'     => 'nullable|integer|between:1,5',
-            'delivery_condition_rating'  => 'nullable|integer|between:1,5',
-            'match_price_rating'         => 'nullable|integer|between:1,5',
             'image'                      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
             'order_id'                   => 'required|exists:orders,id',
             'reviewable_id'              => 'required|integer',
             'reviewable_type'            => 'required|string|in:product,service,user',
+            'review_ratings'             => 'required|array',
+            'review_ratings.*.rating_key_id' => 'required|exists:rating_keys,id',
+            'review_ratings.*.rating'     => 'required|integer|between:1,5',
         ];
     }
 

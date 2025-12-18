@@ -59,7 +59,7 @@ class CreateStoreRequest extends FormRequest
             'store.status' => ['nullable', 'string', Rule::in(StoreStatusEnum::values())],
             'store.note' => ['nullable', 'string'],
             'store.logo' => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
-            'store.cover_image' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
+            'store.cover_image' => ['nullable', 'requiredIf:store.type,store', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
             'store.phone' => ['required', 'string', 'unique:stores,phone'],
             'store.message' => ['nullable', 'string'],
             'store.is_featured' => ['nullable', 'boolean'],
@@ -142,6 +142,15 @@ class CreateStoreRequest extends FormRequest
                 $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates((float) $latitude, (float) $longitude);
                 if (!$zone || $zone->id != $zoneId) {
                     $validator->errors()->add('address.latitude', 'The provided latitude and longitude are not within the specified zone.');
+                }
+            }
+
+            // If store type is delivery, ensure the DELIVERY_COMPANY section exists and instruct to add it if missing
+            $store = $this->input('store', []);
+            if (data_get($store, 'type') == 'delivery') {
+                $deliverySection = \Modules\Section\Models\Section::where('type', SectionTypeEnum::DELIVERY_COMPANY)->first();
+                if (!$deliverySection) {
+                    $validator->errors()->add('store.section_id', 'Please create a section of type "delivery_company" before creating a delivery store.');
                 }
             }
         });

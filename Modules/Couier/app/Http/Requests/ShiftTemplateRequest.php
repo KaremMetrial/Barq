@@ -3,6 +3,8 @@
 namespace Modules\Couier\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Arr;
+use Carbon\Carbon;
 
 class ShiftTemplateRequest extends FormRequest
 {
@@ -12,17 +14,22 @@ class ShiftTemplateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'is_active' => 'boolean',
-            'is_flexible' => 'boolean',
-            'store_id' => 'nullable|exists:stores,id',
-            'days' => 'required|array|min:1',
-            'days.*.day_of_week' => 'required|integer|between:0,6',
-            'days.*.start_time' => 'required_if:days.*.is_off_day,false|date_format:H:i:s',
-            'days.*.end_time' => 'required_if:days.*.is_off_day,false|date_format:H:i:s|after:days.*.start_time',
-            'days.*.break_duration' => 'nullable|integer|min:0',
-            'days.*.is_off_day' => 'boolean'
-        ];
+        'name' => 'required|string|max:255',
+        'is_active' => 'boolean',
+        'is_flexible' => 'boolean',
+        'store_id' => 'required|exists:stores,id',
+
+        'days' => 'required|array|min:1',
+        'days.*.day_of_week' => 'required|integer|between:0,6',
+        'days.*.is_off_day' => 'required|boolean',
+        'days.*.is_flexible' => 'required|boolean',
+
+        'days.*.start_time' => 'nullable|date_format:H:i',
+        'days.*.end_time' => 'nullable|date_format:H:i|after:days.*.start_time',
+
+        'days.*.break_duration' => 'nullable|integer|min:0',
+    ];
+
     }
 
     /**
@@ -44,4 +51,27 @@ class ShiftTemplateRequest extends FormRequest
             ]);
         }
     }
+public function withValidator($validator)
+{
+    $validator->after(function ($validator) {
+
+        foreach ($this->days as $index => $day) {
+
+            $isFlexible = $day['is_flexible'] ?? false;
+            $isOffDay   = $day['is_off_day'] ?? false;
+
+            if ($isFlexible || $isOffDay) {
+                continue;
+            }
+
+            if (empty($day['start_time']) || empty($day['end_time'])) {
+                $validator->errors()->add(
+                    "days.$index.start_time",
+                    __('Start and end time are required for working non-flexible days')
+                );
+            }
+        }
+    });
+}
+
 }

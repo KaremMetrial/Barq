@@ -10,7 +10,7 @@ use Modules\Address\Http\Resources\AddressResource;
 use Modules\Address\Services\AddressService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
+use Stevebauman\Location\Facades\Location;
 class AddressController extends Controller
 {
     use ApiResponse;
@@ -86,9 +86,10 @@ class AddressController extends Controller
             $zone = $this->addressService->getAddressByLatLong($lat, $long);
             $addressName = $zone?->getFullAddressAttribute();
         }
+        $position = Location::get(request()->ip());
 
         $response = [
-            "address_name" => $addressName,
+            "address_name" => $addressName ?? ($position ? $position->cityName . ', ' . $position->countryName . ', ' . $position->regionName : null),
             "user_addresses" => [],
             "current_address_id" => null,
             "is_available" => $zone ? true : false,

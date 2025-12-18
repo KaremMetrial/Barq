@@ -23,6 +23,8 @@ Route::prefix('v1')->group(function () {
             Route::get('delivery/stats', [AdminStoreController::class, 'deliveryStoreStats']);
             Route::get('/vendor/stats', [VendorStoreController::class, 'vendorStats'])->middleware('ability:vendor')->name('vendor.store.stats');
             Route::get('/{id}/branches', [AdminStoreController::class, 'branches'])->name('branches');
+            Route::get('/{id}/delivery', [AdminStoreController::class, 'deliveryStoreInfo'])->name('deliveryStoreInfo');
+            Route::get('/{id}/delivery/zone-to-cover', [AdminStoreController::class, 'deliveryStoreZoneToCover'])->name('deliveryStoreZoneToCover');
         });
         Route::apiResource('stores', AdminStoreController::class)->names('store');
     });

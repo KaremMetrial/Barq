@@ -182,6 +182,7 @@ class CurrencyHelper
             'currency_symbol' => $currencySymbol,
             'decimal_places' => self::getDecimalPlacesForCurrency($currencyCode),
             'symbol_position' => self::getSymbolPositionForCurrency($currencyCode),
+            'currency_factor' => $store->address?->zone?->city?->governorate?->country?->currency_factor ?? 100,
         ];
 
         self::$storeCurrencyCache[$storeId] = $currencyInfo;
@@ -240,5 +241,51 @@ class CurrencyHelper
 
         // Fallback to default
         return self::formatPrice($price, 'EGP', 'ج.م');
+    }
+
+    /**
+     * Convert a decimal amount to minor units using a currency factor.
+     * Example: toMinorUnits(12.34, 100) => 1234
+     *
+     * @param float $amount
+     * @param int $factor
+     * @return int
+     */
+    public static function toMinorUnits(float $amount, int $factor): int
+    {
+        return (int) round($amount * $factor);
+    }
+
+    /**
+     * Convert minor units back to decimal amount using a currency factor.
+     * Example: fromMinorUnits(1234, 100) => 12.34
+     *
+     * @param int $minor
+     * @param int $factor
+     * @param int|null $decimalPlaces If null, uses decimal places for currency when known else 2
+     * @return float
+     */
+    public static function fromMinorUnits(int $minor, int $factor, ?int $decimalPlaces = null): float
+    {
+        $decimalPlaces = $decimalPlaces ?? 2;
+        return round($minor / $factor, $decimalPlaces);
+    }
+
+    /**
+     * Convert an amount in minor units from one currency factor to another.
+     * Example: convertMinorBetweenCurrencies(1234, 100, 1000) => rounds to 12340
+     *
+     * @param int $amountMinor
+     * @param int $srcFactor
+     * @param int $dstFactor
+     * @return int
+     */
+    public static function convertMinorBetweenCurrencies(int $amountMinor, int $srcFactor, int $dstFactor): int
+    {
+        if ($srcFactor === $dstFactor) {
+            return $amountMinor;
+        }
+
+        return (int) round(($amountMinor / $srcFactor) * $dstFactor);
     }
 }

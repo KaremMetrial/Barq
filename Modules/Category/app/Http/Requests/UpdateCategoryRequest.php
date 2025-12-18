@@ -17,7 +17,7 @@ class UpdateCategoryRequest extends FormRequest
             "name" => ["nullable", "string", "max:255"],
             "icon" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
             "is_active" => ["nullable", "boolean"],
-            "sort_order" => ["nullable", "numeric", "min:0", "unique:categories,sort_order"],
+            "sort_order" => ["nullable", "numeric", "min:0", "unique:categories,sort_order,".$this->route('category')],
             "is_featured" => ["nullable", "boolean"],
             "parent_id" => ["nullable", "numeric", "exists:categories,id"],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],

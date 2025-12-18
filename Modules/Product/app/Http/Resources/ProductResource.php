@@ -96,8 +96,10 @@ class ProductResource extends JsonResource
                     ->sortBy('end_date')
                     ->first();
 
-                // Get the raw numeric price (not formatted)
-                $originalPrice = $this->price->sale_price ?? $this->price->price ?? 0;
+                // Compute using minor units when possible for safer cross-currency calculations
+                $priceMinor = $this->price->salePriceMinorValue() ?? $this->price->priceMinorValue() ?? 0;
+                $priceFactor = $this->price->product?->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
+                $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
 
                 if (!$offer) {
                     return [
@@ -116,10 +118,23 @@ class ProductResource extends JsonResource
                     ];
                 }
 
+                // Determine discount in minor units
+                if ($offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
+                    $discountPercent = $offer->discount_amount;
+                    $saleMinor = (int) round($priceMinor - ($priceMinor * $discountPercent / 100));
+                } else {
+                    // FIXED
+                    $discountMinor = $offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor));
+                    $saleMinor = (int) max(0, $priceMinor - $discountMinor);
+                }
+
+                $saleDecimal = \App\Helpers\CurrencyHelper::fromMinorUnits((int)$saleMinor, (int)$priceFactor, \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode));
+
                 return [
                     'id' => $offer->id,
                     'discount_type' => $offer->discount_type->value,
-                    'discount_amount' => number_format($offer->discount_amount, 0),
+                    // Represent discount amount in a human-friendly way (percentage or formatted fixed amount)
+                    'discount_amount' => $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($offer->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)), 0),
                     'start_date' => $offer->start_date,
                     'end_date' => $offer->end_date,
                     'is_flash_sale' => $offer->is_flash_sale,
@@ -127,14 +142,7 @@ class ProductResource extends JsonResource
                     'has_stock_limit' => $offer->has_stock_limit,
                     'stock_limit' => $offer->stock_limit,
                     'ends_in' => \Carbon\Carbon::parse($offer->end_date)->diffForHumans(),
-                    'sale_price' => number_format(
-                        $this->calculateSalePrice(
-                            $originalPrice,
-                            $offer->discount_amount,
-                            $offer->discount_type->value
-                        ),
-                        0
-                    ),
+                    'sale_price' => number_format($saleDecimal, 0),
                     'banner_text' => $this->getBannerTextFromOffer($offer),
                 ];
             }),

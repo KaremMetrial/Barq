@@ -120,7 +120,25 @@ class ProductController extends Controller
     {
         $product = $this->productService->toggleActive($id);
         return $this->successResponse([
-            "product" => new ProductResource($product),
+            "product" => new ProductResource($product->load( [
+            'store.translations',
+            'store.storeSetting',
+            'category.translations',
+            'images',
+            'price',
+            'availability',
+            'tags',
+            'units.translations',
+            'ProductNutrition',
+            'productAllergen.translations',
+            'pharmacyInfo.translations',
+            'watermark',
+            'offers',
+            'requiredOptions',
+            'productOptions.option.translations',
+            'productOptions.optionValues.productValue.translations',
+            'addOns'
+        ])->refresh()),
         ], __("message.success"));
     }
 }

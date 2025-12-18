@@ -12,7 +12,7 @@ class CouierVehicle extends Model
         "plate_number",
         "color",
         "model",
-        "courier_id",
+        "couier_id",
         "vehicle_id",
         "car_license",
     ];

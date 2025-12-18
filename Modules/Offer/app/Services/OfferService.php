@@ -8,6 +8,8 @@ use Modules\Offer\Models\Offer;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Offer\Repositories\OfferRepository;
+use App\Enums\SaleTypeEnum;
+use App\Helpers\CurrencyHelper;
 
 class OfferService
 {
@@ -25,6 +27,15 @@ class OfferService
     {
         return DB::transaction(function () use ($data) {
             $data = array_filter($data, fn($value) => !blank($value));
+
+            // Normalize fixed discount to minor units when possible
+            if (!empty($data['discount_type']) && $data['discount_type'] == SaleTypeEnum::FIXED->value && isset($data['discount_amount'])) {
+                $factor = $data['currency_factor'] ?? 100;
+                $data['discount_amount_minor'] = CurrencyHelper::toMinorUnits((float)$data['discount_amount'], (int)$factor);
+                $data['currency_factor'] = $factor;
+                $data['currency_code'] = $data['currency_code'] ?? null;
+            }
+
             return $this->OfferRepository->create($data);
         });
     }
@@ -38,6 +49,14 @@ class OfferService
     {
         return DB::transaction(function () use ($data, $id) {
             $data = array_filter($data, fn($value) => !blank($value));
+
+            if (!empty($data['discount_type']) && $data['discount_type'] == SaleTypeEnum::FIXED->value && isset($data['discount_amount'])) {
+                $factor = $data['currency_factor'] ?? 100;
+                $data['discount_amount_minor'] = CurrencyHelper::toMinorUnits((float)$data['discount_amount'], (int)$factor);
+                $data['currency_factor'] = $factor;
+                $data['currency_code'] = $data['currency_code'] ?? null;
+            }
+
             return $this->OfferRepository->update($id, $data);
         });
 

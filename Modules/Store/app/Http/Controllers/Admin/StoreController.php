@@ -107,9 +107,10 @@ class StoreController extends Controller implements HasMiddleware
             'pagination' => new PaginationResource($deliveryCompany)
         ], __('message.success'));
     }
-    public function deliveryStoreStats()
+    public function deliveryStoreStats(Request $request)
     {
-        $stats = $this->StoreService->deliveryStoreStats();
+        $filter = $request->only(['store_id', 'from_date', 'to_date']);
+        $stats = $this->StoreService->deliveryStoreStats($filter);
         return $this->successResponse($stats, __('message.success'));
     }
 
@@ -119,6 +120,69 @@ class StoreController extends Controller implements HasMiddleware
         return $this->successResponse([
             'branches' => StoreCollectionResource::collection($branches),
             'pagination' => new PaginationResource($branches)
+        ], __('message.success'));
+    }
+    public function deliveryStoreInfo(int $id): JsonResponse
+    {
+        $store = $this->StoreService->getStoreById($id);
+
+        if (!$store) {
+            return $this->errorResponse(__('message.not_found'), 404);
+        }
+
+        $stats = $this->StoreService->deliveryStoreStatsInfo(['store_id' => $id]);
+
+        $data = [
+            'store' => new StoreResource($store->load(['address', 'zoneToCover', 'workingDays', 'owner', 'storeSetting', 'parent'])),
+            'delivery_stats' => $stats,
+            'delivery_chart' => $this->StoreService->deliveryStoreDailyPerformance(['store_id' => $id]),
+            'quick_stats' => $this->StoreService->deliveryStoreQuickStats(['store_id' => $id]),
+            'achievements' => $this->StoreService->deliveryStoreAchievements(['store_id' => $id]),
+            'performance_reports' => $this->StoreService->deliveryStoreMonthlyReport(['store_id' => $id]),
+        ];
+
+        return $this->successResponse($data, __('message.success'));
+    }
+    public function deliveryStoreZoneToCover(int $id): JsonResponse
+    {
+        $store = $this->StoreService->getStoreById($id);
+
+        if (!$store) {
+            return $this->errorResponse(__('message.not_found'), 404);
+        }
+
+        // Zones covered by couriers that belong to this store
+        $zones = \Modules\Zone\Models\Zone::whereHas('couriers', function ($q) use ($id) {
+            $q->where('store_id', $id);
+        })->with(['city.governorate.country'])->get();
+        $rows = $zones->map(function ($zone) use ($id) {
+            $activeOrders = \Modules\Order\Models\Order::whereHas('deliveryAddress', function ($q) use ($zone) {
+                $q->where('zone_id', $zone->id);
+            })->whereIn('status', [
+                \App\Enums\OrderStatus::PENDING,
+                \App\Enums\OrderStatus::CONFIRMED,
+                \App\Enums\OrderStatus::PROCESSING,
+                \App\Enums\OrderStatus::READY_FOR_DELIVERY,
+                \App\Enums\OrderStatus::ON_THE_WAY,
+            ])->count();
+
+            $couriersCount = $zone->couriers()->where('store_id', $id)->count();
+
+            return [
+                'zone_id' => $zone->id,
+                'zone' => $zone->name ?? null,
+                'city' => $zone->city?->name ?? null,
+                'governorate' => $zone->city?->governorate?->name ?? null,
+                'country' => $zone->city?->governorate?->country?->name ?? null,
+                'active_orders' => $activeOrders,
+                'active_orders_label' => $activeOrders . ' طلب' . ($activeOrders === 1 ? '' : 'ات'),
+                'couriers_count' => $couriersCount,
+                'couriers_label' => $couriersCount . ' سائق',
+            ];
+        })->values();
+
+        return $this->successResponse([
+            'zones_to_cover' => $rows,
         ], __('message.success'));
     }
 }

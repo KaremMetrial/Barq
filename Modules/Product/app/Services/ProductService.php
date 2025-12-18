@@ -5,6 +5,7 @@ namespace Modules\Product\Services;
 use Carbon\Carbon;
 use App\Enums\SaleTypeEnum;
 use Illuminate\Support\Arr;
+use Modules\Zone\Models\Zone;
 use App\Traits\FileUploadTrait;
 use App\Enums\ProductStatusEnum;
 use Illuminate\Support\Facades\DB;
@@ -174,11 +175,15 @@ class ProductService
         if (!empty($price)) {
             // Get currency information from the store (cached)
             $currencyInfo = \App\Helpers\CurrencyHelper::getCurrencyInfoFromStore($product->store);
+            $factor = $currencyInfo['currency_factor'] ?? 100;
 
-            // Add currency information to price data
+            // Add currency information to price data and minor-unit values
             $priceData = array_merge($price, [
                 'currency_code' => $currencyInfo['currency_code'],
                 'currency_symbol' => $currencyInfo['currency_symbol'],
+                'price_minor' => isset($price['price']) ? \App\Helpers\CurrencyHelper::toMinorUnits((float)$price['price'], (int)$factor) : null,
+                'purchase_price_minor' => isset($price['purchase_price']) ? \App\Helpers\CurrencyHelper::toMinorUnits((float)$price['purchase_price'], (int)$factor) : null,
+                'sale_price_minor' => isset($price['sale_price']) ? \App\Helpers\CurrencyHelper::toMinorUnits((float)$price['sale_price'], (int)$factor) : null,
             ]);
 
             $product->price()->updateOrCreate([], $priceData);
@@ -281,6 +286,19 @@ class ProductService
         $page = Arr::get($filters, 'page', 1);
         $categoryId = Arr::get($filters, 'category_id');
 
+
+        $addressId = request()->header('address-id') ?? request()->header('AddressId');
+        $lat = request()->header('lat');
+        $lng = request()->header('lng');
+
+        $zone = null;
+
+        if ($addressId) {
+            $zone = Zone::findZoneByAddressId($addressId);
+        } elseif ($lat && $lng) {
+            $zone = Zone::findZoneByCoordinates($lat, $lng);
+        }
+
         $sectionId = $filters['section_id'] ?? 0;
         if (array_key_exists('section_id', $filters) && (int)$filters['section_id'] == 0) {
             $latestSection = \Modules\Section\Models\Section::where('type', '!=', 'delivery_company')->latest()->first();
@@ -323,6 +341,17 @@ class ProductService
                 $now,
                 $endDateThreshold
             ]);
+                    if ($zone) {
+            $query->whereHas('store', function ($q) use ($zone) {
+                $q->whereHas('storesZones', function ($qz) use ($zone) {
+                    $qz->where('zones.id', $zone->id);
+                });
+            });
+        } else {
+            if ($addressId || ($lat && $lng)) {
+                $query->whereRaw('1 = 0');
+            }
+        }
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);
 

@@ -22,6 +22,12 @@ class UpdateCouierRequest extends FormRequest
         ]);
     }
 
+    private function filterArray(array $data): array
+    {
+        return array_filter($data, function ($value) {
+            return !is_null($value) && $value !== '';
+        });
+    }
     /**
      * Get the validation rules that apply to the request.
      */

@@ -16,7 +16,7 @@ class VendorReviewResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'rating' => $this->rating,
+            'rating' => $this->averageRating(),
             'comment' => $this->comment,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'formatted_date' => $this->created_at?->translatedFormat('d M Y, h:i A'),
@@ -31,17 +31,11 @@ class VendorReviewResource extends JsonResource
                 'id' => $this->order_id,
                 'order_number' => $this->order?->order_number ?? 'N/A'
             ],
-            'ratings' => [
-                'food_quality' => $this->food_quality_rating,
-                'delivery_speed' => $this->delivery_speed_rating,
-                'order_execution_speed' => $this->order_execution_speed_rating,
-                'product_quality' => $this->product_quality_rating,
-                'shopping_experience' => $this->shopping_experience_rating,
-                'overall_experience' => $this->overall_experience_rating,
-                'delivery_driver' => $this->delivery_driver_rating,
-                'delivery_condition' => $this->delivery_condition_rating,
-                'match_price' => $this->match_price_rating,
-            ],
+            'ratings' => $this->reviewRatings->map(fn($r) => [
+                'rating_key' => $r->ratingKey->key,
+                'value' => $r->rating,
+                'label' => $r->ratingKey->label
+            ])->toArray(),
             'image' => $this->image
         ];
     }

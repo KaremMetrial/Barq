@@ -15,14 +15,24 @@ class CouponService
 
     public function getAllCoupons($filters = [])
     {
-        return $this->CouponRepository->getAllActive();
+        return $this->CouponRepository->paginate($filters);
     }
 
     public function createCoupon(array $data): ?Coupon
     {
         return DB::transaction(function () use ($data) {
             $data = array_filter($data, fn($value) => !blank($value));
-            return $this->CouponRepository->create($data);
+            $coupon = $this->CouponRepository->create($data);
+            if (isset($data['category_ids'])) {
+                $coupon->categories()->sync($data['category_ids']);
+            }
+            if (isset($data['product_ids'])) {
+                $coupon->products()->sync($data['product_ids']);
+            }
+            if (isset($data['store_ids'])) {
+                $coupon->stores()->sync($data['store_ids']);
+            }
+            return $coupon;
         });
     }
 
@@ -35,10 +45,19 @@ class CouponService
     {
         return DB::transaction(function () use ($data, $id) {
             $data = array_filter($data, fn($value) => !blank($value));
-            return $this->CouponRepository->update($id, $data);
+            $coupon = $this->CouponRepository->update($id, $data);
+            if (isset($data['category_ids'])) {
+                $coupon->categories()->sync($data['category_ids']);
+            }
+            if (isset($data['product_ids'])) {
+                $coupon->products()->sync($data['product_ids']);
+            }
+            if (isset($data['store_ids'])) {
+                $coupon->stores()->sync($data['store_ids']);
+            }
+            return $coupon;
         });
     }
-
     public function deleteCoupon(int $id): bool
     {
         return $this->CouponRepository->delete($id);

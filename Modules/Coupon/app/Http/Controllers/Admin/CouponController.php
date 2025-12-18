@@ -3,6 +3,7 @@
 namespace Modules\Coupon\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
 use App\Traits\ApiResponse;
 use Modules\Coupon\Http\Requests\CreateCouponRequest;
 use Modules\Coupon\Http\Requests\UpdateCouponRequest;
@@ -27,6 +28,7 @@ class CouponController extends Controller
         $coupons = $this->couponService->getAllCoupons();
         return $this->successResponse([
             "coupons" => CouponResource::collection($coupons),
+            "pagination" => new PaginationResource($coupons),
         ], __("message.success"));
     }
 

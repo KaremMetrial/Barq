@@ -60,7 +60,7 @@ class OrderController extends Controller
     {
         $order = $this->orderService->getOrderById($id);
         return $this->successResponse([
-            'order' => new OrderResource($order),
+            'order' => new OrderResource($order->load('reviews')),
         ], __('message.success'));
     }
 

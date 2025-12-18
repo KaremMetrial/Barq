@@ -326,7 +326,7 @@ class Store extends Model implements TranslatableContract
         }
 
         // Get all zones that have shipping prices (delivery areas)
-        return \Modules\Zone\Models\Zone::whereHas('shippingPrices')
+        return Zone::whereHas('shippingPrices')
             ->with(['shippingPrices', 'city'])
             ->get();
     }

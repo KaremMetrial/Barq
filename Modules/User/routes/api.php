@@ -6,7 +6,7 @@ use Modules\User\Http\Controllers\LoyaltyController;
 use Modules\User\Http\Controllers\WalletController;
 
 Route::prefix('v1')->group(function () {
-    Route::apiResource('users', UserController::class)->names('user');
+    Route::apiResource('admin/users', UserController::class)->names('user')->middleware(['auth:sanctum', 'ability:admin,vendor,user']);
 
     Route::post('register', [UserController::class, 'register'])->name('register');
 

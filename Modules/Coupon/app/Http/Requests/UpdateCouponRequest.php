@@ -8,9 +8,19 @@ use App\Enums\ObjectTypeEnum;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Coupon\Models\Coupon;
 
 class UpdateCouponRequest extends FormRequest
 {
+    protected function prepareForValidation()
+    {
+        if (auth('vendor')->check()) {
+            $this->merge([
+                'store_ids' => [auth('vendor')->user()->store_id],
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */

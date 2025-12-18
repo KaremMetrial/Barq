@@ -18,9 +18,7 @@ class ReviewController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected ReviewService $reviewService)
-    {
-    }
+    public function __construct(protected ReviewService $reviewService) {}
 
     /**
      * Display a listing of the reviews for an order.
@@ -34,7 +32,7 @@ class ReviewController extends Controller
             'pagination' => new PaginationResource($reviews)
         ], __('message.success'));
     }
-    public function storeIndex(Request $request, int $storeId): JsonResponse
+    public function storeIndex(Request $request, \Modules\Store\Models\Store $store): JsonResponse
     {
         // Extract filters from request
         $filters = $request->only([
@@ -50,34 +48,14 @@ class ReviewController extends Controller
             'search'
         ]);
 
-        $reviews = $this->reviewService->getReviewForStore($storeId, $filters);
-
-        // Calculate average rating and other statistics
-        $averageRating = $reviews->avg('rating');
-        $totalReviews = $reviews->total();
-        $repliedReviews = $reviews->whereNotNull('response')->count();
-        $notRepliedReviews = $totalReviews - $repliedReviews;
-
-        // Calculate rating distribution
-        $ratingDistribution = [
-            '5_star' => $reviews->where('rating', '>=', 4.5)->count(),
-            '4_star' => $reviews->whereBetween('rating', [3.5, 4.5])->count(),
-            '3_star' => $reviews->whereBetween('rating', [2.5, 3.5])->count(),
-            '2_star' => $reviews->whereBetween('rating', [1.5, 2.5])->count(),
-            '1_star' => $reviews->where('rating', '<', 1.5)->count(),
-        ];
+        $reviews = $this->reviewService->getReviewForStore($store->id, $filters);
+        $statistics = $this->reviewService->getReviewStatsForStore($store->id, $filters);
 
         return $this->successResponse([
             "reviews" => VendorReviewResource::collection($reviews),
             'pagination' => new PaginationResource($reviews),
-            'statistics' => [
-                'average_rating' => round($averageRating, 1),
-                'total_reviews' => $totalReviews,
-                'replied_reviews' => $repliedReviews,
-                'not_replied_reviews' => $notRepliedReviews,
-                'rating_distribution' => $ratingDistribution
-            ],
-            'filters' => $filters
+            'statistics' => $statistics,
+            'filters' => $filters ? $filters : null,
         ], __('message.success'));
     }
     /**

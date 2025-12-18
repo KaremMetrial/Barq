@@ -25,6 +25,13 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }
+
+        // Register console commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \App\Console\Commands\BackfillCurrencyMinorUnits::class,
+            ]);
+        }
     }
 
     /**

@@ -150,11 +150,16 @@ class StoreResource extends JsonResource
             //         ->orWhere('end_date', '>=', $now);
             // })
             ->map(function ($offer) {
-                // dd($offer);
+                // compute fixed discount display using offer currency or store's currency factor
+                $priceFactor = $this->store_setting?->currency_factor ?? $this->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
+                $currencyCode = $this->store_setting?->currency_code ?? $this->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP';
+
+                $displayDiscount = $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($offer->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)), 0);
+
                 return [
                     'id' => $offer->id,
                     'discount_type' => $offer->discount_type->value,
-                    'discount_amount' => $offer->discount_amount,
+                    'discount_amount' => $displayDiscount,
                     'discount_label' => SaleTypeEnum::label($offer->discount_type->value),
                     'start_date' => $offer->start_date,
                     'end_date' => $offer->end_date,

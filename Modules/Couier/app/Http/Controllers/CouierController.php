@@ -2,15 +2,17 @@
 
 namespace Modules\Couier\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
+use Modules\Couier\Services\CouierService;
+use Modules\Couier\Http\Resources\CouierResource;
+use Modules\Couier\Http\Resources\CourierResource;
 use Modules\Couier\Http\Requests\CreateCouierRequest;
 use Modules\Couier\Http\Requests\UpdateCouierRequest;
-use Modules\Couier\Http\Resources\CouierResource;
-use Modules\Couier\Services\CouierService;
-use Illuminate\Http\JsonResponse;
-use App\Http\Resources\PaginationResource;
-use Illuminate\Http\Request;
+
 class CouierController extends Controller
 {
     use ApiResponse;
@@ -40,7 +42,7 @@ class CouierController extends Controller
         $couier = $this->couierService->createCouier($request->all());
         return $this->successResponse([
             "couier" => new CouierResource($couier->load('store')),
-        ], __("message.success"));  
+        ], __("message.success"));
     }
 
     /**
@@ -50,7 +52,7 @@ class CouierController extends Controller
     {
         $couier = $this->couierService->getCouierById($id);
         return $this->successResponse([
-            "couier" => new CouierResource($couier->load('store')),
+            "couier" => new CourierResource($couier->load(['store','vehicle','zonesToCover', 'address.zone','shifts', 'attachments'])),
         ], __("message.success"));
     }
 

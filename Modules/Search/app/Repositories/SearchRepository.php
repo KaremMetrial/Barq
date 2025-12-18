@@ -48,14 +48,14 @@ class SearchRepository implements SearchRepositoryInterface
                             'product_name' => $product->name,
                             'product_image' => $product->images()->first()?->image_path ? asset('storage/' . $product->images()->first()?->image_path) : null,
                             'product_price' => number_format($product->price->price, 0),
-                            'product_discount' => $product->offers->isNotEmpty() ? (string) $this->calculateSalePrice(
-                                $product->price->price,
-                                $product->offers->first()->discount_amount,
-                                $product->offers->first()->discount_type->value
+                            // Calculate product discount using minor-units when available
+                            'product_discount' => $product->offers->isNotEmpty() ? (string) $this->calculateSalePriceUsingMinor(
+                                $product,
+                                $product->offers->first()
                             ) : null,
                             // 'has_offer' => $product->offers->isNotEmpty(),
                             'discount_type' => $product->offers->isNotEmpty() ? $product->offers->first()->discount_type->value : null,
-                            'discount_value' => $product->offers->isNotEmpty() ? number_format($product->offers->first()->discount_amount, 0) : null,
+                            'discount_value' => $product->offers->isNotEmpty() ? ($product->offers->first()->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($product->offers->first()->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($product->offers->first()->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$product->offers->first()->discount_amount, (int)($product->offers->first()->currency_factor ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100))), (int)($product->offers->first()->currency_factor ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100)), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($product->price->currency_code ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP'))), 0) : null,
                             'symbol_currency' => $product->store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'
                         ])->values()
                     ];
@@ -81,6 +81,22 @@ class SearchRepository implements SearchRepositoryInterface
         }
 
         return number_format($originalPrice, 0);
+    }
+
+    protected function calculateSalePriceUsingMinor($product, $offer)
+    {
+        $priceMinor = $product->price->salePriceMinorValue() ?? $product->price->priceMinorValue() ?? 0;
+        $priceFactor = $product->price->product?->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
+
+        if ($offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
+            return round(\App\Helpers\CurrencyHelper::fromMinorUnits((int) round($priceMinor - ($priceMinor * $offer->discount_amount / 100)), (int)$priceFactor), 0);
+        }
+
+        $discountMinor = $offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor));
+
+        $saleMinor = (int) max(0, $priceMinor - $discountMinor);
+
+        return round(\App\Helpers\CurrencyHelper::fromMinorUnits((int)$saleMinor, (int)$priceFactor), 0);
     }
     private function getProductsWithSection(string $search)
     {

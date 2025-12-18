@@ -133,7 +133,7 @@ class Order extends Model
     }
     public function reviews()
     {
-        return $this->morphMany(Review::class, 'reviewable');
+        return $this->hasMany(Review::class, 'order_id', 'id');
     }
     public function scopeFilter($query, $filters)
     {
@@ -148,6 +148,8 @@ class Order extends Model
             })
             ->when(isset($filters['status']), function ($query) use ($filters) {
                 $query->where('status', $filters['status']);
+            })->when(isset($filters['courier_id']), function ($query) use ($filters) {
+                $query->where('couier_id', $filters['courier_id']);
             });
 
         $user = auth()->user();
@@ -216,7 +218,7 @@ class Order extends Model
     }
     /**
      * Get order statistics with optional filtering
-     * 
+     *
      * @param int|null $storeId Filter by store ID
      * @param int|null $userId Filter by user ID
      * @return array

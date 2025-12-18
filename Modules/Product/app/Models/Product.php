@@ -5,6 +5,7 @@ namespace Modules\Product\Models;
 use App\Models\Report;
 use Modules\Tag\Models\Tag;
 use Modules\Unit\Models\Unit;
+use Modules\Zone\Models\Zone;
 use Modules\AddOn\Models\AddOn;
 use Modules\Offer\Models\Offer;
 use Modules\Store\Models\Store;
@@ -174,7 +175,7 @@ class Product extends Model implements TranslatableContract
         if(isset($filters['status'])){
             $query->where('status', $filters['status']);
         }
-        
+
         if ($admin) {
             return $query->latest();
         }
@@ -186,6 +187,31 @@ class Product extends Model implements TranslatableContract
         if (!$admin) {
             $query->whereStatus(ProductStatusEnum::ACTIVE);
         }
+
+        // $addressId = request()->header('address-id') ?? request()->header('AddressId');
+        // $lat = request()->header('lat');
+        // $lng = request()->header('lng');
+
+        // $zone = null;
+
+        // if ($addressId) {
+        //     $zone = Zone::findZoneByAddressId($addressId);
+        // } elseif ($lat && $lng) {
+        //     $zone = Zone::findZoneByCoordinates($lat, $lng);
+        // }
+        // if ($zone) {
+        //     $query->whereHas('store', function ($q) use ($zone) {
+        //         $q->whereHas('storesZones', function ($qz) use ($zone) {
+        //             $qz->where('zones.id', $zone->id);
+        //         });
+        //     });
+        // } else {
+        //     if ($addressId || ($lat && $lng)) {
+        //         $query->whereRaw('1 = 0');
+        //     }
+        // }
+
+
         return $query->latest();
     }
     public function getAvgRateAttribute()

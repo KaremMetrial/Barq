@@ -69,10 +69,28 @@ class Coupon extends Model implements TranslatableContract
     public function scopeFilter($query, $filters)
     {
         if (auth('vendor')->check()) {
-            $query->whereHas('stores', function ($q) {
-                $q->where('stores.id', auth('vendor')->user()->store_id);
+            $vendor = auth('vendor')->user();
+            $storeId = $vendor->store_id;
+
+            $query->where(function ($q) use ($storeId) {
+
+                $q->whereHas('stores', function ($qs) use ($storeId) {
+                    $qs->where('stores.id', $storeId);
+                })
+
+                ->orWhereHas('products', function ($qp) use ($storeId) {
+                    $qp->where('products.store_id', $storeId);
+                });
             });
         }
+    if (!empty($filters['coupon_type'])) {
+        $query->where('coupon_type', $filters['coupon_type']);
+    }
+    if (!empty($filters['object_type'])) {
+        $query->where('object_type', $filters['object_type']);
+    }
+
+
         if (isset($filters['search']) && $filters['search'] != '')
         {
             $search = $filters['search'];

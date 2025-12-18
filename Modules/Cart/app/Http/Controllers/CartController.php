@@ -70,29 +70,31 @@ class CartController extends Controller
         $addressId = request()->header('address-id') ?? request()->header('Address-Id');
         $address = null;
         $statusMessage = null;
+        $isOpen = $cart->store->isOpenNow();
+        $productsAvailable = $cart->items->every(function ($item) {
+            return $item->product && $item->product->status === \App\Enums\ProductStatusEnum::ACTIVE;
+        });
+
+        $productsInStock = $cart->items->every(function ($item) {
+            return $item->product && $item->product->stock >= $item->quantity;
+        });
+
         if ($addressId) {
             $address = $this->addressService->getAddressById($addressId);
             $canDeliver = $cart->store->canDeliverTo($addressId);
 
-            $isOpen = $cart->store->isOpenNow();
-            $productsAvailable = $cart->items->every(function ($item) {
-                return $item->product && $item->product->status === \App\Enums\ProductStatusEnum::ACTIVE;
-            });
-
-            $productsInStock = $cart->items->every(function ($item) {
-                return $item->product && $item->product->stock >= $item->quantity;
-            });
-
             if (!$canDeliver) {
                 $statusMessage = __("message.store_cannot_deliver_to_address");
-            } elseif (!$isOpen) {
-                $statusMessage = __("message.store_is_closed");
-            } elseif (!$productsAvailable) {
-                $statusMessage = __("message.some_products_unavailable");
-            } elseif (!$productsInStock) {
-                $statusMessage = __("message.some_products_out_of_stock");
             }
         }
+        if (!$isOpen) {
+            $statusMessage = __("message.store_is_closed");
+        } elseif (!$productsAvailable) {
+            $statusMessage = __("message.some_products_unavailable");
+        } elseif (!$productsInStock) {
+            $statusMessage = __("message.some_products_out_of_stock");
+        }
+        
         $isDeliveryToThisArea = $this->cartService->isDeliveryToThisArea($cart, $address);
         return $this->successResponse([
             "cart" => new CartResource($cart->load(

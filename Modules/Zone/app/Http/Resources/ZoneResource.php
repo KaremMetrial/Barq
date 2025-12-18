@@ -50,9 +50,6 @@ protected function parsePolygon($polygonValue): ?array
             $point = trim($point);  // Clean up any extra spaces
             $parts = preg_split('/\s+/', $point);
 
-            // Debugging: Log the parts to see what we got
-            \Log::debug('Parsed Point:', ['point' => $point, 'parts' => $parts]);
-
             // Ensure the point has exactly two values: longitude and latitude
             if (count($parts) === 2) {
                 $lng = floatval($parts[0]);
@@ -64,13 +61,9 @@ protected function parsePolygon($polygonValue): ?array
             }
         }
 
-        // Debugging: Log the final coordinates to see if we got the expected results
-        \Log::debug('Final Coordinates:', ['coordinates' => $coordinates]);
-
-        // Return the valid coordinates
         return [
             'type' => 'Polygon',
-            'coordinates' => [$coordinates], // Return the coordinates array inside another array (GeoJSON format)
+            'coordinates' => [$coordinates],
         ];
     }
 

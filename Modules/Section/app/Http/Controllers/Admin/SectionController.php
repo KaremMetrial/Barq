@@ -50,7 +50,7 @@ class SectionController extends Controller
     {
         $section = $this->sectionService->getSectionById($id);
         return $this->successResponse([
-            'section' => new SectionResource($section),
+            'section' => new SectionResource($section->load('country')),
         ], __('message.success'));
     }
 

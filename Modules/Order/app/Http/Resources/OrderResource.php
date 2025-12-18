@@ -10,6 +10,7 @@ use App\Enums\OrderStatusEnum;
 use App\Enums\PaymentStatusEnum;
 use App\Enums\OrderInputTypeEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Review\Http\Resources\ReviewResource;
 
 class OrderResource extends JsonResource
 {
@@ -131,6 +132,11 @@ class OrderResource extends JsonResource
 
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+
+            'review' => $this->when($request->routeIs('*.show'), function () {
+                $review = $this->reviews()->where('reviewable_id', $this->user_id)->where('reviewable_type', 'user')->first();
+                return $review ? new ReviewResource($review) : null;
+            }),
         ];
     }
     private function shouldShowOtp(Request $request): bool

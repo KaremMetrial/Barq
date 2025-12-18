@@ -10,7 +10,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/{id}', 'show')->name('show');
     });
-    Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->middleware(['auth:sanctum','ability:admin,vendor'])->name('admin.')->group(function () {
         Route::apiResource('coupons', AdminCouponController::class)->names('coupon');
     });
     Route::prefix('vendor')->middleware('auth:vendor')->name('vendor.')->group(function () {

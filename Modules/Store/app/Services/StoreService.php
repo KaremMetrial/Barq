@@ -296,17 +296,31 @@ class StoreService
         return $this->StoreRepository->deliveryStore();
     }
 
-    public function deliveryStoreStats()
+    public function deliveryStoreStats($filter = [])
     {
-        $deliveryStores = Store::where('type', 'delivery')->get();
+        $deliveryStores = Store::when($filter['store_id'] ?? null, function ($query) use ($filter) {
+                $query->where('id', $filter['store_id']);
+            })
+            ->where('type', 'delivery')
+            ->get();
         $totalDeliveryCompanies = $deliveryStores->count();
 
         $storeIds = $deliveryStores->pluck('id');
 
         $totalCouriers = Couier::whereIn('store_id', $storeIds)->count();
-        $totalOrders = Order::whereIn('store_id', $storeIds)->count();
-        $successfulOrders = Order::whereIn('store_id', $storeIds)->where('status', OrderStatus::DELIVERED)->count();
-        $totalRevenue = Order::whereIn('store_id', $storeIds)->where('payment_status', 'paid')->sum('total_amount');
+
+        // Only include orders whose assigned courier belongs to the selected delivery companies (courier.store_id in $storeIds)
+        $totalOrders = Order::whereHas('courier', function ($q) use ($storeIds) {
+            $q->whereIn('store_id', $storeIds);
+        })->count();
+
+        $successfulOrders = Order::whereHas('courier', function ($q) use ($storeIds) {
+            $q->whereIn('store_id', $storeIds);
+        })->where('status', OrderStatus::DELIVERED)->count();
+
+        $totalRevenue = Order::whereHas('courier', function ($q) use ($storeIds) {
+            $q->whereIn('store_id', $storeIds);
+        })->where('payment_status', 'paid')->sum('total_amount');
 
         $successRate = $totalOrders > 0 ? round(($successfulOrders / $totalOrders) * 100, 2) : 0;
 
@@ -316,6 +330,263 @@ class StoreService
             'executed_orders' => $successfulOrders,
             'total_couriers' => $totalCouriers,
             'total_delivery_companies' => $totalDeliveryCompanies,
+        ];
+    }
+    public function deliveryStoreStatsInfo($filter = [])
+    {
+        $store = Store::when($filter['store_id'] ?? null, function ($query) use ($filter) {
+                $query->where('id', $filter['store_id']);
+            })
+            ->where('type', 'delivery')
+            ->first();
+
+        if (!$store) {
+            return null;
+        }
+
+        $totalCouriers = Couier::where('store_id', $store->id)->count();
+
+        // Base query: only include orders whose assigned courier belongs to the selected delivery company
+        $ordersQuery = Order::whereHas('courier', function ($q) use ($store) {
+            $q->where('store_id', $store->id);
+        });
+
+        $totalOrders = (clone $ordersQuery)->count();
+
+        $successfulOrders = (clone $ordersQuery)->where('status', OrderStatus::DELIVERED)->count();
+
+        $ongoingOrders = (clone $ordersQuery)->whereIn('status', [
+            OrderStatus::PENDING,
+            OrderStatus::CONFIRMED,
+            OrderStatus::PROCESSING,
+            OrderStatus::READY_FOR_DELIVERY,
+            OrderStatus::ON_THE_WAY,
+        ])->count();
+
+        $totalRevenue = (clone $ordersQuery)->where('payment_status', 'paid')->sum('total_amount');
+
+        $successRate = $totalOrders > 0 ? round(($successfulOrders / $totalOrders) * 100, 2) : 0;
+        $ongoingPercentage = $totalOrders > 0 ? round(($ongoingOrders / $totalOrders) * 100, 2) : 0;
+
+        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP';
+        $currencySymbol = $store->store_setting?->currency_symbol ?? $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? $currencyCode;
+        $totalRevenueFormatted = number_format($totalRevenue) . ' ' . $currencyCode;
+
+        return [
+            // Drivers count (السائقين)
+            'total_couriers' => $totalCouriers,
+
+            // Orders (الطلبات)
+            'total_orders' => $totalOrders,
+
+            // On-time / executed deliveries (التسليم في الوقت)
+            'executed_orders' => $successfulOrders,
+
+            // Total revenue (إجمالي الأرباح)
+            'total_revenue' => $totalRevenue,
+            'total_revenue_formatted' => $totalRevenueFormatted,
+            'currency_code' => $currencyCode,
+            'currency_symbol' => $currencySymbol,
+
+            // Ongoing orders (الطلبات الجارية)
+            'ongoing_orders' => $ongoingOrders,
+            'ongoing_percentage' => $ongoingPercentage,
+            'ongoing_percentage_formatted' => $ongoingPercentage . '%',
+
+            // Success rate
+            'success_rate' => $successRate,
+        ];
+    }
+    public function deliveryStoreDailyPerformance($filter = [])
+    {
+        $store = Store::when($filter['store_id'] ?? null, function ($query) use ($filter) {
+            $query->where('id', $filter['store_id']);
+        })->where('type', 'delivery')->first();
+
+        if (!$store) {
+            return null;
+        }
+
+        // Last 7 days (6 days ago -> today)
+        $days = collect(range(6, 0))->map(fn($i) => Carbon::today()->subDays($i));
+
+        // Arabic weekday mapping where Carbon::dayOfWeek() returns 0=Sunday .. 6=Saturday
+        $weekdayMap = [
+            6 => 'السبت',
+            0 => 'الأحد',
+            1 => 'الاثنين',
+            2 => 'الثلاثاء',
+            3 => 'الأربعاء',
+            4 => 'الخميس',
+            5 => 'الجمعة',
+        ];
+
+        $labels = [];
+        $orders = [];
+        $delivered = [];
+        $revenue = [];
+
+        foreach ($days as $day) {
+            $date = $day->toDateString();
+            $labels[] = $weekdayMap[$day->dayOfWeek] ?? $day->format('D');
+
+            $countOrders = Order::whereHas('courier', function ($q) use ($store) {
+                $q->where('store_id', $store->id);
+            })->whereDate('created_at', $date)->count();
+
+            $countDelivered = Order::whereHas('courier', function ($q) use ($store) {
+                $q->where('store_id', $store->id);
+            })->whereDate('created_at', $date)->where('status', OrderStatus::DELIVERED)->count();
+
+            $dayRevenue = Order::whereHas('courier', function ($q) use ($store) {
+                $q->where('store_id', $store->id);
+            })->whereDate('created_at', $date)->where('payment_status', 'paid')->sum('total_amount');
+
+            $orders[] = $countOrders;
+            $delivered[] = $countDelivered;
+            $revenue[] = (float) $dayRevenue;
+        }
+
+        $maxVal = max(array_merge($orders ?: [0], $delivered ?: [0]));
+        $step = $maxVal > 0 ? (int) ceil($maxVal / 4) : 1;
+        $ticks = [$step * 4, $step * 3, $step * 2, $step * 1, 0];
+
+        return [
+            'labels' => $labels,
+            'orders' => $orders,
+            'delivered' => $delivered,
+            'revenue' => $revenue,
+            'ticks' => $ticks,
+            'max' => $step * 4,
+        ];
+    }
+
+    public function deliveryStoreQuickStats($filter = [])
+    {
+        $store = Store::when($filter['store_id'] ?? null, function ($query) use ($filter) {
+            $query->where('id', $filter['store_id']);
+        })->where('type', 'delivery')->first();
+
+        if (!$store) {
+            return null;
+        }
+
+        $ordersQuery = Order::whereHas('courier', function ($q) use ($store) {
+            $q->where('store_id', $store->id);
+        });
+
+        $totalOrders = (clone $ordersQuery)->count();
+        $successfulOrders = (clone $ordersQuery)->where('status', OrderStatus::DELIVERED)->count();
+        $successRate = $totalOrders > 0 ? round(($successfulOrders / $totalOrders) * 100, 2) : 0;
+
+        $start = Carbon::today()->subDays(6)->startOfDay();
+        $end = Carbon::today()->endOfDay();
+
+        $ordersLast7 = (clone $ordersQuery)->whereBetween('created_at', [$start, $end])->count();
+        $revenueLast7 = (clone $ordersQuery)->whereBetween('created_at', [$start, $end])->where('payment_status', 'paid')->sum('total_amount');
+
+        $avgOrdersPerDay = $ordersLast7 / 7;
+        $avgRevenuePerDay = $revenueLast7 / 7;
+
+        $avgRating = \App\Models\ReviewRating::whereHas('review', function ($q) use ($store) {
+            $q->whereHas('order', function ($q2) use ($store) {
+                $q2->where('store_id', $store->id);
+            });
+        })->avg('rating');
+
+        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP';
+
+        return [
+            'success_rate' => $successRate,
+            'success_rate_formatted' => $successRate . '%',
+            'avg_orders_per_day' => round($avgOrdersPerDay, 1),
+            'avg_orders_per_day_formatted' => number_format(round($avgOrdersPerDay, 1), 1),
+            'avg_revenue_per_day' => round($avgRevenuePerDay, 2),
+            'avg_revenue_per_day_formatted' => number_format((int) round($avgRevenuePerDay)) . ' ' . $currencyCode,
+            'average_rating' => $avgRating ? round($avgRating, 1) : 0,
+            'average_rating_formatted' => $avgRating ? number_format(round($avgRating, 1), 1) : '0.0',
+        ];
+    }
+
+    public function deliveryStoreAchievements($filter = [])
+    {
+        $store = Store::when($filter['store_id'] ?? null, function ($query) use ($filter) {
+            $query->where('id', $filter['store_id']);
+        })->where('type', 'delivery')->first();
+
+        if (!$store) {
+            return null;
+        }
+
+        $ordersQuery = Order::whereHas('courier', function ($q) use ($store) {
+            $q->where('store_id', $store->id);
+        });
+
+        // Current 30-day window
+        $today = Carbon::today();
+        $startCurrent = $today->copy()->subDays(29)->startOfDay();
+        $endCurrent = $today->endOfDay();
+
+        // Previous 30-day window
+        $startPrev = $startCurrent->copy()->subDays(30)->startOfDay();
+        $endPrev = $startCurrent->copy()->subDays(1)->endOfDay();
+
+        $currentCount = (clone $ordersQuery)->whereBetween('created_at', [$startCurrent, $endCurrent])->count();
+        $prevCount = (clone $ordersQuery)->whereBetween('created_at', [$startPrev, $endPrev])->count();
+
+        if ($prevCount > 0) {
+            $growth = round((($currentCount - $prevCount) / $prevCount) * 100, 1);
+        } else {
+            $growth = $currentCount > 0 ? 100 : 0;
+        }
+
+        $badge = $currentCount >= 100 ? 'شركة موثوقة' : null;
+
+        return [
+            'monthly_orders' => $currentCount,
+            'monthly_orders_formatted' => $currentCount >= 100 ? '100+' : (string) $currentCount,
+            'growth_percentage' => $growth,
+            'growth_label' => 'الشهر الماضي',
+            'badge' => $badge,
+        ];
+    }
+
+    public function deliveryStoreMonthlyReport($filter = [])
+    {
+        $store = Store::when($filter['store_id'] ?? null, function ($query) use ($filter) {
+            $query->where('id', $filter['store_id']);
+        })->where('type', 'delivery')->first();
+
+        if (!$store) {
+            return null;
+        }
+
+        $ordersQuery = Order::whereHas('courier', function ($q) use ($store) {
+            $q->where('store_id', $store->id);
+        });
+
+        $start = Carbon::now()->startOfMonth()->startOfDay();
+        $end = Carbon::now()->endOfMonth()->endOfDay();
+
+        $monthQuery = (clone $ordersQuery)->whereBetween('created_at', [$start, $end]);
+
+        $monthlyDeliveries = $monthQuery->count();
+        $monthlyDelivered = (clone $monthQuery)->where('status', OrderStatus::DELIVERED)->count();
+        $onTimePercentage = $monthlyDeliveries > 0 ? round(($monthlyDelivered / $monthlyDeliveries) * 100, 1) : 0;
+
+        $monthlyRevenue = (clone $monthQuery)->where('payment_status', 'paid')->sum('total_amount');
+        $cancelledOrders = (clone $monthQuery)->where('status', OrderStatus::CANCELLED)->count();
+
+        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP';
+
+        return [
+            'monthly_deliveries' => $monthlyDeliveries,
+            'monthly_deliveries_formatted' => $monthlyDeliveries >= 100 ? '100+' : (string) $monthlyDeliveries,
+            'on_time_percentage' => $onTimePercentage,
+            'on_time_percentage_formatted' => $onTimePercentage . '%',
+            'monthly_revenue' => $monthlyRevenue,
+            'monthly_revenue_formatted' => number_format((int) $monthlyRevenue) . ' ' . $currencyCode,
+            'cancelled_orders' => $cancelledOrders,
         ];
     }
 

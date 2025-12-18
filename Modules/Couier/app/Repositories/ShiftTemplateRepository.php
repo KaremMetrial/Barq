@@ -27,7 +27,9 @@ class ShiftTemplateRepository extends BaseRepository
         if (isset($filters['store_id'])) {
             $query->where('store_id', $filters['store_id']);
         }
-
+        if(auth('vendor')->check()){
+            $query->where('store_id',auth('vendor')->user()->store_id);
+        }
         return $query->latest()->paginate($filters['per_page'] ?? 15);
     }
 

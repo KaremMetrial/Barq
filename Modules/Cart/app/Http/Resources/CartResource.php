@@ -42,7 +42,7 @@ class CartResource extends JsonResource
         $taxAmount = $subtotal * ($taxRate / 100);
         $serviceFeeAmount = $subtotal * ($serviceFeePercentage / 100);
 
-        
+
         return [
             "id" => $this->id,
             "cart_quantity" => $this->items->sum('quantity'),

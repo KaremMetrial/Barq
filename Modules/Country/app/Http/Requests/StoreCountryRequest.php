@@ -18,6 +18,8 @@ class StoreCountryRequest extends FormRequest
             'is_active' => ["nullable", "boolean"],
             'currency_name' => ["required", "string", "max:255"],
             'flag' => ["required", "image", 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
+            'currency_unit' => ['required', 'string', 'max:100'],
+            'currency_factor' => ['required', 'integer', 'min:1'],
         ];
     }
 

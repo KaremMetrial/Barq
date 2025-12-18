@@ -27,6 +27,10 @@ class SectionResource extends JsonResource
             'categories' => CategoryResource::collection($this->categories),
             'type' => $this->type?->value,
             'type_label' => SectionTypeEnum::label($this->type?->value),
+            'is_restaurant' => (bool) $this->is_restaurant,
+            'countries' => $this->whenLoaded('country', function () {
+                return $this->country->pluck('id');
+            }),
         ];
     }
 }
