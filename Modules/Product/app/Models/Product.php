@@ -188,28 +188,28 @@ class Product extends Model implements TranslatableContract
             $query->whereStatus(ProductStatusEnum::ACTIVE);
         }
 
-        // $addressId = request()->header('address-id') ?? request()->header('AddressId');
-        // $lat = request()->header('lat');
-        // $lng = request()->header('lng');
+         $addressId = request()->header('address-id') ?? request()->header('AddressId');
+         $lat = request()->header('lat');
+         $lng = request()->header('lng');
 
-        // $zone = null;
+         $zone = null;
 
-        // if ($addressId) {
-        //     $zone = Zone::findZoneByAddressId($addressId);
-        // } elseif ($lat && $lng) {
-        //     $zone = Zone::findZoneByCoordinates($lat, $lng);
-        // }
-        // if ($zone) {
-        //     $query->whereHas('store', function ($q) use ($zone) {
-        //         $q->whereHas('storesZones', function ($qz) use ($zone) {
-        //             $qz->where('zones.id', $zone->id);
-        //         });
-        //     });
-        // } else {
-        //     if ($addressId || ($lat && $lng)) {
-        //         $query->whereRaw('1 = 0');
-        //     }
-        // }
+         if ($addressId) {
+             $zone = Zone::findZoneByAddressId($addressId);
+         } elseif ($lat && $lng) {
+             $zone = Zone::findZoneByCoordinates($lat, $lng);
+         }
+         if ($zone) {
+             $query->whereHas('store', function ($q) use ($zone) {
+                 $q->whereHas('storesZones', function ($qz) use ($zone) {
+                     $qz->where('zones.id', $zone->id);
+                 });
+             });
+         } else {
+             if ($addressId || ($lat && $lng)) {
+                 $query->whereRaw('1 = 0');
+             }
+         }
 
 
         return $query->latest();

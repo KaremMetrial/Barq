@@ -87,7 +87,7 @@ class Order extends Model
     }
     public function courier()
     {
-        return $this->belongsTo(Couier::class, 'courier_id');
+        return $this->belongsTo(Couier::class, 'couier_id');
     }
 
     public function items()

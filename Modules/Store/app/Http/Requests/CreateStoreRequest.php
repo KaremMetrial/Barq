@@ -85,6 +85,7 @@ class CreateStoreRequest extends FormRequest
             'store.commission_amount' => ['nullable', 'numeric', 'min:0'],
             'store.commission_type' => ['nullable', 'string', Rule::in(PlanTypeEnum::values())],
             'store.type' => ['nullable', 'string', 'in:delivery,store'],
+            'store.currency_factor' => ['nullable', 'integer', 'min:1'],
 
             'address' => ['required', 'array'],
             'address.zone_id' => ['required', 'integer', 'exists:zones,id'],

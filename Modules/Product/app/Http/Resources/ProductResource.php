@@ -44,8 +44,10 @@ class ProductResource extends JsonResource
                 $price = (float) $this->price->price;
                 $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
                 $currencySymbol = $this->price->currency_symbol ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'ج.م');
-
                 return \App\Helpers\CurrencyHelper::formatPrice($price, $currencyCode, $currencySymbol);
+            }),
+            "currency_factor" => $this->whenLoaded('price', function () {
+                return $this->price->getCurrencyFactor();
             }),
             "store"      => $this->whenLoaded('store', function () {
                 $deliveryTypeUnit = $this->store->storeSetting?->delivery_type_unit ?? \App\Enums\DeliveryTypeUnitEnum::MINUTE;
@@ -98,7 +100,7 @@ class ProductResource extends JsonResource
 
                 // Compute using minor units when possible for safer cross-currency calculations
                 $priceMinor = $this->price->salePriceMinorValue() ?? $this->price->priceMinorValue() ?? 0;
-                $priceFactor = $this->price->product?->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
+                $priceFactor = $this->price->getCurrencyFactor();
                 $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
 
                 if (!$offer) {

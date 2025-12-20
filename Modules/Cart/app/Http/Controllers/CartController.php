@@ -76,7 +76,7 @@ class CartController extends Controller
         });
 
         $productsInStock = $cart->items->every(function ($item) {
-            return $item->product && $item->product->stock >= $item->quantity;
+            return $item->product && $item->product->availability->stock_quantity >= $item->quantity;
         });
 
         if ($addressId) {
@@ -94,7 +94,7 @@ class CartController extends Controller
         } elseif (!$productsInStock) {
             $statusMessage = __("message.some_products_out_of_stock");
         }
-        
+
         $isDeliveryToThisArea = $this->cartService->isDeliveryToThisArea($cart, $address);
         return $this->successResponse([
             "cart" => new CartResource($cart->load(

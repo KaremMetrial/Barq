@@ -5,8 +5,8 @@ namespace Modules\Product\Traits;
 trait DeliveryTimeTrait
 {
     protected function calculateDynamicDeliveryTime($store, $deliveryTypeUnit, $userLat, $userLng) {
-        $storeLat = $store->address->latitude;
-        $storeLng = $store->address->longitude;
+        $storeLat = $store->address?->latitude ?? 0;
+        $storeLng = $store->address?->longitude ?? 0;
 
         $distance = $this->calculateDistance($userLat, $userLng, $storeLat, $storeLng);
 

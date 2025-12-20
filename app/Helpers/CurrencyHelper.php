@@ -22,27 +22,36 @@ class CurrencyHelper
      * @param bool $includeSymbol
      * @return string
      */
-    public static function formatPrice(float $price, string $currencyCode, ?string $currencySymbol = null, bool $includeSymbol = true): string
-    {
+    public static function formatPrice(
+        int $priceInMinor,
+        string $currencyCode,
+        ?string $currencySymbol = null,
+        int $currencyFactor = 100,
+        bool $includeSymbol = false
+    ): string {
         $currencyCode = strtoupper($currencyCode);
 
-        // Get cached decimal places
+        // Get decimal places for currency
         $decimalPlaces = self::getDecimalPlacesForCurrency($currencyCode);
 
-        // Format the price
+        // Convert from minor units → decimal
+        $price = self::fromMinorUnits($priceInMinor, $currencyFactor, $decimalPlaces);
+
+        // Format number
         $formattedPrice = number_format($price, $decimalPlaces, '.', '');
 
-        if ($includeSymbol) {
-            // Get cached symbol position
-            $symbolPosition = self::getSymbolPositionForCurrency($currencyCode);
-            $symbol = $currencySymbol ?? self::getSymbolForCurrencyCode($currencyCode);
-
-            // return $symbolPosition === 'before' ? $symbol . ' ' . $formattedPrice : $formattedPrice . ' ' . $symbol;
+        if (! $includeSymbol) {
             return $formattedPrice;
         }
 
-        return $formattedPrice;
+        $symbol = $currencySymbol ?? self::getSymbolForCurrencyCode($currencyCode);
+        $position = self::getSymbolPositionForCurrency($currencyCode);
+
+        return $position === 'before'
+            ? $symbol . ' ' . $formattedPrice
+            : $formattedPrice . ' ' . $symbol;
     }
+
 
     /**
      * Get decimal places for a currency code
@@ -287,5 +296,187 @@ class CurrencyHelper
         }
 
         return (int) round(($amountMinor / $srcFactor) * $dstFactor);
+    }
+
+    /**
+     * Convert decimal price to unsigned bigint (minor units)
+     * Used for storing prices in database as UNSIGNED BIGINT
+     *
+     * @param float $price Decimal price (e.g., 123.45)
+     * @param int $currencyUnit Currency unit divisor (e.g., 100 for cents)
+     * @return int Unsigned big integer in minor units (e.g., 12345)
+     */
+    public static function priceToUnsignedBigInt(float $price, int $currencyUnit = 100): int
+    {
+        return (int)round($price * $currencyUnit);
+    }
+
+    /**
+     * Convert unsigned bigint back to decimal price
+     * Retrieves display value from database stored format
+     *
+     * @param int $priceInMinor Unsigned big integer in minor units (e.g., 12345)
+     * @param int $currencyUnit Currency unit divisor (e.g., 100 for cents)
+     * @return float Decimal price (e.g., 123.45)
+     */
+    public static function unsignedBigIntToPrice(int $priceInMinor, int $currencyUnit = 100): float
+    {
+        return $priceInMinor / $currencyUnit;
+    }
+
+    /**
+     * Format unsigned bigint price for display
+     * Combines conversion and formatting in one call
+     *
+     * @param int $priceInMinor Unsigned big integer in minor units
+     * @param string $currencyCode Currency code (e.g., 'USD')
+     * @param int $currencyUnit Currency unit divisor
+     * @return string Formatted price string
+     */
+    public static function formatBigIntPrice(int $priceInMinor, string $currencyCode, int $currencyUnit = 100): string
+    {
+        $price = self::unsignedBigIntToPrice($priceInMinor, $currencyUnit);
+        return self::formatPrice($price, $currencyCode);
+    }
+
+    /**
+     * Add two unsigned bigint prices
+     * Maintains precision by working with integers
+     *
+     * @param int $price1 First price in minor units
+     * @param int $price2 Second price in minor units
+     * @return int Sum in minor units
+     */
+    public static function addBigIntPrices(int $price1, int $price2): int
+    {
+        return $price1 + $price2;
+    }
+
+    /**
+     * Subtract unsigned bigint prices
+     * Returns 0 if result would be negative
+     *
+     * @param int $price1 Minuend in minor units
+     * @param int $price2 Subtrahend in minor units
+     * @return int Difference in minor units (minimum 0)
+     */
+    public static function subtractBigIntPrices(int $price1, int $price2): int
+    {
+        return max(0, $price1 - $price2);
+    }
+
+    /**
+     * Multiply unsigned bigint price by factor
+     * Useful for tax, discounts, or quantity calculations
+     *
+     * @param int $price Price in minor units
+     * @param float $factor Multiplication factor
+     * @return int Result in minor units
+     */
+    public static function multiplyBigIntPrice(int $price, float $factor): int
+    {
+        return (int)round($price * $factor);
+    }
+
+    /**
+     * Calculate percentage of unsigned bigint price
+     *
+     * @param int $price Price in minor units
+     * @param float $percentage Percentage value (0-100)
+     * @return int Percentage amount in minor units
+     */
+    public static function percentageOfBigIntPrice(int $price, float $percentage): int
+    {
+        return (int)round($price * ($percentage / 100));
+    }
+
+    /**
+     * Apply tax to unsigned bigint price
+     *
+     * @param int $price Price in minor units
+     * @param float $taxRate Tax rate as decimal (e.g., 0.15 for 15%)
+     * @return int Tax amount in minor units
+     */
+    public static function calculateTaxOnBigIntPrice(int $price, float $taxRate): int
+    {
+        return (int)round($price * $taxRate);
+    }
+
+    /**
+     * Apply discount to unsigned bigint price
+     *
+     * @param int $price Price in minor units
+     * @param float $discountPercent Discount percentage (0-100)
+     * @return int Discount amount in minor units
+     */
+    public static function calculateDiscountOnBigIntPrice(int $price, float $discountPercent): int
+    {
+        return self::percentageOfBigIntPrice($price, $discountPercent);
+    }
+
+    /**
+     * Get final price after tax
+     *
+     * @param int $price Original price in minor units
+     * @param float $taxRate Tax rate as decimal
+     * @return int Final price with tax in minor units
+     */
+    public static function priceWithTaxBigInt(int $price, float $taxRate): int
+    {
+        return $price + self::calculateTaxOnBigIntPrice($price, $taxRate);
+    }
+
+    /**
+     * Get final price after discount
+     *
+     * @param int $price Original price in minor units
+     * @param float $discountPercent Discount percentage
+     * @return int Final price after discount in minor units
+     */
+    public static function priceAfterDiscountBigInt(int $price, float $discountPercent): int
+    {
+        return self::subtractBigIntPrices($price, self::calculateDiscountOnBigIntPrice($price, $discountPercent));
+    }
+
+    /**
+     * Convert price between different currency units
+     * Useful for multi-currency support
+     *
+     * @param int $amountInMinor Price in source minor units
+     * @param int $sourceCurrencyUnit Source currency unit
+     * @param int $targetCurrencyUnit Target currency unit
+     * @return int Price in target minor units
+     */
+    public static function convertBigIntPriceBetweenUnits(int $amountInMinor, int $sourceCurrencyUnit, int $targetCurrencyUnit): int
+    {
+        if ($sourceCurrencyUnit === $targetCurrencyUnit) {
+            return $amountInMinor;
+        }
+        return (int)round(($amountInMinor / $sourceCurrencyUnit) * $targetCurrencyUnit);
+    }
+
+    /**
+     * Round unsigned bigint price to nearest minor unit
+     * Some operations may require rounding
+     *
+     * @param float $priceInMinor Price value (potentially with decimals)
+     * @return int Rounded to nearest minor unit
+     */
+    public static function roundBigIntPrice(float $priceInMinor): int
+    {
+        return (int)round($priceInMinor);
+    }
+
+    /**
+     * Validate if value is within reasonable price bounds
+     * Prevents overflow or unreasonable values
+     *
+     * @param int $priceInMinor Price in minor units
+     * @param int $maxValue Maximum allowed value
+     * @return bool True if price is valid
+     */
+    public static function isValidBigIntPrice(int $priceInMinor, int $maxValue = PHP_INT_MAX): bool
+    {
+        return $priceInMinor >= 0 && $priceInMinor <= $maxValue;
     }
 }

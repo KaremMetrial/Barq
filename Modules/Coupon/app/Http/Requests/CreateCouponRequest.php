@@ -28,6 +28,7 @@ class CreateCouponRequest extends FormRequest
         return [
             'code' => ['required', 'string', 'max:255', 'unique:coupons,code'],
             'discount_amount' => ['required', 'numeric', 'min:0'],
+            'currency_factor' => ['nullable', 'integer', 'min:1'],
             'discount_type' => ['required', Rule::in(SaleTypeEnum::values())],
             'usage_limit' => ['nullable', 'numeric', 'min:0'],
             'usage_limit_per_user' => ['nullable', 'integer', 'min:1'],

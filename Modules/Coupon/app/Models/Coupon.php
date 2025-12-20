@@ -30,6 +30,7 @@ class Coupon extends Model implements TranslatableContract
         'is_active',
         'coupon_type',
         'object_type',
+        'currency_factor', // Added currency_factor to fillable attributes
     ];
     protected $casts = [
         'is_active' => 'boolean',
@@ -42,6 +43,18 @@ class Coupon extends Model implements TranslatableContract
         'coupon_type' => CouponTypeEnum::class,
         'object_type' => ObjectTypeEnum::class,
     ];
+    
+    /**
+     * Get the currency factor for this coupon
+     * 
+     * @return int
+     */
+    public function getCurrencyFactor(): int
+    {
+        // Return the stored currency factor or default to 100
+        return $this->currency_factor ?? 100;
+    }
+    
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'category_coupon', 'coupon_id', 'category_id');

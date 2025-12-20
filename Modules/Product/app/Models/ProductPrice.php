@@ -18,14 +18,30 @@ class ProductPrice extends Model
         'price_minor',
         'sale_price_minor',
         'purchase_price_minor',
+        'currency_factor',
     ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
+
     public function sale(): HasOne
     {
         return $this->hasOne(ProductPriceSale::class);
+    }
+
+    /**
+     * Get the currency factor for this price
+     *
+     * @return int
+     */
+    public function getCurrencyFactor(): int
+    {
+        // Return the stored currency factor, or derive it from relationships, or default to 100
+        return $this->currency_factor
+            ?? $this->product?->store?->address?->zone?->city?->governorate?->country?->currency_factor
+            ?? 100;
     }
 
     /**
@@ -37,7 +53,7 @@ class ProductPrice extends Model
             return (int) $this->price_minor;
         }
 
-        $factor = $this->product?->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? $defaultFactor;
+        $factor = $this->getCurrencyFactor();
 
         return $this->price !== null ? \App\Helpers\CurrencyHelper::toMinorUnits((float) $this->price, (int) $factor) : null;
     }
@@ -48,7 +64,7 @@ class ProductPrice extends Model
             return (int) $this->sale_price_minor;
         }
 
-        $factor = $this->product?->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? $defaultFactor;
+        $factor = $this->getCurrencyFactor();
 
         return $this->sale_price !== null ? \App\Helpers\CurrencyHelper::toMinorUnits((float) $this->sale_price, (int) $factor) : null;
     }
@@ -59,7 +75,7 @@ class ProductPrice extends Model
             return (int) $this->purchase_price_minor;
         }
 
-        $factor = $this->product?->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? $defaultFactor;
+        $factor = $this->getCurrencyFactor();
 
         return $this->purchase_price !== null ? \App\Helpers\CurrencyHelper::toMinorUnits((float) $this->purchase_price, (int) $factor) : null;
     }

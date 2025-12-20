@@ -61,7 +61,8 @@ class Store extends Model implements TranslatableContract
         'commission_amount',
         'type',
         'currency_code',
-        'currency_symbol'
+        'currency_symbol',
+        'currency_factor', // Added currency_factor to fillable attributes
     ];
     protected $casts = [
         'is_featured' => 'boolean',
@@ -405,6 +406,17 @@ class Store extends Model implements TranslatableContract
         return $this->belongsToMany(Zone::class, 'store_zone', 'store_id', 'zone_id');
     }
 
+    /**
+     * Get the currency factor for this store
+     * 
+     * @return int
+     */
+    public function getCurrencyFactor(): int
+    {
+        // Return the stored currency factor or default to 100
+        return $this->currency_factor ?? 100;
+    }
+    
     /**
      * Check if the store is open now based on working days and is_closed flag
      */

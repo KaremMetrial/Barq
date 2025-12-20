@@ -103,6 +103,7 @@ class CreateProductRequest extends FormRequest
             'prices.price' => ['required', 'numeric', 'min:0'],
             'prices.purchase_price' => ['nullable', 'numeric', 'min:0'],
             'prices.sale_price' => ['nullable', 'numeric', 'min:0'],
+            'prices.currency_factor' => ['nullable', 'integer', 'min:1'],
 
             // Product Tags Table
             'tags' => ['nullable', 'array'],

@@ -29,6 +29,7 @@ class UpdateCouponRequest extends FormRequest
         return [
             'code' => ['nullable', 'string', 'max:255', 'unique:coupons,code,' . $this->route('coupon')],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
+            'currency_factor' => ['nullable', 'integer', 'min:1'],
             'discount_type' => ['nullable', Rule::in(SaleTypeEnum::values())],
             'usage_limit' => ['nullable', 'numeric', 'min:0'],
             'usage_limit_per_user' => ['nullable', 'integer', 'min:1'],
