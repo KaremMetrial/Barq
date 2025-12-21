@@ -16,10 +16,10 @@ class UpdateShippingPriceRequest extends FormRequest
     {
         return [
             'name' => ['nullable', 'string', 'max:255'],
-            'base_price' => ['nullable', 'decimal:2'],
-            'max_price' => ['nullable', 'decimal:2'],
-            'per_km_price' => ['nullable', 'decimal:2'],
-            'max_cod_price' => ['nullable', 'decimal:2'],
+            'base_price' => ['nullable', 'numeric'],
+            'max_price' => ['nullable', 'numeric'],
+            'per_km_price' => ['nullable', 'numeric'],
+            'max_cod_price' => ['nullable', 'numeric'],
             'enable_cod' => ['nullable', 'boolean'],
             'zone_id' => ['nullable', 'integer'],
             'vehicle_id' => ['nullable', 'integer'],

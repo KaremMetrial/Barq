@@ -300,7 +300,7 @@ class Store extends Model implements TranslatableContract
         return $query;
     }
 
-    public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?float
+    public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?int
     {
         $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
         return $deliveryFeeService->calculateForStore($this, $vehicleId, $distanceKm);
@@ -408,7 +408,7 @@ class Store extends Model implements TranslatableContract
 
     /**
      * Get the currency factor for this store
-     * 
+     *
      * @return int
      */
     public function getCurrencyFactor(): int
@@ -416,7 +416,7 @@ class Store extends Model implements TranslatableContract
         // Return the stored currency factor or default to 100
         return $this->currency_factor ?? 100;
     }
-    
+
     /**
      * Check if the store is open now based on working days and is_closed flag
      */

@@ -47,7 +47,7 @@ class SearchRepository implements SearchRepositoryInterface
                             'product_id'   => $product->id,
                             'product_name' => $product->name,
                             'product_image' => $product->images()->first()?->image_path ? asset('storage/' . $product->images()->first()?->image_path) : null,
-                            'product_price' => number_format($product->price->price, 0),
+                            'product_price' => $product->price->price,
                             // Calculate product discount using minor-units when available
                             'product_discount' => $product->offers->isNotEmpty() ? (string) $this->calculateSalePriceUsingMinor(
                                 $product,
@@ -73,14 +73,14 @@ class SearchRepository implements SearchRepositoryInterface
     protected function calculateSalePrice($originalPrice, $discountAmount, $discountType)
     {
         if ($discountType === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
-            return round($originalPrice - ($originalPrice * $discountAmount / 100), 2);
+            return $originalPrice - ($originalPrice * $discountAmount / 100);
         }
 
         if ($discountType === \App\Enums\SaleTypeEnum::FIXED->value) {
-            return round(max($originalPrice - $discountAmount, 0), 2);
+            return max($originalPrice - $discountAmount, 0);
         }
 
-        return number_format($originalPrice, 0);
+        return $originalPrice;
     }
 
     protected function calculateSalePriceUsingMinor($product, $offer)
@@ -89,7 +89,7 @@ class SearchRepository implements SearchRepositoryInterface
         $priceFactor = $product->price->product?->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
 
         if ($offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
-            return round(\App\Helpers\CurrencyHelper::fromMinorUnits((int) round($priceMinor - ($priceMinor * $offer->discount_amount / 100)), (int)$priceFactor), 0);
+            return \App\Helpers\CurrencyHelper::fromMinorUnits((int) $priceMinor - ($priceMinor * $offer->discount_amount / 100), (int)$priceFactor);
         }
 
         $discountMinor = $offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor));

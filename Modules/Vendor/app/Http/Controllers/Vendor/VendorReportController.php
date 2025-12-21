@@ -2,6 +2,7 @@
 
 namespace Modules\Vendor\Http\Controllers\Vendor;
 
+use App\Helpers\CurrencyHelper;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -37,14 +38,14 @@ class VendorReportController extends Controller
 
         try {
             // Get the store's currency
-            $currency = $this->getStoreCurrency($storeId);
+            $currencyInfo = $this->getStoreCurrencyInfo($storeId);
 
             $reportData = [
-                'operational_performance' => $this->getOperationalPerformance($storeId, $startDate, $endDate, $currency),
-                'financial_information' => $this->getFinancialInformation($vendor, $currency),
-                'wallet_data' => $this->getWalletData($vendor, $currency),
-                'transactions' => $this->getRecentTransactions($vendor),
-                'currency' => $currency
+                'operational_performance' => $this->getOperationalPerformance($storeId, $startDate, $endDate, $currencyInfo),
+                'financial_information' => $this->getFinancialInformation($vendor, $currencyInfo),
+                'wallet_data' => $this->getWalletData($vendor, $currencyInfo),
+                'transactions' => $this->getRecentTransactions($vendor, $currencyInfo),
+                'currency' => $currencyInfo['symbol']
             ];
 
             return $this->successResponse($reportData, __('message.success'));
@@ -52,12 +53,17 @@ class VendorReportController extends Controller
             return $this->errorResponse($e->getMessage(), 500);
         }
     }
+protected function changeDirection(float $percent): string
+{
+    return $percent > 0 ? 'up' : ($percent < 0 ? 'down' : 'flat');
+}
 
     /**
      * Get operational performance data
      */
-    protected function getOperationalPerformance(int $storeId, $startDate, $endDate, string $currency): array
+    protected function getOperationalPerformance(int $storeId, $startDate, $endDate, array $currencyInfo): array
     {
+        $factor = $currencyInfo['factor'];
         // Get daily sales metrics
         $today = now();
         $yesterday = now()->subDay();
@@ -161,10 +167,10 @@ class VendorReportController extends Controller
             : 0;
 
         // Format weekly sales for chart
-        $weeklySalesChart = $weeklySales->map(function ($item) {
+        $weeklySalesChart = $weeklySales->map(function ($item) use ($factor) {
             return [
                 'date' => $item->date,
-                'total_sales' => (float) $item->total_sales,
+                'total_sales' => CurrencyHelper::fromMinorUnits($item->total_sales, $factor),
                 'order_count' => (int) $item->order_count,
                 'day_name' => Carbon::parse($item->date)->translatedFormat('l')
             ];
@@ -173,33 +179,116 @@ class VendorReportController extends Controller
         return [
             'daily_metrics' => [
                 'total_sales' => [
-                    'value' => (float) $totalSalesToday,
+                    'value' => CurrencyHelper::fromMinorUnits($totalSalesToday, $factor),
                     'change_percent' => (float) $salesChangePercent,
-                    'currency' => $currency
+                    'change_direction' => $this->changeDirection($salesChangePercent),
+                    'compare_to' => 'أمس',
+                    'currency' => $currencyInfo['symbol']
                 ],
-                'order_count' => [
-                    'value' => (int) $orderCountToday,
-                    'change_percent' => (float) $orderCountChangePercent
-                ],
-                'average_order_value' => [
-                    'value' => (float) $avgOrderValueToday,
-                    'change_percent' => (float) $avgOrderValueChangePercent,
-                    'currency' => $currency
-                ],
-                'peak_hours' => [
-                    'value' => $peakHourRange,
-                    'change_percent' => (float) $peakHourChangePercent
-                ]
+
+             'order_count' => [
+    'value' => (int) $orderCountToday,
+    'change_percent' => (float) $orderCountChangePercent,
+    'change_direction' => $this->changeDirection($orderCountChangePercent),
+    'compare_to' => 'أمس',
+],
+
+              'average_order_value' => [
+    'value' => CurrencyHelper::fromMinorUnits($avgOrderValueToday, $factor),
+    'change_percent' => (float) $avgOrderValueChangePercent,
+    'change_direction' => $this->changeDirection($avgOrderValueChangePercent),
+    'compare_to' => 'أمس',
+    'currency' => $currencyInfo['symbol']
+],
+'peak_hours' => [
+    'value' => $peakHourRange,
+    'change_percent' => (float) $peakHourChangePercent,
+    'change_direction' => $this->changeDirection($peakHourChangePercent),
+    'compare_to' => 'متوسط آخر 7 أيام',
+],
+
             ],
-            'weekly_sales_chart' => $weeklySalesChart->values()->all(),
-            'peak_hour_analysis' => $this->getPeakHourAnalysis($storeId, $today)
+            'weekly_sales_chart' => $this->getWeeklySalesChart(
+                $storeId,
+                now()->startOfWeek(Carbon::SATURDAY)
+            ),
+            'peak_hour_analysis' => $this->getPeakHoursSlots($storeId, $today),
         ];
     }
+    protected function buildMetric(
+    float|int $value,
+    float $changePercent,
+    ?string $currencySymbol = null,
+    bool $isMoney = false,
+    string $compareTo = 'أمس'
+): array {
+    $direction = $changePercent > 0
+        ? 'up'
+        : ($changePercent < 0 ? 'down' : 'flat');
+
+    return [
+        'value' => $value,
+        'formatted' => $isMoney
+            ? trim(number_format($value, 2)) . ' ' . $currencySymbol
+            : (string) $value,
+        'change_percent' => abs(round($changePercent, 2)),
+        'change_direction' => $direction,
+        'compare_to' => $compareTo,
+    ];
+}
+
+protected function getWeeklySalesChart(int $storeId, Carbon $weekStart): array
+{
+    $daysMap = [
+        'sat' => 'السبت',
+        'sun' => 'الأحد',
+        'mon' => 'الإثنين',
+        'tue' => 'الثلاثاء',
+        'wed' => 'الأربعاء',
+        'thu' => 'الخميس',
+        'fri' => 'الجمعة',
+    ];
+
+    $data = [];
+    $maxValue = 0;
+
+    foreach ($daysMap as $dayKey => $dayName) {
+        $date = $weekStart->copy()->next($dayKey);
+
+        $total = Order::where('store_id', $storeId)
+            ->whereDate('created_at', $date)
+            ->where('status', 'delivered')
+            ->sum('total_amount'); // minor units if you use them
+
+        $maxValue = max($maxValue, $total);
+
+        $data[] = [
+            'day_key' => $dayKey,
+            'day_name' => $dayName,
+            'total_sales' => (int) $total,
+            'is_peak' => false,
+        ];
+    }
+
+    // mark peak day
+    foreach ($data as &$day) {
+        if ($day['total_sales'] === $maxValue && $maxValue > 0) {
+            $day['is_peak'] = true;
+            break;
+        }
+    }
+
+    return [
+        'currency' => 'KWD',
+        'max_value' => $maxValue,
+        'days' => $data,
+    ];
+}
 
     /**
      * Get peak hour analysis data
      */
-    protected function getPeakHourAnalysis(int $storeId, $date): array
+    protected function getPeakHourAnalysis(int $storeId, $date, int $factor): array
     {
         $hourlyData = Order::where('store_id', $storeId)
             ->whereDate('created_at', $date)
@@ -216,7 +305,7 @@ class VendorReportController extends Controller
         foreach ($hourlyData as $data) {
             $hours[$data->hour] = [
                 'order_count' => (int) $data->order_count,
-                'total_sales' => (float) $data->total_sales
+                'total_sales' => CurrencyHelper::fromMinorUnits($data->total_sales, $factor)
             ];
 
             if ($data->order_count > $maxOrders) {
@@ -240,29 +329,84 @@ class VendorReportController extends Controller
         return [
             'hourly_data' => array_values($hours),
             'peak_hour' => array_search(max(array_column($hours, 'order_count')), array_column($hours, 'order_count')),
-            'peak_sales' => (float) $maxSales
+            'peak_sales' => CurrencyHelper::fromMinorUnits($maxSales, $factor)
         ];
     }
+protected function getPeakHoursSlots(int $storeId, Carbon $date): array
+{
+    $slots = [
+        ['from' => 9,  'to' => 12],
+        ['from' => 12, 'to' => 15],
+        ['from' => 15, 'to' => 18],
+        ['from' => 18, 'to' => 21],
+        ['from' => 21, 'to' => 24],
+        ['from' => 0,  'to' => 3],
+    ];
+
+    $result = [];
+    $maxOrders = 0;
+
+    foreach ($slots as $slot) {
+        $query = Order::where('store_id', $storeId)
+            ->whereDate('created_at', $date)
+            ->where('status', 'delivered');
+
+        // slot crosses midnight
+        if ($slot['from'] > $slot['to']) {
+            $query->where(function ($q) use ($slot) {
+                $q->whereRaw('HOUR(created_at) >= ?', [$slot['from']])
+                  ->orWhereRaw('HOUR(created_at) < ?', [$slot['to']]);
+            });
+        } else {
+            $query->whereRaw(
+                'HOUR(created_at) >= ? AND HOUR(created_at) < ?',
+                [$slot['from'], $slot['to']]
+            );
+        }
+
+        $count = $query->count();
+
+        $maxOrders = max($maxOrders, $count);
+
+        $result[] = [
+            'from' => sprintf('%02d:00', $slot['from']),
+            'to'   => sprintf('%02d:00', $slot['to']),
+            'orders_count' => $count,
+            'is_peak' => false,
+        ];
+    }
+
+    // mark peak
+    foreach ($result as &$item) {
+        if ($item['orders_count'] === $maxOrders && $maxOrders > 0) {
+            $item['is_peak'] = true;
+            break;
+        }
+    }
+
+    return $result;
+}
 
     /**
      * Get financial information
      */
-    protected function getFinancialInformation($vendor, string $currency): array
+    protected function getFinancialInformation($vendor, array $currencyInfo): array
     {
+        $factor = $currencyInfo['factor'];
         $balance = Balance::where('balanceable_id', $vendor->id)
             ->where('balanceable_type', get_class($vendor))
             ->first();
 
         return [
             'wallet_balance' => [
-                'total_balance' => $balance ? (float) $balance->total_balance : 0,
-                'available_balance' => $balance ? (float) $balance->available_balance : 0,
-                'pending_balance' => $balance ? (float) $balance->pending_balance : 0,
-                'currency' => $currency
+                'total_balance' => $balance ? CurrencyHelper::fromMinorUnits($balance->total_balance, $factor) : 0,
+                'available_balance' => $balance ? CurrencyHelper::fromMinorUnits($balance->available_balance, $factor) : 0,
+                'pending_balance' => $balance ? CurrencyHelper::fromMinorUnits($balance->pending_balance, $factor) : 0,
+                'currency' => $currencyInfo['symbol']
             ],
             'commissions' => [
                 'total_paid' => 0, // Would need to calculate from commission transactions
-                'currency' => $currency
+                'currency' => $currencyInfo['symbol']
             ]
         ];
     }
@@ -270,8 +414,9 @@ class VendorReportController extends Controller
     /**
      * Get wallet data
      */
-    protected function getWalletData($vendor, string $currency): array
+    protected function getWalletData($vendor, array $currencyInfo): array
     {
+        $factor = $currencyInfo['factor'];
         $balance = Balance::where('balanceable_id', $vendor->id)
             ->where('balanceable_type', get_class($vendor))
             ->first();
@@ -280,32 +425,33 @@ class VendorReportController extends Controller
             return [
                 'total_balance' => 0,
                 'available_for_withdrawal' => 0,
-                'currency' => $currency
+                'currency' => $currencyInfo['symbol']
             ];
         }
 
         return [
-            'total_balance' => (float) $balance->total_balance,
-            'available_for_withdrawal' => (float) $balance->available_balance,
-            'currency' => $currency
+            'total_balance' => CurrencyHelper::fromMinorUnits($balance->total_balance, $factor),
+            'available_for_withdrawal' => CurrencyHelper::fromMinorUnits($balance->available_balance, $factor),
+            'currency' => $currencyInfo['symbol']
         ];
     }
 
     /**
      * Get recent transactions
      */
-    protected function getRecentTransactions($vendor): array
+    protected function getRecentTransactions($vendor, array $currencyInfo): array
     {
+        $factor = $currencyInfo['factor'];
         $transactions = Transaction::where('user_id', $vendor->id)
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
-        return $transactions->map(function ($transaction) {
+        return $transactions->map(function ($transaction) use ($factor) {
             return [
                 'id' => $transaction->id,
                 'type' => $transaction->type,
-                'amount' => (float) $transaction->amount,
+                'amount' => CurrencyHelper::fromMinorUnits($transaction->amount, $factor),
                 'currency' => $transaction->currency,
                 'description' => $transaction->description,
                 'created_at' => $transaction->created_at->format('Y-m-d H:i:s'),
@@ -317,10 +463,13 @@ class VendorReportController extends Controller
     /**
      * Get the store's currency from settings or use default
      */
-    protected function getStoreCurrency(int $storeId): string
+    protected function getStoreCurrencyInfo(int $storeId): array
     {
-        $store = \Modules\Store\Models\Store::with('address.zone.city.governorate.country')->find($storeId);
+        $store = \Modules\Store\Models\Store::find($storeId);
 
-        return $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP';
+        return [
+            'symbol' => $store->currency_symbol ?? 'EGP',
+            'factor' => $store->getCurrencyFactor(),
+        ];
     }
 }

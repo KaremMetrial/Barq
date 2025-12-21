@@ -40,11 +40,14 @@ class ProductResource extends JsonResource
             "avg_rates" => (float) $this->avg_rate,
             "barcode" => $this->barcode,
             "images" => ProductImageResource::collection($this->whenLoaded("images")),
+            // "price" => $this->whenLoaded('price', function () {
+            //     $price = (float) $this->price->price;
+            //     $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
+            //     $currencySymbol = $this->price->currency_symbol ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'ج.م');
+            //     return \App\Helpers\CurrencyHelper::formatPrice($price, $currencyCode, $currencySymbol);
+            // }),
             "price" => $this->whenLoaded('price', function () {
-                $price = (float) $this->price->price;
-                $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
-                $currencySymbol = $this->price->currency_symbol ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'ج.م');
-                return \App\Helpers\CurrencyHelper::formatPrice($price, $currencyCode, $currencySymbol);
+                return (int) $this->price->price;
             }),
             "currency_factor" => $this->whenLoaded('price', function () {
                 return $this->price->getCurrencyFactor();
@@ -115,7 +118,7 @@ class ProductResource extends JsonResource
                         'has_stock_limit' =>     null,
                         'stock_limit' => null,
                         'ends_in' => null,
-                        'sale_price' => $this->price->sale_price ? number_format($this->price->sale_price, 0) : null,
+                        'sale_price' => $this->price->sale_price ? $this->price->sale_price : null,
                         'banner_text' => null,
                     ];
                 }
@@ -123,10 +126,10 @@ class ProductResource extends JsonResource
                 // Determine discount in minor units
                 if ($offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
                     $discountPercent = $offer->discount_amount;
-                    $saleMinor = (int) round($priceMinor - ($priceMinor * $discountPercent / 100));
+                    $saleMinor = (int) $priceMinor - ($priceMinor * $discountPercent / 100);
                 } else {
                     // FIXED
-                    $discountMinor = $offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor));
+                    $discountMinor = $offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((int)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor));
                     $saleMinor = (int) max(0, $priceMinor - $discountMinor);
                 }
 
@@ -136,7 +139,7 @@ class ProductResource extends JsonResource
                     'id' => $offer->id,
                     'discount_type' => $offer->discount_type->value,
                     // Represent discount amount in a human-friendly way (percentage or formatted fixed amount)
-                    'discount_amount' => $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($offer->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)), 0),
+                    'discount_amount' => $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? (int) $offer->discount_amount : \App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)) ,
                     'start_date' => $offer->start_date,
                     'end_date' => $offer->end_date,
                     'is_flash_sale' => $offer->is_flash_sale,
@@ -144,7 +147,7 @@ class ProductResource extends JsonResource
                     'has_stock_limit' => $offer->has_stock_limit,
                     'stock_limit' => $offer->stock_limit,
                     'ends_in' => \Carbon\Carbon::parse($offer->end_date)->diffForHumans(),
-                    'sale_price' => number_format($saleDecimal, 0),
+                    'sale_price' => $saleDecimal,
                     'banner_text' => $this->getBannerTextFromOffer($offer),
                 ];
             }),
@@ -198,20 +201,17 @@ class ProductResource extends JsonResource
 
     protected function calculateSalePrice($originalPrice, $discountAmount, $discountType, $currencyCode = 'EGP')
     {
-        // Ensure we're working with numeric values
-        $originalPrice =  $originalPrice;
-        $discountAmount = $discountAmount;
         $decimalPlaces = \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode);
 
     if ($discountType === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
-        return round($originalPrice - ($originalPrice * $discountAmount / 100), $decimalPlaces);
+        return $originalPrice - ($originalPrice * $discountAmount / 100);
     }
 
     if ($discountType === \App\Enums\SaleTypeEnum::FIXED->value) {
-        return round(max($originalPrice - $discountAmount, 0), $decimalPlaces);
+        return max($originalPrice - $discountAmount, 0);
     }
 
-    return round($originalPrice, $decimalPlaces);
+    return $originalPrice;
     }
     protected function getBannerTextFromOffer($offer): ?string
     {

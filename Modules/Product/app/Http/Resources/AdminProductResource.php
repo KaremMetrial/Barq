@@ -41,7 +41,13 @@ class AdminProductResource extends JsonResource
             "images" => ProductImageResource::collection($this->whenLoaded("images")),
             "quantity" => $this->availability?->stock_quantity ?? 0,
             "price" => $this->whenLoaded('price', function () {
-                return number_format($this->price->price, 0);
+                return (int) $this->price->price;
+            }),
+            "currency_code" => $this->whenLoaded('price', function () {
+                return $this->price->currency_code;
+            }),
+            "currency_factor" => $this->whenLoaded('price', function () {
+                return (int) $this->price->getCurrencyFactor();
             }),
             "store"      => $this->whenLoaded('store', function () {
                 $deliveryTypeUnit = $this->store->storeSetting?->delivery_type_unit ?? \App\Enums\DeliveryTypeUnitEnum::MINUTE;
@@ -60,7 +66,9 @@ class AdminProductResource extends JsonResource
                     "delivery_time_min" => $dynamicDeliveryTimes['min'],
                     "delivery_time_max" => $dynamicDeliveryTimes['max'],
                     "delivery_type_unit" => $deliveryTypeUnit->value,
-                    "is_open" => $this->store->is_open,
+                    "is_open" => $this->store->isOpenNow(),
+                    "is_closed" => $this->store->is_closed,
+                    "is_active" => $this->store->is_active,
                 ];
             }),
             "category"   => $this->whenLoaded('category', function () {
@@ -92,8 +100,10 @@ class AdminProductResource extends JsonResource
                     ->sortBy('end_date')
                     ->first();
 
-                // Get the raw numeric price (not formatted)
-                $originalPrice = $this->price->sale_price ?? $this->price->price ?? 0;
+                // Compute using minor units when possible for safer cross-currency calculations
+                $priceMinor = $this->price->salePriceMinorValue() ?? $this->price->priceMinorValue() ?? 0;
+                $priceFactor = $this->price->getCurrencyFactor();
+                $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
 
                 if (!$offer) {
                     return [
@@ -104,18 +114,31 @@ class AdminProductResource extends JsonResource
                         'end_date' => null,
                         'is_flash_sale' => null,
                         'is_active' => null,
-                        'has_stock_limit' => null,
+                        'has_stock_limit' =>     null,
                         'stock_limit' => null,
                         'ends_in' => null,
-                        'sale_price' => number_format($originalPrice, 0),
+                        'sale_price' => $this->price->sale_price ? $this->price->sale_price : null,
                         'banner_text' => null,
                     ];
                 }
 
+                // Determine discount in minor units
+                if ($offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
+                    $discountPercent = $offer->discount_amount;
+                    $saleMinor = (int) $priceMinor - ($priceMinor * $discountPercent / 100);
+                } else {
+                    // FIXED
+                    $discountMinor = $offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor));
+                    $saleMinor = (int) max(0, $priceMinor - $discountMinor);
+                }
+
+                $saleDecimal = \App\Helpers\CurrencyHelper::fromMinorUnits((int)$saleMinor, (int)$priceFactor, \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode));
+
                 return [
                     'id' => $offer->id,
                     'discount_type' => $offer->discount_type->value,
-                    'discount_amount' => number_format($offer->discount_amount, 0),
+                    // Represent discount amount in a human-friendly way (percentage or formatted fixed amount)
+                    'discount_amount' => $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($offer->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)), 0),
                     'start_date' => $offer->start_date,
                     'end_date' => $offer->end_date,
                     'is_flash_sale' => $offer->is_flash_sale,
@@ -123,18 +146,11 @@ class AdminProductResource extends JsonResource
                     'has_stock_limit' => $offer->has_stock_limit,
                     'stock_limit' => $offer->stock_limit,
                     'ends_in' => \Carbon\Carbon::parse($offer->end_date)->diffForHumans(),
-                    'sale_price' => number_format(
-                        $this->calculateSalePrice(
-                            $originalPrice,
-                            $offer->discount_amount,
-                            $offer->discount_type->value,
-                            $this->price->currency_code ?? 'EGP'
-                        ),
-                        \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($this->price->currency_code ?? 'EGP')
-                    ),
+                    'sale_price' => number_format($saleDecimal, 0),
                     'banner_text' => $this->getBannerTextFromOffer($offer),
                 ];
             }),
+
             "product_options" => ProductOptionResource::collection($this->whenLoaded("productOptions")),
             "has_required_options" => $this->whenLoaded('requiredOptions', fn() => $this->requiredOptions->isNotEmpty(), false),
             "add_ons" => AddOnResource::collection($this->whenLoaded("addOns")),
@@ -187,24 +203,20 @@ class AdminProductResource extends JsonResource
 
     protected function calculateSalePrice($originalPrice, $discountAmount, $discountType)
     {
-        // Ensure we're working with numeric values
-        $originalPrice = (float) $originalPrice;
-        $discountAmount = (float) $discountAmount;
-
         if ($discountType === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
-            return round($originalPrice - ($originalPrice * $discountAmount / 100), 2);
+            return $originalPrice - ($originalPrice * $discountAmount / 100);
         }
 
         if ($discountType === \App\Enums\SaleTypeEnum::FIXED->value) {
-            return round(max($originalPrice - $discountAmount, 0), 2);
+            return max($originalPrice - $discountAmount, 0);
         }
 
         // Return the original price as float (not formatted)
-        return round($originalPrice, 2);
+        return $originalPrice;
     }
     protected function getBannerTextFromOffer($offer): ?string
     {
-        $discount = number_format($offer->discount_amount, 0);
+        $discount = $offer->discount_amount;
         $type = $offer->discount_type;
 
         if ($type === \App\Enums\SaleTypeEnum::PERCENTAGE) {

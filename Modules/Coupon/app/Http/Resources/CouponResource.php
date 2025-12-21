@@ -21,12 +21,12 @@ class CouponResource extends JsonResource
         return [
             'id' => $this->id,
             'code' => $this->code,
-            'discount_amount' => number_format($this->discount_amount,0),
+            'discount_amount' => (int) $this->discount_amount,
             'discount_type' => $this->discount_type->value,
             'discount_type_label' => SaleTypeEnum::label($this->discount_type->value),
             'usage_limit' => (int) $this->usage_limit,
             'usage_limit_per_user' => (int) $this->usage_limit_per_user,
-            'minimum_order_amount' => $this->minimum_order_amount,
+            'minimum_order_amount' => (int) $this->minimum_order_amount,
             'max_order_amount' => 50, // $this->maximum_order_amount ,
             'start_date' => $this->start_date?->format('Y-m-d H:i:s'),
             'end_date' => $this->end_date?->format('Y-m-d H:i:s'),
@@ -38,6 +38,8 @@ class CouponResource extends JsonResource
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
             'symbol_currency' => 'EGP',
+            'used_count' => (int) 5,
+            'currency_factor' => 100,
         ];
     }
 }

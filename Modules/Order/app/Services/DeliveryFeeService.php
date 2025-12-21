@@ -107,7 +107,7 @@ class DeliveryFeeService
             $fee = $shippingPrice->max_price;
         }
 
-        return round($fee, 3);
+        return $fee;
     }
 
     /**
@@ -118,7 +118,7 @@ class DeliveryFeeService
         \Log::info("From DeliveryFeeService canDeliverTo - " . $addressId);
         $address = Address::find($addressId);
         \Log::info("From DeliveryFeeService canDeliverTo Find - " . $address);
-        if (!$address || !$address->zone_id) {  
+        if (!$address || !$address->zone_id) {
             \Log::info("From DeliveryFeeService canDeliverTo False - " . $address);
             return false;
         }
@@ -177,7 +177,7 @@ class DeliveryFeeService
             $fee = $shippingPrice->max_price;
         }
 
-        return round($fee, 3);
+        return $fee;
     }
 
     /**
@@ -224,7 +224,7 @@ class DeliveryFeeService
             $fee = $shippingPrice->max_price;
         }
 
-        return round($fee, 3);
+        return $fee;
     }
 
     /**

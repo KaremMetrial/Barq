@@ -21,7 +21,7 @@ class CartItemResource extends JsonResource
             "id" => $this->id,
             "quantity" => $this->quantity,
             "note" => $this->note,
-            "total_price" => $this->total_price,
+            "total_price" => (int) $this->total_price,
             "selected_options" => $this->getSelectedOptionsString(),
 
             "product" => $this->whenLoaded('product', function () {
@@ -35,7 +35,7 @@ class CartItemResource extends JsonResource
                     return $options->map(function ($option) {
                         return [
                             "id" => $option->id,
-                            "price" => $option->price,
+                            "price" => (int) $option->price,
                             "name" => optional($option->productValue)->name,
                         ];
                     })->toArray();

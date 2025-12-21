@@ -34,7 +34,7 @@ class CreateAddOnRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
             'applicable_to' => ['required', Rule::in(AddOnApplicableToEnum::values())],
-            'store_id' => ['nullable', 'exists:stores,id'],
+            'store_id' => ['required', 'exists:stores,id'],
         ];
     }
 

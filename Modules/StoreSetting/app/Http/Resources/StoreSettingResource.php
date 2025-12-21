@@ -44,14 +44,14 @@ public function toArray(Request $request): array
             "product_classification"=> $this->product_classification,
             "self_delivery_enabled"=> (bool) $this->self_delivery_enabled,
             "free_delivery_enabled"=> (bool) $this->free_delivery_enabled,
-            "minimum_order_amount"=> number_format($this->minimum_order_amount,0),
+            "minimum_order_amount"=> (int) $this->minimum_order_amount,
             'delivery_time_max' => $delivery_time_max,
             'delivery_time_min' => $delivery_time_min,
             'delivery_type_unit' => $delivery_type_unit,
             'delivery_type_unit_label' => $delivery_type_unit_label,
             'delivery_time_range' => $delivery_time_min && $delivery_time_max ? $delivery_time_min . '-' . $delivery_time_max . ' ' . $delivery_type_unit_label : null,
-            'tax_rate' =>number_format($this->tax_rate,0),
-            'service_fee_percentage' => number_format($this->service_fee_percentage,0),
+            'tax_rate' =>(int) $this->tax_rate,
+            'service_fee_percentage' => (int) $this->service_fee_percentage,
             'order_interval_time' => $this->order_interval_time,
             // 'store_id' => $this->store->id
         ];

@@ -153,6 +153,17 @@ class CourierResource extends JsonResource
             }),
             'commission_type' => $this->commission_type->value,
             'commission_amount' => $this->commission_amount,
+            'national_identity' => $this->whenLoaded('nationalIdentity', function () {
+                $identity = $this->nationalIdentity;
+                if (!$identity) return null;
+
+                return [
+                    'id' => $identity->id,
+                    'national_id' => $identity->national_id,
+                    'front_image' => $identity->front_image ? asset('storage/' . $identity->front_image) : null,
+                    'back_image' => $identity->back_image ? asset('storage/' . $identity->back_image) : null,
+                ];
+            }),
         ];
     }
 

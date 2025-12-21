@@ -2,6 +2,7 @@
 
 namespace Modules\Couier\Services;
 
+use App\Helpers\CurrencyHelper;
 use App\Models\Attachment;
 use App\Traits\FileUploadTrait;
 use App\Models\NationalIdentity;
@@ -10,13 +11,16 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Couier\Repositories\CouierRepository;
 use Illuminate\Support\Facades\DB;
+use Modules\Store\Repositories\StoreRepository;
 
 class CouierService
 {
     use FileUploadTrait;
     public function __construct(
-        protected CouierRepository $CouierRepository
-    ) {}
+        protected CouierRepository $CouierRepository,
+        protected StoreRepository $storeRepository
+    ) {
+    }
 
     public function getAllCouiers($filters = [])
     {
@@ -26,7 +30,6 @@ class CouierService
     public function createCouier(array $data): ?Couier
     {
         // Extract courier data
-
         if (isset($data['courier']['avatar']) && request()->hasFile('courier.avatar')) {
             $data['courier']['avatar'] = $this->upload(
                 request(),
@@ -45,7 +48,18 @@ class CouierService
         }
 
         // Create Couier
-        $courierData = array_filter($data['courier'], fn($value) => !blank($value));
+        $courierData = array_filter($data['courier'], fn ($value) => !blank($value));
+
+        if (isset($courierData['commission_amount']) && isset($courierData['store_id'])) {
+            $store = $this->storeRepository->find($courierData['store_id']);
+            if ($store) {
+                $factor = $store->getCurrencyFactor();
+                $courierData['commission_amount'] = CurrencyHelper::priceToUnsignedBigInt($courierData['commission_amount'], $factor);
+            } else {
+                // fallback to default factor if store not found
+                $courierData['commission_amount'] = CurrencyHelper::priceToUnsignedBigInt($courierData['commission_amount']);
+            }
+        }
 
         $couier = $this->CouierRepository->create($courierData)->refresh();
         // Create National Identity
@@ -108,6 +122,10 @@ class CouierService
             $couier->zonesToCover()->sync($data['zones_to_cover']);
         }
 
+        if (isset($data['address'])) {
+            $addressData = $data['address'];
+            $couier->address()->create($addressData);
+        }
         return $couier->refresh();
     }
 
@@ -135,9 +153,29 @@ class CouierService
                 'public'
             );
         }
-        $courierData = array_filter($courierData, fn($value) => !blank($value));
+        $courierData = array_filter($courierData, fn ($value) => !blank($value));
+
+        if (isset($courierData['commission_amount'])) {
+            $factor = 100; // default
+            $store = null;
+            if (isset($courierData['store_id'])) {
+                $store = $this->storeRepository->find($courierData['store_id']);
+            } else {
+                $couier = $this->CouierRepository->find($id);
+                if ($couier && $couier->store_id) {
+                    $store = $this->storeRepository->find($couier->store_id);
+                }
+            }
+
+            if ($store) {
+                $factor = $store->getCurrencyFactor();
+            }
+
+            $courierData['commission_amount'] = CurrencyHelper::priceToUnsignedBigInt($courierData['commission_amount'], $factor);
+        }
+
         $couier = $this->CouierRepository->update($id, $courierData)->refresh();
-                // Create National Identity
+        // Create National Identity
         if (isset($data['nationalID'])) {
             $nationalIDData = $data['nationalID'];
             if (request()->hasFile('nationalID.front_image')) {
@@ -198,8 +236,38 @@ class CouierService
             $couier->zonesToCover()->attach($data['zones_to_cover']);
         }
 
-        return $couier->refresh();
+if (isset($data['address'])) {
+    $addressData = $data['address'];
 
+    // Separate translatable fields
+    $translatedFields = [];
+    if (isset($addressData['address_line_1'])) {
+        $translatedFields['address_line_1'] = $addressData['address_line_1'];
+        unset($addressData['address_line_1']);
+    }
+    if (isset($addressData['address_line_2'])) {
+        $translatedFields['address_line_2'] = $addressData['address_line_2'];
+        unset($addressData['address_line_2']);
+    }
+
+    if ($couier->address) {
+        // Update main address table
+        $couier->address()->update($addressData);
+
+        // Update translations
+        if (!empty($translatedFields)) {
+            $couier->address->update($translatedFields);
+        }
+    } else {
+        // Create new address with translations
+        $couierAddress = $couier->address()->create($addressData);
+        if (!empty($translatedFields)) {
+            $couierAddress->update($translatedFields);
+        }
+    }
+}
+
+        return $couier->refresh();
     }
 
     public function deleteCouier(int $id): bool

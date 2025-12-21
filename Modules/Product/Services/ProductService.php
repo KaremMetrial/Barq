@@ -306,7 +306,7 @@ class ProductService
     /**
      * Calculate sale price based on discount
      */
-    private function calculateSalePrice(float $basePrice, float $discountAmount, string $discountType): float
+    private function calculateSalePrice( $basePrice,  $discountAmount, string $discountType)
     {
         if ($discountType == SaleTypeEnum::PERCENTAGE->value) {
             return $basePrice - ($basePrice * ($discountAmount / 100));

@@ -104,6 +104,7 @@ class UpdateProductRequest extends FormRequest
             'prices' => ['nullable', 'array'],
             'prices.price' => ['nullable', 'numeric', 'min:0'],
             'prices.purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'prices.sale_price' => ['nullable', 'numeric', 'min:0', 'lt:prices.price'],
             'prices.currency_factor' => ['nullable', 'integer', 'min:1'],
 
             // Tags

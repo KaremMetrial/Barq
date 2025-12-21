@@ -75,11 +75,17 @@ class CartResource extends JsonResource
             }, []),
             "items" => CartItemResource::collection($this->whenLoaded('items')),
             'price_summary' => [
-                'subtotal' => (float) \App\Helpers\CurrencyHelper::formatPrice($subtotal, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
-                'delivery_fee' => (float) \App\Helpers\CurrencyHelper::formatPrice($deliveryFee, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
-                'tax' => (float) \App\Helpers\CurrencyHelper::formatPrice($taxAmount, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
-                'service_fee' => (float) \App\Helpers\CurrencyHelper::formatPrice($serviceFeeAmount, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
-                'symbol_currency' => $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'
+                // 'subtotal' => (int) \App\Helpers\CurrencyHelper::formatPrice($subtotal, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
+                // 'delivery_fee' => (int) \App\Helpers\CurrencyHelper::formatPrice($deliveryFee, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
+                // 'tax' => (int) \App\Helpers\CurrencyHelper::formatPrice($taxAmount, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
+                // 'service_fee' => (int) \App\Helpers\CurrencyHelper::formatPrice($serviceFeeAmount, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
+                // 'symbol_currency' => $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? null : null : null : null : null : null : null : null : null : null : null : null : null : null : null,
+                'subtotal' => (int) $subtotal,
+                'delivery_fee' => (int) $deliveryFee,
+                'tax' => (int) $taxAmount,
+                'service_fee' => (int) $serviceFeeAmount,
+                'symbol_currency' => $store?->currency_code ?? $store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+                'currency_factor' => $store?->currency_factor ?? $store?->address?->zone?->city?->governorate?->country?->currency_factor
             ],
         ];
     }

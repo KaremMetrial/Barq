@@ -43,12 +43,13 @@ class StoreResource extends JsonResource
             "banners" => $this->getProductBanners(),
             "categories" => $this->getCategoriesString(),
             'store_setting' => new StoreSettingResource($this->whenLoaded('storeSetting')),
-            "delivery_fee" => $this->getDeliveryFee() ? (string) $this->getDeliveryFee() : null,
+            "delivery_fee" => $this->getDeliveryFee() ? (int) $this->getDeliveryFee() : null,
             "active_sale" => $this->whenLoaded('offers', function () {
                 return $this->getActiveOffers();
             }),
             "banner_text" => $this->getBannerText(),
             "is_open" => $this->isOpenNow(),
+            "currency_factor" => $this->getCurrencyFactor() ?? $this->address?->zone?->city?->governorate?->country?->currency_factor ?? 100,
             // "cart_count" => $this->getCartCount()
             // "cart_total_price" => $this->getCartTotalPrice(),
             // "cart_item_count" => $this->getCartItemCount()
@@ -154,7 +155,7 @@ class StoreResource extends JsonResource
                 $priceFactor = $this->store_setting?->currency_factor ?? $this->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
                 $currencyCode = $this->store_setting?->currency_code ?? $this->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP';
 
-                $displayDiscount = $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($offer->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)), 0);
+                $displayDiscount = $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($offer->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((int)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)), 0);
 
                 return [
                     'id' => $offer->id,

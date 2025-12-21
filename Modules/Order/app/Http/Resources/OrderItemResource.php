@@ -15,9 +15,10 @@ class OrderItemResource extends JsonResource
         return [
             'id' => $this->id,
             'quantity' => $this->quantity,
-            'total_price' => (float) $this->total_price,
-            'unit_price' => (float) ($this->total_price / $this->quantity),
-            'symbol_currency' => $this->order?->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+            'total_price' => (int) $this->total_price,
+            'unit_price' => (int) ($this->total_price / $this->quantity),
+            'symbol_currency' => $this->order?->store?->currency_code ?? $this->order?->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+            'currency_factor' => $this->order?->store?->currency_factor ?? $this->order?->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100,
             'note' => $this->note,
             "selected_options" => $this->getSelectedOptionsString(),
 
@@ -27,7 +28,7 @@ class OrderItemResource extends JsonResource
                     'name' => $this->product->translations->first()?->name ?? 'N/A',
                     'description' => $this->product->translations->first()?->description,
                     'image' => $this->product->images->first()?->image_path ? asset('storage/'.$this->product->images->first()?->image_path) : null,
-                    'price' => (float) ($this->product->price?->price ?? 0),
+                    'price' => (int) ($this->product->price?->price ?? 0),
                 ];
             }),
             'options' => $this->getOptionsData(),
@@ -41,7 +42,7 @@ class OrderItemResource extends JsonResource
                 return [
                     'id' => $this->productOptionValue->id,
                     'name' => $this->productOptionValue->productValue?->translations->first()?->name ?? 'N/A',
-                    'price' => (float) $this->productOptionValue->price,
+                    'price' => (int) $this->productOptionValue->price,
                 ];
             }),
 
@@ -77,7 +78,7 @@ class OrderItemResource extends JsonResource
             return [
                 'id' => $option->id,
                 'name' => $option->productValue?->translations->first()?->name ?? 'N/A',
-                'price' => (float) $option->price,
+                'price' => (int) $option->price,
             ];
         })->filter()->values()->toArray();
     }
@@ -96,8 +97,8 @@ class OrderItemResource extends JsonResource
                 'id' => $addOn->id,
                 'name' => $addOn->translations->first()?->name ?? 'N/A',
                 'quantity' => $addOn->pivot->quantity,
-                'price_modifier' => (float) $addOn->pivot->price_modifier,
-                'unit_price' => (float) ($addOn->pivot->price_modifier / $addOn->pivot->quantity),
+                'price_modifier' => (int) $addOn->pivot->price_modifier,
+                'unit_price' => (int) ($addOn->pivot->price_modifier / $addOn->pivot->quantity),
             ];
         })->toArray();
     }

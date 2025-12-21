@@ -21,7 +21,7 @@ class OrderService
 {
     use FileUploadTrait;
 
-    private float $totalPrice = 0;
+    private int $totalPrice = 0;
     private ?Store $currentStore = null;
     private ?StoreSetting $storeSettings = null;
 
@@ -482,11 +482,11 @@ class OrderService
             foreach ($optionIds as $optionId) {
                 $opt = $options[$optionId] ?? null;
                 if ($opt) {
-                    $optionPrice += (float) $opt->price;
+                    $optionPrice += (int) $opt->price;
                 }
             }
 
-            $productPrice = $product->price?->price ?? 0;
+            $productPrice = $this->getProductEffectivePrice($product);
             $addOns = $item['add_ons'] ?? [];
 
             $addOnTotal = collect($addOns)->sum(function ($ao) {
@@ -500,7 +500,7 @@ class OrderService
                 'product_id' => $product->id,
                 'product_option_value_id' => !empty($optionIds) ? $optionIds : null,
                 'quantity' => $quantity,
-                'total_price' => round($totalPrice, 3),
+                'total_price' => $totalPrice,
                 'note' => $item['note'] ?? null,
             ]);
 
@@ -510,7 +510,7 @@ class OrderService
                     return [
                         $ao['id'] => [
                             'quantity' => $ao['quantity'] ?? 1,
-                            'price_modifier' => round(($ao['price'] ?? 0) * ($ao['quantity'] ?? 1), 3),
+                            'price_modifier' => ($ao['price'] ?? 0) * ($ao['quantity'] ?? 1),
                         ]
                     ];
                 })->toArray();
@@ -658,11 +658,11 @@ class OrderService
             foreach ($optionIds as $optionId) {
                 $opt = ProductOptionValue::find($optionId);
                 if ($opt) {
-                    $optionPrice += (float) $opt->price;
+                    $optionPrice += (int) $opt->price;
                 }
             }
 
-            $productPrice = $product?->price?->price ?? 0;
+         $productPrice = $this->getProductEffectivePrice($product);
 
             $addOnTotal = collect($item['add_ons'] ?? [])->sum(function ($ao) {
                 return ($ao['price'] ?? 0) * ($ao['quantity'] ?? 1);
@@ -672,8 +672,40 @@ class OrderService
             $total += $itemTotal;
         }
 
-        return round($total, 3);
+        return $total;
     }
+private function getProductEffectivePrice(?Product $product): int
+{
+    if (!$product) {
+        return 0;
+    }
+
+    $basePrice = (int) ($product->price?->price ?? 0);
+
+    $activeOffer = $product->offers()
+        ->where('is_active', true)
+        ->where('start_date', '<=', now())
+        ->where('end_date', '>=', now())
+        ->first();
+
+    if ($activeOffer) {
+        $discount = 0;
+        if ($activeOffer->discount_type === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
+            $discount = (int) (($basePrice * $activeOffer->discount_amount) / 100);
+        } else {
+            $discount = (int) $activeOffer->discount_amount;
+        }
+
+        return max(0, $basePrice - $discount);
+    }
+
+    if ($product->price && $product->price->sale_price && $product->price->sale_price > 0) {
+        return (int) $product->price->sale_price;
+    }
+
+    return $basePrice;
+}
+
 
     /**
      * Calculate estimated delivery time dynamically based on distance and store load

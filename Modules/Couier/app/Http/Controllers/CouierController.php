@@ -52,7 +52,7 @@ class CouierController extends Controller
     {
         $couier = $this->couierService->getCouierById($id);
         return $this->successResponse([
-            "couier" => new CourierResource($couier->load(['store','vehicle','zonesToCover', 'address.zone','shifts', 'attachments'])),
+            "couier" => new CourierResource($couier->load(['store','vehicle','zonesToCover', 'address.zone','shifts', 'attachments', 'nationalIdentity','address'])),
         ], __("message.success"));
     }
 

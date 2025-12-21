@@ -20,7 +20,7 @@ class ProductOptionValueResource extends JsonResource
             'product_option_id' => $this->product_option_id,
             'stock' => $this->stock,
             'is_default' => (bool) $this->is_default,
-            'price' => number_format($this->price,0),
+            'price' => (int) $this->price,
             'product_value' => $this->whenLoaded('productValue', function () {
                 return [
                     'id' => $this->productValue->id,

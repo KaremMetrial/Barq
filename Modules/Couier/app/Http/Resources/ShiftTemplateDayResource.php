@@ -17,6 +17,7 @@ class ShiftTemplateDayResource extends JsonResource
             'break_duration' => $this->break_duration,
             'is_off_day' => (bool) $this->is_off_day,
             'total_hours' => $this->total_hours,
+            'break_duration' => $this->break_duration,
         ];
     }
 }

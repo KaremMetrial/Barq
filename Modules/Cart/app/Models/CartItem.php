@@ -26,7 +26,6 @@ class CartItem extends Model
     protected $casts = [
         'product_option_value_id' => 'array',
         'quantity' => 'integer',
-        'total_price' => 'decimal:3',
     ];
     public function product(): BelongsTo
     {

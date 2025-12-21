@@ -2,6 +2,7 @@
 
 namespace Modules\Cart\Services;
 
+use App\Helpers\CurrencyHelper;
 use Illuminate\Support\Str;
 use Modules\Cart\Models\Cart;
 use Modules\AddOn\Models\AddOn;
@@ -10,10 +11,15 @@ use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Cart\Repositories\CartRepository;
 use Modules\Product\Models\ProductOptionValue;
+use Modules\Store\Repositories\StoreRepository;
 
 class CartService
 {
-    public function __construct(protected CartRepository $cartRepository) {}
+    public function __construct(
+        protected CartRepository $cartRepository,
+        protected StoreRepository $storeRepository
+    ) {
+    }
 
     private function validateStoreConsistency(Cart $cart, array $items): void
     {
@@ -81,7 +87,7 @@ class CartService
                 }
             }
 
-            $filteredCartData = array_filter($cartData, fn($value) => !blank($value));
+            $filteredCartData = array_filter($cartData, fn ($value) => !blank($value));
             $cart = $this->cartRepository->create($filteredCartData);
 
             if (!empty($data['items'] ?? [])) {
@@ -134,7 +140,7 @@ class CartService
                 $this->validateStoreConsistency($cart, $data['items']);
             }
 
-            $filteredCartData = array_filter($data['cart'] ?? [], fn($value) => !blank($value));
+            $filteredCartData = array_filter($data['cart'] ?? [], fn ($value) => !blank($value));
 
             $this->cartRepository->update($cart->id, $filteredCartData);
 
@@ -175,7 +181,7 @@ class CartService
             return !is_null($value) && $value !== '';
         })->flatten()->unique()->values()->all();
         $addOnIds = collect($items)
-            ->flatMap(fn($item) => $item['add_ons'] ?? [])
+            ->flatMap(fn ($item) => $item['add_ons'] ?? [])
             ->pluck('id')
             ->unique()
             ->filter()
@@ -236,7 +242,7 @@ class CartService
             if ($existingItems->has($key)) {
                 // Update existing item - keep existing options if not provided
                 $existingItem = $existingItems->get($key);
-                $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels, $existingItem);
+                $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels, $existingItem);
                 $existingItem->update($cartItemData);
 
                 // Only update add-ons if explicitly provided in the request
@@ -261,7 +267,7 @@ class CartService
 
                 if ($existingItemWithProduct) {
                     // Update the existing item with the same product (regardless of options) - keep existing options
-                    $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels, $existingItemWithProduct);
+                    $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels, $existingItemWithProduct);
                     $existingItemWithProduct->update($cartItemData);
 
                     // Only update add-ons if explicitly provided in the request
@@ -276,7 +282,7 @@ class CartService
                     // If add_ons not provided, keep existing add-ons (like options)
                 } else {
                     // Create new item
-                    $cartItemData = $this->prepareCartItemData($item, $products, $options, $addOnModels);
+                    $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels);
                     $cartItemData['added_by_user_id'] = auth('user')->id();
                     $newCartItem = $cart->items()->create($cartItemData);
 
@@ -289,9 +295,25 @@ class CartService
         }
     }
 
+    private function getCurrencyFactor(Cart $cart): int
+    {
+        if ($cart->relationLoaded('store') && $cart->store) {
+            return $cart->store->getCurrencyFactor();
+        }
+
+        if ($cart->store_id) {
+            $store = $this->storeRepository->find($cart->store_id);
+            if ($store) {
+                return $store->getCurrencyFactor();
+            }
+        }
+
+        return 100; // Default
+    }
 
 
     private function prepareCartItemData(
+        Cart $cart,
         array $item,
         Collection $products,
         Collection $options,
@@ -303,7 +325,7 @@ class CartService
             throw new \InvalidArgumentException('Product ID is required for cart item');
         }
 
-        $quantity = max(1, (int)($item['quantity'] ?? 1)); // Ensure positive quantity
+        $quantity = max(1, (int) ($item['quantity'] ?? 1)); // Ensure positive quantity
         $product = $products[$item['product_id']] ?? null;
         $option = null; // Since it's now an array, we can't directly assign a single option
         // Note: If multiple options are selected, pricing logic needs to be updated accordingly
@@ -318,10 +340,12 @@ class CartService
             throw new \InvalidArgumentException("Maximum quantity for this product is {$product->max_cart_quantity}");
         }
 
+        $factor = $this->getCurrencyFactor($cart);
+
         // Get product price safely
         $productPrice = 0;
-        if ($product->price && isset($product->price->price)) {
-            $productPrice = (float) $product->price->price;
+        if ($product->price) {
+            $productPrice =  $product->price->priceMinorValue($factor);
         }
 
         // Use existing item's options if no options provided in update
@@ -332,12 +356,12 @@ class CartService
             foreach ($optionValueId as $optionId) {
                 $opt = $options[$optionId] ?? null;
                 if ($opt) {
-                    $optionPrice += (float) $opt->price;
+                    $optionPrice += CurrencyHelper::toMinorUnits($opt->price, $factor);
                 }
             }
         } elseif ($optionValueId) {
             $opt = $options[$optionValueId] ?? null;
-            $optionPrice = $opt ? (float) $opt->price : 0;
+            $optionPrice = $opt ? CurrencyHelper::toMinorUnits($opt->price, $factor) : 0;
         }
 
         // Use existing item's add-ons if no add-ons provided in update
@@ -345,7 +369,7 @@ class CartService
             return [
                 'id' => $addOn->id,
                 'quantity' => $addOn->pivot->quantity ?? 1,
-                'price' => $addOn->pivot->price_modifier ?? $addOn->price
+                'price' => (int) $addOn->pivot->price_modifier ?? $addOn->price
             ];
         })->toArray() : []);
 
@@ -356,7 +380,7 @@ class CartService
                     // Skip add-ons that are not found in the loaded models (might be deleted or inactive)
                     return 0;
                 }
-                return (float) $addOnModel->price * max(1, (int)($addOn['quantity'] ?? 1));
+                return  $addOnModel->price * max(1, (int) ($addOn['quantity'] ?? 1));
             });
 
         $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $quantity;
@@ -377,7 +401,7 @@ class CartService
             'product_option_value_id' => $optionValueId,
             'quantity' => $quantity,
             'note' => $item['note'] ?? null,
-            'total_price' => round($totalPrice, 2), // Round to 2 decimal places
+            'total_price' => $totalPrice,
         ];
     }
 
@@ -389,12 +413,12 @@ class CartService
                 throw new \InvalidArgumentException("Add-on with ID {$addOn['id']} not found");
             }
 
-            $quantity = max(1, (int)($addOn['quantity'] ?? 1));
+            $quantity = max(1, (int) ($addOn['quantity'] ?? 1));
 
             return [
                 $addOn['id'] => [
                     'quantity' => $quantity,
-                    'price_modifier' => round((float) $model->price * $quantity, 2),
+                    'price_modifier' => (int) $model->price * $quantity,
                 ],
             ];
         })->toArray();
@@ -410,7 +434,7 @@ class CartService
         // Get product price safely
         $productPrice = 0;
         if ($product->price && isset($product->price->price)) {
-            $productPrice = (float) $product->price->price;
+            $productPrice = (int) $product->price->price;
         }
 
         // Calculate option price
@@ -424,17 +448,17 @@ class CartService
             foreach ($optionValueId as $optionId) {
                 $opt = $options[$optionId] ?? null;
                 if ($opt) {
-                    $optionPrice += (float) $opt->price;
+                    $optionPrice += (int) $opt->price;
                 }
             }
         } elseif ($optionValueId) {
             $opt = $options[$optionValueId] ?? null;
-            $optionPrice = $opt ? (float) $opt->price : 0;
+            $optionPrice = $opt ? (int) $opt->price : 0;
         }
 
         // Calculate add-on total
         $addOnTotal = $cartItem->addOns->sum(function ($addOn) {
-            return (float) $addOn->pivot->price_modifier;
+            return (int) $addOn->pivot->price_modifier;
         });
 
         $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $cartItem->quantity;
@@ -450,7 +474,7 @@ class CartService
             }
         }
 
-        $cartItem->update(['total_price' => round($totalPrice, 2)]);
+        $cartItem->update(['total_price' => $totalPrice]);
     }
     public function getShareById(int $id)
     {
@@ -507,7 +531,7 @@ class CartService
         $cart->save();
         return $cart;
     }
-        public function isDeliveryToThisArea($cart, $address): bool
+    public function isDeliveryToThisArea($cart, $address): bool
     {
         if (!$cart->store) {
             return false;

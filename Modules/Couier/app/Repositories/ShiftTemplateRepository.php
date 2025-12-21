@@ -30,6 +30,15 @@ class ShiftTemplateRepository extends BaseRepository
         if(auth('vendor')->check()){
             $query->where('store_id',auth('vendor')->user()->store_id);
         }
+        if (isset($filters['is_flexible'])) {
+            $query->where('is_flexible', $filters['is_flexible']);
+        }
+        if (isset($filters['courier_id'])) {
+            $courierId = $filters['courier_id'];
+            $query->whereHas('courierAssignments', function ($q) use ($courierId) {
+                $q->where('courier_id', $courierId);
+            });
+        }
         return $query->latest()->paginate($filters['per_page'] ?? 15);
     }
 

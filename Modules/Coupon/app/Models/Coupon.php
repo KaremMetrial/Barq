@@ -36,17 +36,15 @@ class Coupon extends Model implements TranslatableContract
         'is_active' => 'boolean',
         'start_date' => 'date',
         'end_date' => 'date',
-        'discount_amount' => 'decimal:3',
-        'minimum_order_amount' => 'decimal:3',
         'usage_count' => 'integer',
         'discount_type' => SaleTypeEnum::class,
         'coupon_type' => CouponTypeEnum::class,
         'object_type' => ObjectTypeEnum::class,
     ];
-    
+
     /**
      * Get the currency factor for this coupon
-     * 
+     *
      * @return int
      */
     public function getCurrencyFactor(): int
@@ -54,7 +52,7 @@ class Coupon extends Model implements TranslatableContract
         // Return the stored currency factor or default to 100
         return $this->currency_factor ?? 100;
     }
-    
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'category_coupon', 'coupon_id', 'category_id');
@@ -96,12 +94,13 @@ class Coupon extends Model implements TranslatableContract
                 });
             });
         }
-    if (!empty($filters['coupon_type'])) {
-        $query->where('coupon_type', $filters['coupon_type']);
-    }
-    if (!empty($filters['object_type'])) {
-        $query->where('object_type', $filters['object_type']);
-    }
+
+        if (!empty($filters['coupon_type'])) {
+            $query->where('coupon_type', $filters['coupon_type']);
+        }
+        if (!empty($filters['object_type'])) {
+            $query->where('object_type', $filters['object_type']);
+        }
 
 
         if (isset($filters['search']) && $filters['search'] != '')

@@ -49,13 +49,7 @@ class ProductPrice extends Model
      */
     public function priceMinorValue(int $defaultFactor = 100): ?int
     {
-        if ($this->price_minor !== null) {
-            return (int) $this->price_minor;
-        }
-
-        $factor = $this->getCurrencyFactor();
-
-        return $this->price !== null ? \App\Helpers\CurrencyHelper::toMinorUnits((float) $this->price, (int) $factor) : null;
+        return $this->price;
     }
 
     public function salePriceMinorValue(int $defaultFactor = 100): ?int
@@ -66,7 +60,7 @@ class ProductPrice extends Model
 
         $factor = $this->getCurrencyFactor();
 
-        return $this->sale_price !== null ? \App\Helpers\CurrencyHelper::toMinorUnits((float) $this->sale_price, (int) $factor) : null;
+        return $this->sale_price !== null ? \App\Helpers\CurrencyHelper::toMinorUnits((int) $this->sale_price, (int) $factor) : null;
     }
 
     public function purchasePriceMinorValue(int $defaultFactor = 100): ?int
@@ -77,6 +71,6 @@ class ProductPrice extends Model
 
         $factor = $this->getCurrencyFactor();
 
-        return $this->purchase_price !== null ? \App\Helpers\CurrencyHelper::toMinorUnits((float) $this->purchase_price, (int) $factor) : null;
+        return $this->purchase_price !== null ? \App\Helpers\CurrencyHelper::toMinorUnits((int) $this->purchase_price, (int) $factor) : null;
     }
 }

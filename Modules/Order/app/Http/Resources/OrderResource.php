@@ -43,15 +43,16 @@ class OrderResource extends JsonResource
 
             // Financial details
             'pricing' => [
-                'total_amount' => (float) $this->total_amount,
-                'discount_amount' => (float) $this->discount_amount,
-                'delivery_fee' => (float) $this->delivery_fee,
-                'service_fee' => (float) $this->service_fee,
-                'tax_amount' => (float) $this->tax_amount,
-                'tip_amount' => (float) ($this->tip_amount ?? 0),
-                'paid_amount' => (float) $this->paid_amount,
-                'final_amount' => (float) ($this->total_amount - $this->discount_amount + $this->delivery_fee + $this->service_fee + $this->tax_amount),
-                'symbol_currency' => $this->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+                'total_amount' => (int) $this->total_amount,
+                'discount_amount' => (int) $this->discount_amount,
+                'delivery_fee' => (int) $this->delivery_fee,
+                'service_fee' => (int) $this->service_fee,
+                'tax_amount' => (int) $this->tax_amount,
+                'tip_amount' => (int) ($this->tip_amount ?? 0),
+                'paid_amount' => (int) $this->paid_amount,
+                'final_amount' => (int) ($this->total_amount - $this->discount_amount + $this->delivery_fee + $this->service_fee + $this->tax_amount),
+                'symbol_currency' => $this->store?->currency_code ?? $this->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+                'currency_factor' => $this->store?->currency_factor ?? $this->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100,
             ],
 
             // OTP details
