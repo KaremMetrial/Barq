@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('add_on_order_item', function (Blueprint $table) {
-            $table->unsignedBigInteger('price_modifier')->nullable()->after('id');
+            if (!Schema::hasColumn('add_on_order_item', 'price_modifier')) {
+                $table->unsignedBigInteger('price_modifier')->nullable()->after('id');
+            }
         });
     }
 

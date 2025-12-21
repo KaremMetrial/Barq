@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('add_on_order', function (Blueprint $table) {
+        Schema::table('add_on_order_item', function (Blueprint $table) {
             $table->renameColumn('price_bigint', 'price');
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('add_on_order', function (Blueprint $table) {
+        Schema::table('add_on_order_item', function (Blueprint $table) {
             $table->renameColumn('price', 'price_bigint');
         });
     }

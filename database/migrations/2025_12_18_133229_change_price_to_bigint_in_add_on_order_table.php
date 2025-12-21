@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
 
-        if (!Schema::hasColumn('add_on_order', 'price_modifier_bigint')) {
+        if (!Schema::hasColumn('add_on_order', 'price_bigint')) {
             Schema::table('add_on_order', function (Blueprint $table) {
                 $table->unsignedBigInteger('price_bigint')->nullable()->after('price');
             });
@@ -27,7 +27,7 @@ return new class extends Migration
                 $table->dropColumn('price');
             });
         }
-        if (Schema::hasColumn('add_on_order', 'price_modifier_bigint') && !Schema::hasColumn('add_on_order', 'price')) {
+        if (Schema::hasColumn('add_on_order', 'price_bigint') && !Schema::hasColumn('add_on_order', 'price')) {
             Schema::table('add_on_order', function (Blueprint $table) {
                 $table->renameColumn('price_modifier_bigint', 'price');
             });
@@ -38,21 +38,29 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Add back decimal column
-        if (!Schema::hasColumn('add_on_order', 'price_decimal')) {
-            Schema::table('add_on_order', function (Blueprint $table) {
-                $table->decimal('price_decimal', 10, 3)->nullable()->after('price');
-            });
-
-            // Migrate data from bigint to decimal by dividing by 100
-            DB::statement('UPDATE add_on_order SET price_decimal = CAST(price AS DECIMAL(10,3)) / 100');
-        }
-
-        // Drop bigint column
+        // Check if the price column exists (it should be the bigint version at this point)
         if (Schema::hasColumn('add_on_order', 'price')) {
+            // Add back decimal column without after() to avoid issues if 'price' gets renamed
+            if (!Schema::hasColumn('add_on_order', 'price_decimal')) {
+                Schema::table('add_on_order', function (Blueprint $table) {
+                    $table->decimal('price_decimal', 10, 3)->nullable();
+                });
+
+                // Migrate data from bigint to decimal by dividing by 100
+                DB::statement('UPDATE add_on_order SET price_decimal = CAST(price AS DECIMAL(10,3)) / 100');
+            }
+
+            // Drop bigint column
             Schema::table('add_on_order', function (Blueprint $table) {
                 $table->dropColumn('price');
             });
+
+            // Rename decimal column to original name
+            if (Schema::hasColumn('add_on_order', 'price_decimal') && !Schema::hasColumn('add_on_order', 'price')) {
+                Schema::table('add_on_order', function (Blueprint $table) {
+                    $table->renameColumn('price_decimal', 'price');
+                });
+            }
         }
     }
 };

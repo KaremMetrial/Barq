@@ -22,12 +22,13 @@ class CouponResource extends JsonResource
             'id' => $this->id,
             'code' => $this->code,
             'discount_amount' => (int) $this->discount_amount,
+            'formatted_discount_amount' => $this->getFormattedDiscountAmount(),
             'discount_type' => $this->discount_type->value,
             'discount_type_label' => SaleTypeEnum::label($this->discount_type->value),
             'usage_limit' => (int) $this->usage_limit,
             'usage_limit_per_user' => (int) $this->usage_limit_per_user,
-            'minimum_order_amount' => (int) $this->minimum_order_amount,
-            'max_order_amount' => 50, // $this->maximum_order_amount ,
+            'minimum_order_amount' => $this->getFormattedMinimumOrderAmount(),
+            'max_order_amount' => $this->getFormattedMaximumOrderAmount(),
             'start_date' => $this->start_date?->format('Y-m-d H:i:s'),
             'end_date' => $this->end_date?->format('Y-m-d H:i:s'),
             'is_active' => (bool) $this->is_active,
@@ -37,9 +38,36 @@ class CouponResource extends JsonResource
             'object_type_label' => ObjectTypeEnum::label($this->object_type->value),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'symbol_currency' => 'EGP',
-            'used_count' => (int) 5,
-            'currency_factor' => 100,
+            'symbol_currency' => $this->getCurrencySymbol(),
+            'used_count' => $this->getUsedCount(),
+            'currency_factor' => $this->getCurrencyFactor(),
         ];
+    }
+    
+    /**
+     * Get currency symbol based on user's country or default
+     *
+     * @return string
+     */
+    private function getCurrencySymbol(): string
+    {
+        // Try to get currency symbol from authenticated user's country
+        if (auth('sanctum')->check()) {
+            $user = auth('sanctum')->user();
+            return $user->getCurrencySymbol();
+        }
+        
+        // Default currency symbol
+        return 'EGP';
+    }
+    
+    /**
+     * Get actual used count from the coupon's usage_count field
+     *
+     * @return int
+     */
+    private function getUsedCount(): int
+    {
+        return (int) ($this->usage_count ?? 0);
     }
 }

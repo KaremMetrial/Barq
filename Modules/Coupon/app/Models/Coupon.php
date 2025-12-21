@@ -13,10 +13,13 @@ use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Modules\Reward\Models\Reward;
+
 class Coupon extends Model implements TranslatableContract
 {
     use Translatable;
+    
     public $translatedAttributes = ['name'];
+    
     protected $fillable = [
         'code',
         'discount_amount',
@@ -25,13 +28,15 @@ class Coupon extends Model implements TranslatableContract
         'usage_limit_per_user',
         'usage_count',
         'minimum_order_amount',
+        'maximum_order_amount',
         'start_date',
         'end_date',
         'is_active',
         'coupon_type',
         'object_type',
-        'currency_factor', // Added currency_factor to fillable attributes
+        'currency_factor',
     ];
+    
     protected $casts = [
         'is_active' => 'boolean',
         'start_date' => 'date',
@@ -40,6 +45,7 @@ class Coupon extends Model implements TranslatableContract
         'discount_type' => SaleTypeEnum::class,
         'coupon_type' => CouponTypeEnum::class,
         'object_type' => ObjectTypeEnum::class,
+        'currency_factor' => 'integer',
     ];
 
     /**
@@ -57,26 +63,79 @@ class Coupon extends Model implements TranslatableContract
     {
         return $this->belongsToMany(Category::class, 'category_coupon', 'coupon_id', 'category_id');
     }
+    
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'coupon_product', 'coupon_id', 'product_id');
     }
+    
     public function stores(): BelongsToMany
     {
         return $this->belongsToMany(Store::class, 'coupon_store', 'coupon_id', 'store_id');
     }
-        public function isValid(): bool
+    
+    public function isValid(): bool
     {
         return $this->is_active && $this->start_date <= now() && $this->end_date >= now();
     }
+    
     public function getDiscountValue(float $orderAmount): float
     {
         if ($this->discount_type == SaleTypeEnum::PERCENTAGE) {
             return ($orderAmount * $this->discount_amount) / 100;
         }
 
-        return min($orderAmount, $this->discount_amount);
+        // For fixed amount, adjust by currency factor
+        $currencyFactor = $this->getCurrencyFactor();
+        $adjustedDiscount = $this->discount_amount / $currencyFactor;
+        return min($orderAmount, $adjustedDiscount);
     }
+    
+    /**
+     * Get formatted discount amount based on currency factor
+     *
+     * @return float
+     */
+    public function getFormattedDiscountAmount(): float
+    {
+        if ($this->discount_type == SaleTypeEnum::PERCENTAGE) {
+            return $this->discount_amount;
+        }
+        
+        $currencyFactor = $this->getCurrencyFactor();
+        return $this->discount_amount / $currencyFactor;
+    }
+    
+    /**
+     * Get formatted minimum order amount based on currency factor
+     *
+     * @return float
+     */
+    public function getFormattedMinimumOrderAmount(): float
+    {
+        $currencyFactor = $this->getCurrencyFactor();
+        return ($this->minimum_order_amount ?? 0) / $currencyFactor;
+    }
+    
+    /**
+     * Get formatted maximum order amount based on currency factor
+     *
+     * @return float
+     */
+    public function getFormattedMaximumOrderAmount(): float
+    {
+        $currencyFactor = $this->getCurrencyFactor();
+        return ($this->maximum_order_amount ?? 0) / $currencyFactor;
+    }
+    
+    /**
+     * Get rewards associated with this coupon
+     */
+    public function rewards()
+    {
+        return $this->hasMany(Reward::class);
+    }
+    
     public function scopeFilter($query, $filters)
     {
         if (auth('vendor')->check()) {
@@ -130,8 +189,24 @@ class Coupon extends Model implements TranslatableContract
 
         return $couponUsage ? $couponUsage->usage_count : 0;
     }
-   public function rewards()
-   {
-       return $this->hasMany(Reward::class);
-   }
+    
+    public function reviews()
+    {
+        return $this->hasMany(\App\Models\CouponReview::class);
+    }
+
+    public function approvedReviews()
+    {
+        return $this->hasMany(\App\Models\CouponReview::class)->approved();
+    }
+
+    public function averageRating(): ?float
+    {
+        return $this->approvedReviews()->avg('rating');
+    }
+
+    public function totalReviews(): int
+    {
+        return $this->approvedReviews()->count();
+    }
 }

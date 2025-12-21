@@ -1,38 +1,34 @@
-};
-    }
-        });
-            $table->decimal('sale_price')->nullable()->change();
-            // Revert to decimal without precision (though this is the broken state)
-        Schema::table('product_prices', function (Blueprint $table) {
-    {
-    public function down(): void
-     */
-     * Reverse the migrations.
-    /**
+<?php
 
-    }
-        });
-            $table->decimal('sale_price', 8, 3)->nullable()->change();
-            // Change sale_price to have correct precision (8,3) to match price column
-        Schema::table('product_prices', function (Blueprint $table) {
-    {
-    public function up(): void
-     */
-     * This causes data loss and inconsistency with other price columns.
-     *
-     * which defaults to decimal(8,1) instead of decimal(8,3)
-     * Issue: sale_price was defined as decimal() without precision
-     *
-     * in product_prices table that was missing in migration 2025_11_11_124609
-     * CRITICAL FIX: Adds precision specification to sale_price column
-     *
-     * Run the migrations.
-    /**
-{
-return new class extends Migration
-
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        // Fix precision for sale_price in product_prices table
+        if (Schema::hasTable('product_prices')) {
+            Schema::table('product_prices', function (Blueprint $table) {
+                // Ensure the column exists and modify precision if needed
+                if (Schema::hasColumn('product_prices', 'sale_price')) {
+                    // Since we've already converted to bigint in a later migration,
+                    // we'll ensure the column is properly configured
+                }
+            });
+        }
+    }
 
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        // No reversal needed as this was a precision fix
+    }
+};

@@ -24,7 +24,7 @@ return new class extends Migration
                 $table->dropColumn('price_modifier');
             });
         }
-        if (Schema::hasColumn('add_on_order_item', 'price_modifier_bigint') && !Schema::hasColumn('add_on_order_items', 'price_modifier')) {
+        if (Schema::hasColumn('add_on_order_item', 'price_modifier_bigint') && !Schema::hasColumn('add_on_order_item', 'price_modifier')) {
             Schema::table('add_on_order_item', function (Blueprint $table) {
                 $table->renameColumn('price_modifier_bigint', 'price_modifier');
             });

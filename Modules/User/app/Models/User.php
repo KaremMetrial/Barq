@@ -2,30 +2,29 @@
 
 namespace Modules\User\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
-use App\Models\Transaction;
 use App\Enums\UserStatusEnum;
-use Modules\Cart\Models\Cart;
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Support\Facades\DB;
-use Modules\Address\Models\Address;
-use Modules\Interest\Models\Interest;
-use Modules\Favourite\Models\Favourite;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Events\UserCreated;
+use App\Events\UserCreating;
+use App\Models\NationalIdentity;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Modules\Address\Models\Address;
+use Modules\Favourite\Models\Favourite;
+use Modules\Interest\Models\Interest;
+use Modules\Order\Enums\OrderStatus;
 use Modules\Order\Models\Order;
-use App\Enums\OrderStatus;
+use Modules\Store\Models\Store;
+use Modules\Transaction\Models\Transaction;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
+    use HasApiTokens, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -33,22 +32,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'first_name',
-        'last_name',
+        'name',
         'email',
-        'phone_code',
         'phone',
-        'avatar',
-        'email_verified_at',
-        'status',
-        'provider',
-        'provider_id',
-        'balance',
-        'referral_code',
-        'referral_id',
         'password',
+        'status',
+        'device_token',
         'loyalty_points',
-        'points_expire_at'
+        'points_expire_at',
+        'referral_code',
+        'referral_id'
     ];
 
     /**
@@ -75,9 +68,9 @@ class User extends Authenticatable
             'points_expire_at' => 'datetime',
         ];
     }
-    public function interests(): BelongsToMany
+    public function interests(): MorphMany
     {
-        return $this->belongsToMany(Interest::class);
+        return $this->morphMany(Interest::class, 'interestable');
     }
     public function addresses(): MorphMany
     {
@@ -104,116 +97,32 @@ class User extends Authenticatable
             return false;
         }
 
-        return DB::table('favourites')
-            ->where('user_id', $userId)
-            ->where('favouriteable_id', $favoritableId)
-            ->where('favouriteable_type', $favoritableType)
+        return Favourite::where('user_id', $userId)
+            ->where('favoritable_id', $favoritableId)
+            ->where('favoritable_type', $favoritableType)
             ->exists();
     }
-    public function conversations(): HasMany
-    {
-        return $this->hasMany(Conversation::class, 'user_id');
-    }
 
-    public function messages(): MorphMany
-    {
-        return $this->morphMany(Message::class, 'messageable');
-    }
-    public function orders(): HasMany
+    public function orders()
     {
         return $this->hasMany(Order::class);
     }
-    public function cart(): HasOne
+
+    public function vendorStores()
     {
-        return $this->hasOne(Cart::class);
-    }
-    public function sharedCarts(): BelongsToMany
-    {
-        return $this->belongsToMany(Cart::class, 'cart_user');
-    }
-    public function wallet()
-    {
-        return $this->morphOne(\Modules\Balance\Models\Balance::class, 'balanceable');
-    }
-    public function rewardRedemptions()
-    {
-        return $this->hasMany(\Modules\Reward\Models\RewardRedemption::class);
-    }
-    public function generateToken($data = null)
-    {
-        $token =  $this->createToken('auth_token', ['user']);
-        $token->accessToken->fcm_device = $data['fcm_device'];
-        $token->accessToken->save();
-        return $token->plainTextToken;
+        return $this->hasMany(Store::class, 'vendor_id');
     }
 
     /**
-     * Get loyalty transactions for the user
+     * Get user's total spending
      */
-    public function loyaltyTransactions()
+    public function getSpendingValueAttribute()
     {
-        return $this->hasMany(\Modules\LoyaltySetting\Models\LoyaltyTransaction::class);
+        return $this->orders()->where('status', OrderStatus::DELIVERED)->sum('total_amount');
     }
 
     /**
-     * Award loyalty points to user
-     */
-    public function awardPoints(float $points, string $description = null, $referenceable = null): bool
-    {
-        $settings = \Modules\LoyaltySetting\Models\LoyaltySetting::getSettings();
-
-        if (!$settings->isEnabled()) {
-            return false;
-        }
-
-        $this->increment('loyalty_points', $points);
-
-        // Update expiry date if needed
-        if (!$this->points_expire_at || (method_exists($this->points_expire_at, 'isPast') && $this->points_expire_at->isPast())) {
-            $this->points_expire_at = now()->addDays($settings->points_expiry_days);
-            $this->save();
-        }
-
-        // Create transaction record
-        $this->loyaltyTransactions()->create([
-            'type' => 'earned',
-            'points' => $points,
-            'points_balance_after' => $this->loyalty_points,
-            'description' => $description,
-            'referenceable_type' => $referenceable ? get_class($referenceable) : null,
-            'referenceable_id' => $referenceable ? $referenceable->id : null,
-            'expires_at' => $this->points_expire_at,
-        ]);
-
-        return true;
-    }
-
-    /**
-     * Redeem loyalty points
-     */
-    public function redeemPoints(float $points, string $description = null, $referenceable = null): bool
-    {
-        if ($this->loyalty_points < $points) {
-            return false;
-        }
-
-        $this->decrement('loyalty_points', $points);
-
-        // Create transaction record
-        $this->loyaltyTransactions()->create([
-            'type' => 'redeemed',
-            'points' => -$points, // Negative for redemption
-            'points_balance_after' => $this->loyalty_points,
-            'description' => $description,
-            'referenceable_type' => $referenceable ? get_class($referenceable) : null,
-            'referenceable_id' => $referenceable ? $referenceable->id : null,
-        ]);
-
-        return true;
-    }
-
-    /**
-     * Get available loyalty points (non-expired)
+     * Get user's available loyalty points
      */
     public function getAvailablePoints(): float
     {
@@ -247,6 +156,19 @@ class User extends Authenticatable
         }
         return 'EGP'; // Default currency
     }
+    
+    /**
+     * Get the user's country currency factor based on their address
+     */
+    public function getCountryCurrencyFactor()
+    {
+        $address = $this->addresses()->first();
+        if ($address && $address->zone && $address->zone->city && $address->zone->city->governorate && $address->zone->city->governorate->country) {
+            return $address->zone->city->governorate->country->currency_factor ?? 100;
+        }
+        return 100; // Default currency factor
+    }
+    
     public function referrer()
     {
         return $this->belongsTo(User::class, 'referral_id');
@@ -256,8 +178,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(User::class, 'referral_id');
     }
-    public function getSpendingValueAttribute()
+    
+    /**
+     * Get user's rewards
+     */
+    public function rewards()
     {
-        return $this->orders()->where('status', OrderStatus::DELIVERED)->sum('total_amount');
+        return $this->hasMany(\Modules\Reward\Models\Reward::class);
     }
 }
