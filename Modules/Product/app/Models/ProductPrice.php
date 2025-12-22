@@ -15,9 +15,9 @@ class ProductPrice extends Model
         'sale_price',
         'currency_code',
         'currency_symbol',
-        'price_minor',
-        'sale_price_minor',
-        'purchase_price_minor',
+        // 'price_minor',
+        // 'sale_price_minor',
+        // 'purchase_price_minor',
         'currency_factor',
     ];
 

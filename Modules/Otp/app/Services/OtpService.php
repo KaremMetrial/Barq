@@ -7,6 +7,7 @@ use Modules\Otp\Models\Otp;
 use Modules\User\Models\User;
 use Modules\Couier\Models\Couier;
 use Modules\Vendor\Models\Vendor;
+use App\Services\TwilioSmsService;
 use Illuminate\Support\Facades\Hash;
 use Modules\Otp\Repositories\OtpRepository;
 use Modules\User\Http\Resources\UserResource;
@@ -22,7 +23,7 @@ class OtpService
     // Static Kuwait phone number for testing
     const TEST_PHONE_KWT = '12345678';
 
-    public function __construct(protected OtpRepository $otpRepository) {}
+    public function __construct(protected OtpRepository $otpRepository, protected TwilioSmsService $smsService) {}
 
     /**
      * Send OTP - update or create OTP record and return OTP for testing.
@@ -54,7 +55,11 @@ class OtpService
                 'otp'            => $otpCode,
             ]
         );
-
+        $phone = $data['phone_code'] . $data['phone'];
+        $this->smsService->sendOtp(
+            $phone,
+            $otpCode
+        );
         // For testing, return OTP (remove in production)
         return [
             'otp' => (int) $otpCode,

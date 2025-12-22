@@ -2,13 +2,16 @@
 
 namespace Modules\Banner\Services;
 
-use Illuminate\Database\Eloquent\Collection;
+use App\Traits\FileUploadTrait;
+use Carbon\Carbon;
 use Modules\Banner\Models\Banner;
-use Modules\Banner\Repositories\BannerRepository;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Collection;
+use Modules\Banner\Repositories\BannerRepository;
 
 class BannerService
 {
+    use FileUploadTrait;
     public function __construct(
         protected BannerRepository $BannerRepository
     ) {}
@@ -21,7 +24,7 @@ class BannerService
     public function createBanner(array $data): ?Banner
     {
         if (request()->hasFile('image')) {
-            $data['image'] = request()->file('image')->store('uploads/image', 'public');
+            $data['image'] = $this->upload(request(), 'image', 'uploads/image/banners','public');
         }
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->BannerRepository->create($data);
@@ -35,7 +38,7 @@ class BannerService
     public function updateBanner(int $id, array $data): ?Banner
     {
         if (request()->hasFile('image')) {
-            $data['image'] = request()->file('image')->store('uploads/image', 'public');
+            $data['image'] = $this->upload(request(), 'image', 'uploads/image/banners','public');
         }
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->BannerRepository->update($id, $data);
@@ -44,5 +47,17 @@ class BannerService
     public function deleteBanner(int $id): bool
     {
         return $this->BannerRepository->delete($id);
+    }
+    public function getIndex()
+    {
+        $today = Carbon::today();
+
+        $banners = Banner::where('is_active', true)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->inRandomOrder()
+            ->take(3)
+            ->get();
+        return $banners;
     }
 }

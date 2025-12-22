@@ -22,7 +22,7 @@ class WalletController extends Controller
      */
     public function index(): JsonResponse
     {
-        $user = auth('user')->user();   
+        $user = auth('user')->user();
 
         // Get recent transactions (last 10)
         $recentLoyaltyTransactions = $this->loyaltyService->getUserTransactionHistory($user->id, 10);
@@ -32,8 +32,9 @@ class WalletController extends Controller
 
         $walletData = [
             'balance' => [
-                'amount' => $user->balance,
+                'amount' => (int) $user->balance,
                 'currency_symbol' => $user->getCurrencySymbol(),
+                'currency_factor' => 100,
             ],
             'loyalty_points' => [
                 'total_points' => $user->loyalty_points,
@@ -43,10 +44,11 @@ class WalletController extends Controller
                 return [
                     'id' => $transaction->id,
                     'type' => $transaction->type,
-                    'amount' => $transaction->amount,
+                    'amount' => (int) $transaction->amount,
                     'currency' => $transaction->currency,
                     'description' => $transaction->description,
                     'created_at' => $transaction->created_at?->format('Y-m-d H:i:s'),
+                    'currency_factor' => 100,
                 ];
             })
         ];

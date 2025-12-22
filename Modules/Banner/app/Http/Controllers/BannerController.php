@@ -70,4 +70,11 @@ class BannerController extends Controller
         $deleted = $this->bannerService->deleteBanner($id);
         return $this->successResponse(null, __("message.success"));
     }
+    public function getindex()
+    {
+        $banners = $this->bannerService->getIndex();
+        return $this->successResponse([
+            "banners" => BannerResource::collection($banners),
+        ], __("message.success"));
+    }
 }

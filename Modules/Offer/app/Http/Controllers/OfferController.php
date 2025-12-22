@@ -2,14 +2,15 @@
 
 namespace Modules\Offer\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Modules\Offer\Models\Offer;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Modules\Offer\Services\OfferService;
+use App\Http\Resources\PaginationResource;
+use Modules\Offer\Http\Resources\OfferResource;
 use Modules\Offer\Http\Requests\CreateOfferRequest;
 use Modules\Offer\Http\Requests\UpdateOfferRequest;
-use Modules\Offer\Http\Resources\OfferResource;
-use Modules\Offer\Services\OfferService;
-use Illuminate\Http\JsonResponse;
-use Modules\Offer\Models\Offer;
 
 class OfferController extends Controller
 {
@@ -24,9 +25,11 @@ class OfferController extends Controller
      */
     public function index(): JsonResponse
     {
-        $offers = $this->offerService->getAllOffers();
+        $filters = request()->all();
+        $offers = $this->offerService->getAllOffers($filters);
         return $this->successResponse([
-            "offers" => OfferResource::collection($offers)
+            "offers" => OfferResource::collection($offers),
+            "pagination" => new PaginationResource($offers)
         ], __('message.success'));
     }
 
@@ -70,5 +73,16 @@ class OfferController extends Controller
     {
         $isDeleted = $this->offerService->deleteOffer($id);
         return $this->successResponse(null, __('message.success'));
+    }
+    /**
+     * Toggle the status of the specified offer.
+     */
+    public function toggleStatus(int $id): JsonResponse
+    {
+        $offer = $this->offerService->toggleStatus($id);
+
+        return $this->successResponse([
+            'offer' => new OfferResource($offer->refresh())
+        ], __('message.success'));
     }
 }

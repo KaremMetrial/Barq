@@ -102,7 +102,7 @@ class ProductResource extends JsonResource
                     ->first();
 
                 // Compute using minor units when possible for safer cross-currency calculations
-                $priceMinor = $this->price->salePriceMinorValue() ?? $this->price->priceMinorValue() ?? 0;
+                $priceMinor = $this->price->price ?? $this->price->priceMinorValue() ?? 0;
                 $priceFactor = $this->price->getCurrencyFactor();
                 $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
 
@@ -128,12 +128,11 @@ class ProductResource extends JsonResource
                     $discountPercent = $offer->discount_amount;
                     $saleMinor = (int) $priceMinor - ($priceMinor * $discountPercent / 100);
                 } else {
-                    // FIXED
-                    $discountMinor = $offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((int)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor));
+                    $discountMinor = (int) $offer->discount_amount ;
                     $saleMinor = (int) max(0, $priceMinor - $discountMinor);
                 }
 
-                $saleDecimal = \App\Helpers\CurrencyHelper::fromMinorUnits((int)$saleMinor, (int)$priceFactor, \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode));
+                $saleDecimal = $saleMinor;
 
                 return [
                     'id' => $offer->id,

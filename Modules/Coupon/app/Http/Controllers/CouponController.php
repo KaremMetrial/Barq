@@ -8,6 +8,7 @@ use Modules\Coupon\Http\Requests\CreateCouponRequest;
 use Modules\Coupon\Http\Requests\UpdateCouponRequest;
 use Modules\Coupon\Http\Resources\CouponResource;
 use Modules\Coupon\Services\CouponService;
+use Modules\Cart\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,10 @@ class CouponController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected CouponService $couponService)
+    public function __construct(
+        protected CouponService $couponService,
+        protected CartService $cartService
+    )
     {
     }
 
@@ -25,6 +29,13 @@ class CouponController extends Controller
     public function index(Request $request): JsonResponse
     {
         $filters = $request->only('search');
+
+        // Get cart from header to filter coupons by store
+        $cart = $this->cartService->getCart();
+        if ($cart?->store_id) {
+            $filters['store_id'] = $cart->store_id;
+        }
+
         $coupons = $this->couponService->getAllCoupons($filters);
         return $this->successResponse([
             "coupons" => CouponResource::collection($coupons),

@@ -3,16 +3,18 @@
 namespace Modules\Coupon\Models;
 
 use App\Enums\SaleTypeEnum;
+use App\Models\CouponUsage;
 use App\Enums\CouponTypeEnum;
 use App\Enums\ObjectTypeEnum;
 use Modules\Store\Models\Store;
+use Modules\Reward\Models\Reward;
 use Modules\Product\Models\Product;
 use Modules\Category\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
-use Modules\Reward\Models\Reward;
+
 class Coupon extends Model implements TranslatableContract
 {
     use Translatable;
@@ -30,7 +32,8 @@ class Coupon extends Model implements TranslatableContract
         'is_active',
         'coupon_type',
         'object_type',
-        'currency_factor', // Added currency_factor to fillable attributes
+        'currency_factor',
+        'maximum_order_amount',
     ];
     protected $casts = [
         'is_active' => 'boolean',
@@ -43,14 +46,69 @@ class Coupon extends Model implements TranslatableContract
     ];
 
     /**
-     * Get the currency factor for this coupon
+     * Get the currency factor for this couponsa
      *
      * @return int
      */
     public function getCurrencyFactor(): int
     {
-        // Return the stored currency factor or default to 100
-        return $this->currency_factor ?? 100;
+        return $this->currency_factor ?? $this->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
+    }
+
+    /**
+     * Get the currency symbol for this coupon
+     *
+     * @return string
+     */
+    public function getCurrencySymbol(): string
+    {
+        // Try to get from first associated store
+        $store = $this->stores()->first();
+        if ($store) {
+            return $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP';
+        }
+
+        // Fallback to default
+        return 'EGP';
+    }
+
+    /**
+     * Get the discount amount in decimal format (converted from minor units)
+     *
+     * @return float
+     */
+    public function getDiscountAmountAttribute($value): float
+    {
+        $currencyFactor = $this->getCurrencyFactor();
+        return \App\Helpers\CurrencyHelper::fromMinorUnits((int) $value, $currencyFactor);
+    }
+
+    /**
+     * Get the minimum order amount in decimal format (converted from minor units)
+     *
+     * @return float|null
+     */
+    public function getMinimumOrderAmountAttribute($value): ?float
+    {
+        if ($value === null) {
+            return null;
+        }
+        $currencyFactor = $this->getCurrencyFactor();
+        return \App\Helpers\CurrencyHelper::fromMinorUnits((int) $value, $currencyFactor);
+    }
+
+    /**
+     * Get the maximum order amount in decimal format (converted from minor units)
+     *
+     * @return float|null
+     */
+    public function getMaximumOrderAmountAttribute($value): ?float
+    {
+        if ($value === null) {
+            return null;
+        }
+        $currencyFactor = $this->getCurrencyFactor();
+        return \App\Helpers\CurrencyHelper::fromMinorUnits((int) $value, $currencyFactor);
     }
 
     public function categories(): BelongsToMany
@@ -79,16 +137,35 @@ class Coupon extends Model implements TranslatableContract
     }
     public function scopeFilter($query, $filters)
     {
-        if (auth('vendor')->check()) {
+        // Handle store filtering for cart-based coupon listing
+        if (!empty($filters['store_id'])) {
+            $storeId = $filters['store_id'];
+            $query->where(function ($q) use ($storeId) {
+                // Include general coupons (apply to all stores)
+                $q->where('object_type', \App\Enums\ObjectTypeEnum::GENERAL)
+                  // Or store-specific coupons that include this store
+                  ->orWhere(function ($sq) use ($storeId) {
+                      $sq->where('object_type', \App\Enums\ObjectTypeEnum::STORE)
+                         ->whereHas('stores', function ($storeQuery) use ($storeId) {
+                             $storeQuery->where('stores.id', $storeId);
+                         });
+                  });
+            });
+
+            // Only show active coupons within date range and with remaining usage
+            $query->where('is_active', true)
+                  ->where('start_date', '<=', now())
+                  ->where('end_date', '>=', now())
+                  ->whereColumn('usage_count', '<', 'usage_limit');
+        } elseif (auth('vendor')->check()) {
+            // Original vendor filtering logic
             $vendor = auth('vendor')->user();
             $storeId = $vendor->store_id;
 
             $query->where(function ($q) use ($storeId) {
-
                 $q->whereHas('stores', function ($qs) use ($storeId) {
                     $qs->where('stores.id', $storeId);
                 })
-
                 ->orWhereHas('products', function ($qp) use ($storeId) {
                     $qp->where('products.store_id', $storeId);
                 });
@@ -102,9 +179,7 @@ class Coupon extends Model implements TranslatableContract
             $query->where('object_type', $filters['object_type']);
         }
 
-
-        if (isset($filters['search']) && $filters['search'] != '')
-        {
+        if (isset($filters['search']) && $filters['search'] != '') {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('code', 'like', "%$search%")
@@ -113,12 +188,13 @@ class Coupon extends Model implements TranslatableContract
                   });
             });
         }
+        if(isset(request()->kart))
         return $query->latest();
     }
 
     public function usageCount(): int
     {
-        return $this->usage_count ?? 0;
+        return $this->couponUsages()->sum('usage_count') ?? 0;
     }
 
     public function getUserUsageCount(int $userId): int
@@ -134,4 +210,9 @@ class Coupon extends Model implements TranslatableContract
    {
        return $this->hasMany(Reward::class);
    }
+    public function couponUsages()
+    {
+        return $this->hasMany(CouponUsage::class);
+    }
+
 }

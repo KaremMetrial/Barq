@@ -18,6 +18,7 @@ class CreateRatingKeyRequest  extends FormRequest
             'key' => 'required|string|max:255|unique:rating_keys,key',
             'is_active' => 'required|boolean',
             'label' => 'required|string|max:255',
+            'section_id' => 'required|exists:sections,id',
         ];
     }
 

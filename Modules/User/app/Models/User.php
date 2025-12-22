@@ -4,9 +4,12 @@ namespace Modules\User\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Enums\OrderStatus;
+use App\Models\CouponUsage;
 use App\Models\Transaction;
 use App\Enums\UserStatusEnum;
 use Modules\Cart\Models\Cart;
+use Modules\Order\Models\Order;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
 use Modules\Address\Models\Address;
@@ -20,8 +23,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Modules\Order\Models\Order;
-use App\Enums\OrderStatus;
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -259,5 +261,17 @@ class User extends Authenticatable
     public function getSpendingValueAttribute()
     {
         return $this->orders()->where('status', OrderStatus::DELIVERED)->sum('total_amount');
+    }
+    public function getCurrencyFactor()
+    {
+        $address = $this->addresses()->first();
+        if ($address && $address->zone && $address->zone->city && $address->zone->city->governorate && $address->zone->city->governorate->country) {
+            return $address->zone->city->governorate->country->currency_factor;
+        }
+        return 1; // Default factor
+    }
+    public function couponUsages()
+    {
+        return $this->hasMany(CouponUsage::class);
     }
 }

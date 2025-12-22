@@ -9,67 +9,54 @@ use Twilio\Exceptions\TwilioException;
 
 class TwilioSmsService
 {
-    protected $client;
-    protected $from;
+    protected Client $client;
+    protected string $whatsappFrom;
 
-    /**
-     * TwilioSmsService constructor.
-     * @throws \InvalidArgumentException
-     */
     public function __construct()
     {
-        $accountSid = config('services.twilio.sid');
-        $authToken = config('services.twilio.token');
-        $this->from = config('services.twilio.number');
+        $sid = config('services.twilio.sid');
+        $token = config('services.twilio.token');
+        $this->whatsappFrom = config('services.twilio.whatsapp_from');
 
-        if (empty($accountSid) || empty($authToken) || empty($this->from)) {
-            throw new \InvalidArgumentException('Twilio credentials are not configured.');
+        if (!$sid || !$token || !$this->whatsappFrom) {
+            throw new \InvalidArgumentException('Twilio credentials are missing.');
         }
 
-        $this->client = new Client($accountSid, $authToken);
+        $this->client = new Client($sid, $token);
     }
 
     /**
-     * Send a generic SMS.
-     *
-     * @param string $receiverNumber
-     * @param string $message
-     * @return bool
-     */
-    public function sendSms(string $receiverNumber, string $message): bool
-    {
-        try {
-            $this->client->messages->create($receiverNumber, [
-                'from' => $this->from,
-                'body' => $message,
-            ]);
-
-            return true;
-        } catch (TwilioException $e) {
-            Log::error('Twilio SMS sending failed: ' . $e->getMessage(), [
-                'to' => $receiverNumber
-            ]);
-            return false;
-        } catch (Exception $e) {
-            Log::error('An unexpected error occurred while sending SMS via Twilio: ' . $e->getMessage(), [
-                'to' => $receiverNumber
-            ]);
-            return false;
-        }
-    }
-
-    /**
-     * Send an OTP code.
-     *
-     * @param string $receiverNumber
-     * @param string $otp
-     * @return bool
+     * Send OTP via WhatsApp
      */
     public function sendOtp(string $receiverNumber, string $otp): bool
     {
-        // It's good practice to use language files for this message.
-        // For simplicity here, it's hardcoded.
-        $message = "Your verification code is: {$otp}";
-        return $this->sendSms($receiverNumber, $message);
+        try {
+            $this->client->messages->create(
+                "whatsapp:" . $receiverNumber,
+                [
+                    'from' => $this->whatsappFrom,
+                    'contentSid' => 'HX229f5a04fd0510ce1b071852155d3e75',
+                    'contentVariables' => json_encode([
+                        "1" => $otp
+                    ]),
+                ]
+            );
+
+            return true;
+
+        } catch (TwilioException $e) {
+            Log::error('Twilio WhatsApp OTP failed', [
+                'error' => $e->getMessage(),
+                'to' => $receiverNumber
+            ]);
+            return false;
+
+        } catch (Exception $e) {
+            Log::error('Unexpected WhatsApp error', [
+                'error' => $e->getMessage(),
+                'to' => $receiverNumber
+            ]);
+            return false;
+        }
     }
 }

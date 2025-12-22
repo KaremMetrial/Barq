@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Coupon\Models\Coupon;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Coupon\Repositories\CouponRepository;
+use App\Helpers\CurrencyHelper;
 
 class CouponService
 {
@@ -22,6 +23,21 @@ class CouponService
     {
         return DB::transaction(function () use ($data) {
             $data = array_filter($data, fn($value) => !blank($value));
+
+            // Convert monetary amounts to minor units if provided
+            $currencyFactor = $data['currency_factor'] ?? null;
+            if ($currencyFactor) {
+                if (isset($data['discount_amount'])) {
+                    $data['discount_amount'] = CurrencyHelper::toMinorUnits( $data['discount_amount'], $currencyFactor);
+                }
+                if (isset($data['minimum_order_amount'])) {
+                    $data['minimum_order_amount'] = CurrencyHelper::toMinorUnits( $data['minimum_order_amount'], $currencyFactor);
+                }
+                if (isset($data['maximum_order_amount'])) {
+                    $data['maximum_order_amount'] = CurrencyHelper::toMinorUnits( $data['maximum_order_amount'], $currencyFactor);
+                }
+            }
+
             $coupon = $this->CouponRepository->create($data);
             if (isset($data['category_ids'])) {
                 $coupon->categories()->sync($data['category_ids']);
@@ -45,6 +61,21 @@ class CouponService
     {
         return DB::transaction(function () use ($data, $id) {
             $data = array_filter($data, fn($value) => !blank($value));
+
+            // Convert monetary amounts to minor units if provided
+            $currencyFactor = $data['currency_factor'] ?? null;
+            if ($currencyFactor) {
+                if (isset($data['discount_amount'])) {
+                    $data['discount_amount'] = CurrencyHelper::toMinorUnits( $data['discount_amount'], (int) $currencyFactor);
+                }
+                if (isset($data['minimum_order_amount'])) {
+                    $data['minimum_order_amount'] = CurrencyHelper::toMinorUnits( $data['minimum_order_amount'], (int) $currencyFactor);
+                }
+                if (isset($data['maximum_order_amount'])) {
+                    $data['maximum_order_amount'] = CurrencyHelper::toMinorUnits( $data['maximum_order_amount'], (int) $currencyFactor);
+                }
+            }
+
             $coupon = $this->CouponRepository->update($id, $data);
             if (isset($data['category_ids'])) {
                 $coupon->categories()->sync($data['category_ids']);

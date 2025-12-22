@@ -27,7 +27,7 @@ class CouponResource extends JsonResource
             'usage_limit' => (int) $this->usage_limit,
             'usage_limit_per_user' => (int) $this->usage_limit_per_user,
             'minimum_order_amount' => (int) $this->minimum_order_amount,
-            'max_order_amount' => 50, // $this->maximum_order_amount ,
+            'max_order_amount' => (int) $this->maximum_order_amount,
             'start_date' => $this->start_date?->format('Y-m-d H:i:s'),
             'end_date' => $this->end_date?->format('Y-m-d H:i:s'),
             'is_active' => (bool) $this->is_active,
@@ -37,9 +37,9 @@ class CouponResource extends JsonResource
             'object_type_label' => ObjectTypeEnum::label($this->object_type->value),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'symbol_currency' => 'EGP',
-            'used_count' => (int) 5,
-            'currency_factor' => 100,
+            'symbol_currency' => $this->getCurrencySymbol(),
+            'used_count' => (int) $this->usageCount(),
+            'currency_factor' => $this->getCurrencyFactor(),
         ];
     }
 }

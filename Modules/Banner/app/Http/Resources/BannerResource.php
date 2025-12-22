@@ -29,6 +29,8 @@ class BannerResource extends JsonResource
                     'name'=> $this->city->name,
                 ];
             }),
+            "bannerable_type"=> $this->bannerable_type,
+            "bannerable_id"=> $this->bannerable_id,
         ];
     }
 }

@@ -260,9 +260,9 @@ class CurrencyHelper
      * @param int $factor
      * @return int
      */
-    public static function toMinorUnits(float $amount, int $factor): int
+    public static function toMinorUnits( $amount, $factor): int
     {
-        return (int) round($amount * $factor);
+        return (int) $amount * $factor;
     }
 
     /**

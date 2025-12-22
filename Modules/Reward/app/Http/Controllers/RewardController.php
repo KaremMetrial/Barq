@@ -93,13 +93,14 @@ class RewardController extends Controller
         // Transform users and append extra data if needed
         $topSpenders = $stats['top_spenders']->mapWithKeys(function ($user, $key) {
             $data = (new UserResource($user))->resolve();
-            $data['total_orders_amount'] = $user->orders_sum_total_amount ?? 0;
+            $data['total_orders_amount'] = (int) $user->orders_sum_total_amount ?? 0;
             $data['rank'] = $key + 1;
             return ['top' . ($key + 1) => $data];
         });
 
         $topPointsUsers = $stats['top_points_users']->mapWithKeys(function ($user, $key) {
             $data = (new UserResource($user))->resolve();
+            $data['total_orders_amount'] = 0;
             $data['rank'] = $key + 1;
             return ['top' . ($key + 1) => $data];
         });
@@ -111,9 +112,10 @@ class RewardController extends Controller
             'top_points_users' => $topPointsUsers,
             'top_spenders' => $topSpenders,
             'rewards' => ($loyalty || $spending) ? ['loyalty' => $loyalty, 'spending' => $spending] : null,
-            'user_loyalty_points' => (int) auth()->user()->loyalty_points ?? 0,
+            'user_loyalty_points' =>  (string) auth()->user()->loyalty_points ?? '0',
             'user_spending_value' => (int) auth()->user()->spending_value ?? 0,
             'currency_symbol' => auth()->user()->getCurrencySymbol(),
+            'currency_factor' => auth()->user()->getCurrencyFactor(),
         ], __('message.success'));
     }
 }

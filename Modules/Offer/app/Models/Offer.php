@@ -21,7 +21,7 @@ class Offer extends Model
         'status',
         'offerable_id',
         'offerable_type',
-        'discount_amount_minor',
+        // 'discount_amount_minor',
         'currency_code',
         'currency_factor',
     ];
@@ -50,5 +50,33 @@ class Offer extends Model
     public function offerable(): MorphTo
     {
         return $this->morphTo();
+    }
+    public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+        if (isset($filters['is_active'])) {
+            $query->where('is_active', $filters['is_active']);
+        }
+        if (isset($filters['discount_type'])) {
+            $query->where('discount_type', $filters['discount_type']);
+        }
+        if (isset($filters['is_flash_sale'])) {
+            $query->where('is_flash_sale', $filters['is_flash_sale']);
+        }
+        return $query;
+    }
+      protected static function booted()
+    {
+        $handleStatusChanges = function ($offer) {
+            if ($offer->isDirty('is_active') && $offer->is_active) {
+                $offer->status = OfferStatusEnum::ACTIVE;
+            }
+            if ($offer->isDirty('is_active') && !$offer->is_active) {
+                $offer->status = OfferStatusEnum::INACTIVE;
+            }
+        };
+        static::updating($handleStatusChanges);
     }
 }
