@@ -87,6 +87,7 @@ class CartResource extends JsonResource
                 'symbol_currency' => $store?->currency_code ?? $store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
                 'currency_factor' => $store?->currency_factor ?? $store?->address?->zone?->city?->governorate?->country?->currency_factor
             ],
+            'user_status' => auth('sanctum')->check() ? auth('sanctum')->user()->status->value : null,
         ];
     }
 }

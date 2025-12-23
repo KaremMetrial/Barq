@@ -594,4 +594,24 @@ class StoreService
     {
         return $this->StoreRepository->getBranches($storeId);
     }
+    public function getCommissionSettings(array $filters = []): array
+    {
+        // Get stores with custom commission settings
+        $storesWithCustomCommissionCount = $this->StoreRepository->getStoresWithCustomCommissionCount();
+
+        // Calculate commission statistics
+        $totalPendingCommission = $this->StoreRepository->getTotalPendingCommission();
+        $totalEarnedCommission = $this->StoreRepository->getTotalEarnedCommission();
+
+        // Get stores with commission data
+        $commissionStores = $this->StoreRepository->getCommissionStores($filters);
+
+        return [
+            'stores_with_custom_commission' => $storesWithCustomCommissionCount,
+            'total_pending_commission' => (int) $totalPendingCommission,
+            'total_earned_commission' => $totalEarnedCommission,
+            'commission_stores' => \Modules\Store\Http\Resources\CommissionStoreResource::collection($commissionStores->getCollection()),
+            'pagination' => new \App\Http\Resources\PaginationResource($commissionStores)
+        ];
+    }
 }

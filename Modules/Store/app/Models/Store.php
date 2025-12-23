@@ -36,6 +36,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\CompaignParicipation\Models\CompaignParicipation;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Modules\AddOn\Models\AddOn;
+use Illuminate\Support\Facades\DB;
 
 class Store extends Model implements TranslatableContract
 {
@@ -62,7 +63,8 @@ class Store extends Model implements TranslatableContract
         'type',
         'currency_code',
         'currency_symbol',
-        'currency_factor', // Added currency_factor to fillable attributes
+        'currency_factor',
+        'iban'
     ];
     protected $casts = [
         'is_featured' => 'boolean',
@@ -72,6 +74,45 @@ class Store extends Model implements TranslatableContract
         'status' => StoreStatusEnum::class,
         'commission_type' => PlanTypeEnum::class,
     ];
+    public function getTotalEarnedCommission(): float
+    {
+        return $this->orders()
+            ->join('stores', 'orders.store_id', '=', 'stores.id')
+            ->where('orders.payment_status', 'paid')
+            ->sum(DB::raw('orders.total_amount * (stores.commission_amount / 100)'));
+    }
+
+    /**
+     * Get total pending commission for this store
+     */
+    public function getTotalPendingCommission(): float
+    {
+        return $this->orders()
+            ->join('stores', 'orders.store_id', '=', 'stores.id')
+            ->where('orders.payment_status', '!=', 'paid')
+            ->sum(DB::raw('orders.total_amount * (stores.commission_amount / 100)'));
+    }
+    public function scopeWithCustomCommission($query)
+    {
+        return $query->where(function ($query) {
+            $query->where('commission_amount', '>', 0)
+                  ->orWhere('commission_type', '!=', PlanTypeEnum::COMMISSION);
+        });
+    }
+
+    /**
+     * Calculate commission for a specific order amount
+     */
+    public function calculateCommission(float $orderAmount): float
+    {
+        if ($this->commission_type === PlanTypeEnum::PERCENTAGE) {
+            return ($orderAmount * $this->commission_amount) / 100;
+        } elseif ($this->commission_type === PlanTypeEnum::FIXED) {
+            return $this->commission_amount;
+        }
+        return 0;
+    }
+
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
@@ -151,7 +192,21 @@ class Store extends Model implements TranslatableContract
     public function scopeFilter($query, $filters)
     {
         $query;
-
+        if (!empty($filters['country_id'])) {
+            $query->whereHas('address', function ($query) use ($filters) {
+                $query->where('country_id', $filters['country_id']);
+            });
+        }
+        if (!empty($filters['city_id'])) {
+            $query->whereHas('address', function ($query) use ($filters) {
+                $query->where('city_id', $filters['city_id']);
+            });
+        }
+        if (!empty($filters['zone_id'])) {
+            $query->whereHas('address', function ($query) use ($filters) {
+                $query->where('zone_id', $filters['zone_id']);
+            });
+        }
         if (!empty($filters['type'])) {
             $query->where('type', 'delivery');
         } else {
@@ -414,7 +469,7 @@ class Store extends Model implements TranslatableContract
     public function getCurrencyFactor(): int
     {
         // Return the stored currency factor or default to 100
-        return $this->currency_factor ?? 100;
+        return $this->currency_factor ?? $this->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
     }
 
     /**
@@ -460,5 +515,9 @@ class Store extends Model implements TranslatableContract
             }
         };
         static::updating($handleStatusChanges);
+    }
+    public function withdrawals()
+    {
+        return $this->morphMany(\Modules\Withdrawal\Models\Withdrawal::class, 'withdrawable');
     }
 }

@@ -19,9 +19,9 @@ class UserService
         protected UserRepository $UserRepository
     ) {}
 
-    public function getAllUsers(): Collection
+    public function getAllUsers($filters= [])
     {
-        return $this->UserRepository->all();
+        return $this->UserRepository->paginate($filters);
     }
     public function createUser(array $data): ?User
     {
@@ -104,5 +104,26 @@ class UserService
             }
             return $user->refresh();
         });
+    }
+    public function getStats()
+    {
+        return [
+            'total_users' => User::count(),
+            'active_users' => User::where('status', 'active')->count(),
+            'inactive_users' => User::where('status', 'inactive')->count(),
+            'blocked_users' => User::where('status', 'blocked')->count(),
+        ];
+    }
+    public function getStatsForUser(int $id)
+    {
+        $user = $this->UserRepository->find($id);
+        return [
+            'account_since' => $user->created_at?->format('Y-m-d'),
+            'average_rating' => round($user->reviews()->avg('rating') ?? 0, 1),
+            'wallet_balance' => $user->wallet?->balance ?? 0,
+            'total_spending' => (int) $user->getSpendingValueAttribute(),
+            'total_orders' => $user->orders()->count(),
+        ];
+
     }
 }

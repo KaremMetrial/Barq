@@ -3,8 +3,10 @@
 namespace Modules\User\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
 use Modules\User\Services\UserService;
 use Modules\User\Http\Resources\UserResource;
 use Modules\User\Http\Requests\CreateUserRequest;
@@ -19,11 +21,13 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $users = $this->userService->getAllUsers();
+        $filters = $request->all();
+        $users = $this->userService->getAllUsers($filters);
         return $this->successResponse([
-            "users" => UserResource::collection($users)
+            "users" => UserResource::collection($users),
+            'pagination' => new PaginationResource($users)
         ], __("message.success"));
     }
 
@@ -103,5 +107,19 @@ class UserController extends Controller
         }
 
         return $this->successResponse(null, __('message.success'));
+    }
+    public function stats(): JsonResponse
+    {
+        $stats = $this->userService->getStats();
+        return $this->successResponse([
+            "stats" => $stats
+        ], __("message.success"));
+    }
+    public function statsForUser(int $id): JsonResponse
+    {
+        $stats = $this->userService->getStatsForUser($id);
+        return $this->successResponse([
+            "stats" => $stats
+        ], __("message.success"));
     }
 }

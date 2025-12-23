@@ -52,6 +52,7 @@ class UpdateStoreRequest extends FormRequest
             'store.commission_type' => ['nullable', 'string', Rule::in(PlanTypeEnum::values())],
             'store.active_status' => ['nullable', 'string', 'in:free,busy,close'],
             'store.currency_factor' => ['nullable', 'integer', 'min:1'],
+            'store.iban' => ['nullable', 'string', 'max:255'],
 
             'address' => ['nullable', 'array'],
             'address.zone_id' => ['nullable', 'integer', 'exists:zones,id'],

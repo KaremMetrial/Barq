@@ -47,5 +47,6 @@
     "PaymentMethod": true,
     "ShippingPrice": true,
     "LoyaltySetting": true,
-    "Reward": true
+    "Reward": true,
+    "Withdrawal": true
 }

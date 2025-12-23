@@ -185,4 +185,9 @@ class StoreController extends Controller implements HasMiddleware
             'zones_to_cover' => $rows,
         ], __('message.success'));
     }
+    public function commissionSettings(Request $request): JsonResponse
+    {
+        $commissionData = $this->StoreService->getCommissionSettings($request->all());
+        return $this->successResponse($commissionData, __('message.success'));
+    }
 }

@@ -266,4 +266,58 @@ class Order extends Model
             'cancelled' => (int) $stats->cancelled,
         ];
     }
+        public function hasConsecutiveCancellations(int $count = 2): bool
+    {
+        if (!$this->user_id) {
+            return false;
+        }
+
+        $recentOrders = $this->user->orders()
+            ->latest('created_at')
+            ->limit($count)
+            ->get();
+
+        // Check if we have enough orders
+        if ($recentOrders->count() < $count) {
+            return false;
+        }
+
+        // Check if the last 'count' orders are all cancelled
+        $cancelledOrders = $recentOrders->take($count)->filter(function ($order) {
+            return $order->status->value === 'cancelled';
+        });
+
+        return $cancelledOrders->count() === $count;
+    }
+    public function hasCancelledOrdersInLastMonth(int $count = 2): bool
+    {
+        if (!$this->user_id) {
+            return false;
+        }
+
+        $cancelledOrdersInMonth = $this->user->orders()
+            ->where('status', 'cancelled')
+            ->where('created_at', '>=', now()->subMonth())
+            ->count();
+
+        return $cancelledOrdersInMonth >= $count;
+    }
+    public function wasCancelledByUser(): bool
+    {
+        if ($this->status->value !== 'cancelled') {
+            return false;
+        }
+
+        $lastStatusHistory = $this->statusHistories()
+            ->where('status', 'cancelled')
+            ->latest('changed_at')
+            ->first();
+
+        if ($lastStatusHistory && $lastStatusHistory->changed_by) {
+            return strpos($lastStatusHistory->changed_by, 'user:') === 0;
+        }
+
+        return false;
+    }
+
 }

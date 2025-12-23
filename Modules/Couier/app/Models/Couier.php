@@ -3,14 +3,16 @@
 namespace Modules\Couier\Models;
 
 use App\Models\Attachment;
+use App\Enums\PlanTypeEnum;
 use App\Enums\UserStatusEnum;
 use Modules\Zone\Models\Zone;
+use Modules\Order\Models\Order;
 use Modules\Store\Models\Store;
 use App\Models\NationalIdentity;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Balance\Models\Balance;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\CouierAvaliableStatusEnum;
-use App\Enums\PlanTypeEnum;
 use Illuminate\Notifications\Notifiable;
 use Modules\Conversation\Models\Message;
 use Modules\Conversation\Models\Conversation;
@@ -21,7 +23,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Modules\Order\Models\Order;
 
 class Couier extends Authenticatable
 {
@@ -42,6 +43,7 @@ class Couier extends Authenticatable
         "commission_type",
         "commission_amount",
         "driving_license",
+        'iban'
     ];
     protected $casts = [
         "avaliable_status" => CouierAvaliableStatusEnum::class,
@@ -189,5 +191,9 @@ public function attachments(): MorphMany
         $token->accessToken->fcm_device = $data['fcm_device'] ?? null;
         $token->accessToken->save();
         return $token->plainTextToken;
+    }
+    public function balance()
+    {
+        return $this->morphOne(Balance::class, 'balanceable');
     }
 }

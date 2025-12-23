@@ -51,6 +51,7 @@ class UpdateCouierRequest extends FormRequest
             "courier.commission_type" => ["nullable", "string", Rule::in(PlanTypeEnum::values())],
             "courier.commission_amount" => ["nullable", "numeric"],
             "courier.driving_license" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
+            'courier.iban' => ['nullable', 'string', 'max:255'],
 
             // Address
             'address' => ['nullable', 'array'],

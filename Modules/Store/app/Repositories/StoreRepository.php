@@ -10,13 +10,78 @@ use App\Repositories\BaseRepository;
 use Modules\PosTerminal\Models\PosTerminal;
 use Modules\Store\Repositories\Contracts\StoreRepositoryInterface;
 use Modules\Vendor\Models\Vendor;
-
+use Illuminate\Support\Facades\DB;
 class StoreRepository extends BaseRepository implements StoreRepositoryInterface
 {
     public function __construct(Store $model)
     {
         parent::__construct($model);
     }
+        public function getStoresWithCustomCommission()
+    {
+        return $this->model
+            ->where('commission_amount', '>', 0) // Assuming default commission is 0
+            ->orWhere('commission_type', '!=', \App\Enums\PlanTypeEnum::COMMISSION) // Assuming default type is COMMISSION
+            ->count();
+    }
+
+    public function getTotalPendingCommission()
+    {
+        return \Modules\Order\Models\Order::join('stores', 'orders.store_id', '=', 'stores.id')
+            ->where('orders.payment_status', '!=', 'paid')
+            ->sum(DB::raw('orders.total_amount * (stores.commission_amount / 100)'));
+    }
+
+
+    public function getTotalEarnedCommission()
+    {
+        return \Modules\Order\Models\Order::join('stores', 'orders.store_id', '=', 'stores.id')
+            ->where('orders.payment_status', 'paid')
+            ->sum(DB::raw('orders.total_amount * (stores.commission_amount / 100)'));
+    }
+
+
+    public function getStoresWithCustomCommissionCount()
+    {
+        return $this->model
+            ->where(function ($query) {
+                $query->where('commission_amount', '>', 0)
+                      ->orWhere('commission_type', '!=', \App\Enums\PlanTypeEnum::COMMISSION);
+            })
+            ->count();
+    }
+
+    public function getCommissionStores(array $filters = [])
+    {
+        $query = $this->model->with(['section.translations', 'owner']);
+
+        // Apply filters if provided
+        if (!empty($filters['search'])) {
+            $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
+        }
+
+        // Get commission data by joining with orders
+        $query = $query->selectRaw('stores.*,
+                          COALESCE(store_orders.total_orders, 0) as total_orders,
+                          COALESCE(store_orders.total_earned_commission, 0) as total_earned_commission,
+                          COALESCE(store_orders.total_pending_commission, 0) as total_pending_commission')
+              ->leftJoin(DB::raw('(
+                  SELECT
+                      o.store_id,
+                      COUNT(o.id) as total_orders,
+                      SUM(CASE WHEN o.payment_status = "paid" THEN o.total_amount * (s.commission_amount / 100) ELSE 0 END) as total_earned_commission,
+                      SUM(CASE WHEN o.payment_status != "paid" THEN o.total_amount * (s.commission_amount / 100) ELSE 0 END) as total_pending_commission
+                  FROM orders o
+                  JOIN stores s ON o.store_id = s.id
+                  GROUP BY o.store_id
+              ) as store_orders'), 'stores.id', '=', 'store_orders.store_id');
+
+        $query->orderByRaw('COALESCE(store_orders.total_earned_commission, 0) DESC');
+
+        return $query->paginate($filters['per_page'] ?? 15);
+    }
+
+
     public function getHomeStores(array $relations = [], array $filters = [])
     {
         if (empty($filters['section_id']) || $filters['section_id'] == 0) {

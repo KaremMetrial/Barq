@@ -53,12 +53,52 @@ class OrderObserver
         }
         // Check if status has changed
         if ($order->isDirty('status')) {
+         if (auth('user')->check()) {
+                $changedById = auth('user')->id();
+                $changedByType = 'user';
+            } elseif (auth('admin')->check()) {
+                $changedById = auth('admin')->id();
+                $changedByType = 'admin';
+            } elseif (auth('vendor')->check()) {
+                $changedById = auth('vendor')->id();
+                $changedByType = 'vendor';
+            } elseif (auth('sanctum')->check()) {
+                // Check if it's an admin or vendor through sanctum
+                $user = auth('sanctum')->user();
+                if ($user && method_exists($user, 'tokenCan')) {
+                    if ($user->tokenCan('admin')) {
+                        $changedById = $user->id;
+                        $changedByType = 'admin';
+                    } elseif ($user->tokenCan('vendor')) {
+                        $changedById = $user->id;
+                        $changedByType = 'vendor';
+                    }
+                }
+            }
+
             OrderStatusHistory::create([
                 'order_id' => $order->id,
                 'status' => $order->status->value,
                 'changed_at' => now(),
                 'note' => 'Status updated',
+                'changed_by' => $changedByType . ':' . $changedById
             ]);
+
+            if ($order->status === OrderStatus::CANCELLED && $order->user) {
+                if ($changedByType === 'user') {
+                    if ($order->user->shouldBlockForCancellations()) {
+                        $order->user->blockForExcessiveCancellations();
+                    }
+                }
+            }
+
+
+            if ($order->status === OrderStatus::CANCELLED && $order->user) {
+                if ($order->user->shouldBlockForCancellations()) {
+                    $order->user->blockForExcessiveCancellations();
+                }
+            }
+
 
             // Award referral points when order is delivered
             if ($order->status === OrderStatus::DELIVERED && $order->user && $order->user->referral_id) {

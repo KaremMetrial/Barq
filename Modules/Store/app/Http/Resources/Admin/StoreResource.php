@@ -60,6 +60,7 @@ class StoreResource extends JsonResource
             "working_days" => WorkingDayResource::collection($this->whenLoaded('workingDays')),
             'parent' => new StoreResource($this->whenLoaded('parent')),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
+            'iban' => $this->iban,
         ];
     }
     private function getProductBanners(): array

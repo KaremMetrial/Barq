@@ -200,6 +200,8 @@ class VendorReportTestSeeder extends Seeder
         foreach ($transactions as $transactionData) {
             Transaction::create([
                 'user_id' => $vendorId,
+                'transactionable_type' => '\\Modules\\Vendor\\Models\\Vendor',
+                'transactionable_id' => $vendorId,
                 'type' => $transactionData['type'],
                 'amount' => $transactionData['amount'],
                 'currency' => $currency,

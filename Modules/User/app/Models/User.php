@@ -11,6 +11,7 @@ use App\Enums\UserStatusEnum;
 use Modules\Cart\Models\Cart;
 use Modules\Order\Models\Order;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Review\Models\Review;
 use Illuminate\Support\Facades\DB;
 use Modules\Address\Models\Address;
 use Modules\Interest\Models\Interest;
@@ -274,4 +275,97 @@ class User extends Authenticatable
     {
         return $this->hasMany(CouponUsage::class);
     }
+    public static function getUserStats()
+    {
+        return [
+            'total_users' => self::count(),
+            'active_users' => self::where('status', UserStatusEnum::ACTIVE)->count(),
+            'inactive_users' => self::where('status', UserStatusEnum::INACTIVE)->count(),
+            'blocked_users' => self::where('status', UserStatusEnum::BLOCKED)->count(),
+        ];
+    }
+    public function reviews()
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+    public function scopeFilter($query, $filters)
+    {
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+        return $query->latest();
+    }
+    public function withdrawals()
+    {
+        return $this->morphMany(\Modules\Withdrawal\Models\Withdrawal::class, 'withdrawable');
+    }
+    public function hasConsecutiveCancellations(int $count = 2): bool
+    {
+        $recentOrders = $this->orders()
+            ->latest('created_at')
+            ->limit($count)
+            ->get();
+
+        if ($recentOrders->count() < $count) {
+            return false;
+        }
+
+        $userCancelledOrders = $recentOrders->take($count)->filter(function ($order) {
+            if ($order->status->value === 'cancelled') {
+                $lastStatusHistory = $order->statusHistories()
+                    ->where('status', 'cancelled')
+                    ->latest('changed_at')
+                    ->first();
+
+                if ($lastStatusHistory && $lastStatusHistory->changed_by) {
+                    return strpos($lastStatusHistory->changed_by, 'user:') === 0;
+                }
+            }
+            return false;
+        });
+
+        return $userCancelledOrders->count() === $count;
+    }
+    public function hasCancelledOrdersInLastMonth(int $count = 2): bool
+    {
+        $userCancelledOrdersInMonth = $this->orders()
+            ->whereHas('statusHistories', function ($query) {
+                $query->where('status', 'cancelled')
+                      ->where('changed_by', 'LIKE', 'user:%');
+            })
+            ->where('created_at', '>=', now()->subMonth())
+            ->count();
+
+        return $userCancelledOrdersInMonth >= $count;
+    }
+    public function shouldBlockForCancellations(): bool
+    {
+        // Check for 2 consecutive cancellations
+        if ($this->hasConsecutiveCancellations(2)) {
+            return true;
+        }
+
+        // Check for 2 cancellations within a month
+        if ($this->hasCancelledOrdersInLastMonth(2)) {
+            return true;
+        }
+
+        return false;
+    }
+    public function blockForExcessiveCancellations(string $reason = 'Excessive order cancellations'): bool
+    {
+        $this->update([
+            'status' => \App\Enums\UserStatusEnum::BLOCKED,
+        ]);
+
+        // Optionally log this action
+        \Illuminate\Support\Facades\Log::info("User {$this->id} blocked due to excessive cancellations", [
+            'reason' => $reason,
+            'user_id' => $this->id,
+            'email' => $this->email,
+        ]);
+
+        return true;
+    }
+
 }

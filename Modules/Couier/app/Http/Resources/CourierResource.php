@@ -148,6 +148,7 @@ class CourierResource extends JsonResource
                         'id' => $attachment->id,
                         'url' => $attachment->path ? asset('storage/' . $attachment->path) : null,
                         'name' => $attachment->name,
+                        'created_at' => $attachment?->created_at?->format('Y-m-d H:i:s'),
                     ];
                 });
             }),
@@ -164,6 +165,7 @@ class CourierResource extends JsonResource
                     'back_image' => $identity->back_image ? asset('storage/' . $identity->back_image) : null,
                 ];
             }),
+            'iban' => $this->iban,
         ];
     }
 

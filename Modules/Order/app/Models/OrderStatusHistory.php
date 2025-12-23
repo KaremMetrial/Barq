@@ -13,7 +13,8 @@ class OrderStatusHistory extends Model
         "status",
         "changed_at",
         "note",
-        "order_id"
+        "order_id",
+        "changed_by"
     ];
     protected $casts = [
         "changed_at" => "datetime",

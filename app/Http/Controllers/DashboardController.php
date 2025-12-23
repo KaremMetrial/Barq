@@ -161,7 +161,7 @@ class DashboardController extends Controller
 
     /**
      * Generic widget data generator to reduce code duplication.
-     * 
+     *
      * This is used for widgets where the total count and period count use the same calculation.
      * For widgets with different calculations (like sales), use separate methods.
      */
@@ -602,6 +602,7 @@ class DashboardController extends Controller
                         'order_count' => $store->order_count,
                         'avg_rate' => $store->avg_rate,
                         'symbol_currency' => $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+                        'currency_factor' => $store->getCurrencyFactor(),
                     ];
                 })->toArray();
             });
@@ -628,7 +629,7 @@ protected function latestOrders(array $filters = []): array
                     'orders.order_number',
                     'orders.total_amount',
                     'orders.created_at',
-                    'stores.id as store_id', 
+                    'stores.id as store_id',
                     'orders.status'
                 )
                 ->whereNull('orders.deleted_at')
@@ -637,8 +638,9 @@ protected function latestOrders(array $filters = []): array
             $latestOrders = $latestOrdersQuery->get();
 
             return $latestOrders->map(function ($order) {
-                $store = $order->store; 
+                $store = $order->store;
                 $storeName = $store->name;
+                $storeCurrencyFactor = $store->getCurrencyFactor();
 
                 return [
                     'id' => $order->id,
@@ -647,8 +649,9 @@ protected function latestOrders(array $filters = []): array
                     'status_label' => OrderStatus::label($order->status->value),
                     'total_amount' => round($order->total_amount, 2),
                     'created_at' => $order->created_at->format('Y-m-d H:i:s'),
-                    'store_name' => $storeName, 
+                    'store_name' => $storeName,
                     'symbol_currency' => $order->store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+                    'currency_factor' => $storeCurrencyFactor,
                 ];
             })->toArray();
         });

@@ -442,7 +442,13 @@ protected function getPeakHoursSlots(int $storeId, Carbon $date): array
     protected function getRecentTransactions($vendor, array $currencyInfo): array
     {
         $factor = $currencyInfo['factor'];
-        $transactions = Transaction::where('user_id', $vendor->id)
+        $transactions = Transaction::where(function($query) use ($vendor) {
+                $query->where('store_id', $vendor->store_id)
+                      ->orWhere(function($q) use ($vendor) {
+                          $q->where('transactionable_type', 'store')
+                            ->where('transactionable_id', $vendor->store_id);
+                      });
+            })
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();

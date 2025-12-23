@@ -74,6 +74,8 @@ class VendorReportTest extends TestCase
         // Create some transactions
         Transaction::create([
             'user_id' => $this->vendor->id,
+            'transactionable_type' => get_class($this->vendor),
+            'transactionable_id' => $this->vendor->id,
             'type' => 'withdrawal',
             'amount' => 20000.000,
             'currency' => 'KWD',
@@ -83,6 +85,8 @@ class VendorReportTest extends TestCase
 
         Transaction::create([
             'user_id' => $this->vendor->id,
+            'transactionable_type' => get_class($this->vendor),
+            'transactionable_id' => $this->vendor->id,
             'type' => 'commission',
             'amount' => 5000.000,
             'currency' => 'KWD',

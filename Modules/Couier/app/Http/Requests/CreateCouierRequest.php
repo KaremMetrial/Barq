@@ -54,6 +54,7 @@ class CreateCouierRequest extends FormRequest
             "courier.commission_type" => ["required", "string", Rule::in(PlanTypeEnum::values())],
             "courier.commission_amount" => ["required", "numeric"],
             "courier.driving_license" => ["required", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
+            'courier.iban' => ['nullable', 'string', 'max:255'],
 
             // Address
             'address' => ['required', 'array'],

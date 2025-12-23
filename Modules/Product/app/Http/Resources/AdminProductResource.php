@@ -133,9 +133,8 @@ class AdminProductResource extends JsonResource
 
                 return [
                     'id' => $offer->id,
-                    'discount_type' => $offer->discount_type->value,
-                    // Represent discount amount in a human-friendly way (percentage or formatted fixed amount)
-                    'discount_amount' => $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($offer->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)), 0),
+                    'discount_type' =>  $offer->discount_type->value,
+                    'discount_amount' => (int) $offer->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? $offer->discount_amount : (int) \App\Helpers\CurrencyHelper::fromMinorUnits($offer->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((int)$offer->discount_amount, (int)($offer->currency_factor ?? $priceFactor)), (int)($offer->currency_factor ?? $priceFactor), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($currencyCode)),
                     'start_date' => $offer->start_date,
                     'end_date' => $offer->end_date,
                     'is_flash_sale' => $offer->is_flash_sale,

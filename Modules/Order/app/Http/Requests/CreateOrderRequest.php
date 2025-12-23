@@ -5,6 +5,7 @@ namespace Modules\Order\Http\Requests;
 use App\Enums\OrderTypeEnum;
 use App\Enums\ProductStatusEnum;
 use App\Enums\StoreStatusEnum;
+use App\Enums\UserStatusEnum;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
@@ -252,7 +253,7 @@ class CreateOrderRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::guard('user')->check();
+        return Auth::guard('user')->check() && Auth::guard('user')->user()->is_active && Auth::guard('user')->user()->status != UserStatusEnum::BLOCKED;
     }
 
     /**
