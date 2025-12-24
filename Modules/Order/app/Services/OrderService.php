@@ -471,6 +471,7 @@ class OrderService
                 throw new \Exception("Maximum quantity for product {$product->id} is {$product->max_cart_quantity}");
             }
 
+            $productPrice = $this->getProductEffectivePrice($product); // Gets price after offers
             $optionPrice = 0;
 
             // Always treat product_option_value_id as an array (JSON field)
@@ -486,7 +487,6 @@ class OrderService
                 }
             }
 
-            $productPrice = $this->getProductEffectivePrice($product);
             $addOns = $item['add_ons'] ?? [];
 
             $addOnTotal = collect($addOns)->sum(function ($ao) {

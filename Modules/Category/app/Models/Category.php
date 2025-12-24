@@ -84,6 +84,13 @@ class Category extends Model implements TranslatableContract
         if (!auth('admin')->check()) {
             $query->whereIsActive(true);
         }
+        if(auth('vendor')->check())
+        {
+            $query->where('store_id', auth('vendor')->user()->store_id)
+            ->orWhereHas('products', function ($q) {
+                $q->where('store_id', auth('vendor')->user()->store_id);
+            });
+        }
         return $query->latest();
     }
 }

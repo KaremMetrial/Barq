@@ -56,7 +56,7 @@ class Zone extends Model implements TranslatableContract
     /**
      * Scope to find zones that contain given coordinates using spatial query
      */
-    public function scopeWithinCoordinates($query, float $latitude, float $longitude)
+    public function scopeWithinCoordinates($query, $latitude, $longitude)
     {
         return $query->whereRaw("ST_Contains(area, ST_GeomFromText('POINT(? ?)'))", [$longitude, $latitude]);
     }
@@ -107,7 +107,7 @@ class Zone extends Model implements TranslatableContract
 
         return $inside;
     }
-    public static function findZoneByCoordinates(float $lat, float $lng): ?self
+    public static function findZoneByCoordinates($lat, $lng): ?self
     {
         $zones = self::where('is_active', true)->latest()->get();
         foreach ($zones as $zone) {
@@ -146,5 +146,9 @@ class Zone extends Model implements TranslatableContract
     public function couriers()
     {
         return $this->belongsToMany(Couier::class, 'couier_zone', 'zone_id', 'couier_id');
+    }
+    public function getCurrencyFactor()
+    {
+        return $this->country->currency_factor ?? 1;
     }
 }

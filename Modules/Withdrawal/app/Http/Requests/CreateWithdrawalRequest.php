@@ -3,6 +3,7 @@
 namespace Modules\Withdrawal\Http\Requests;
 
 use Modules\User\Models\User;
+use App\Helpers\CurrencyHelper;
 use Illuminate\Validation\Rule;
 use Modules\Store\Models\Store;
 use Modules\Couier\Models\Couier;
@@ -13,6 +14,22 @@ class CreateWithdrawalRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
+        if (auth()->guard('vendor')->check()) {
+            $vendor = auth()->guard('vendor')->user();
+            $this->merge([
+                'withdrawable_id' => $vendor->store_id,
+                'withdrawable_type' => 'store',
+            ]);
+
+            $store = $vendor->store;
+            if ($store) {
+                $this->merge([
+                    'currency_code' => $store->getCurrencyCode(),
+                    'currency_factor' => $store->getCurrencyFactor(),
+                    'amount' => CurrencyHelper::toMinorUnits($this->amount,$store->getCurrencyFactor())
+                ]);
+            }
+        }
 
     }
     /**

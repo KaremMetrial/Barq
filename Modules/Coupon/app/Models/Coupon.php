@@ -170,14 +170,25 @@ class Coupon extends Model implements TranslatableContract
                     $qp->where('products.store_id', $storeId);
                 });
             });
+            if (!empty($filters['object_type'])) {
+                if ($filters['object_type'] == 'product') {
+                    $query->whereHas('products', function ($qp) use ($storeId) {
+                        $qp->where('products.store_id', $storeId);
+                    });
+                } elseif ($filters['object_type'] == 'store') {
+                    $query->whereHas('stores', function ($qs) use ($storeId) {
+                        $qs->where('stores.id', $storeId);
+                    });
+                }
+            }
         }
 
-        if (!empty($filters['coupon_type'])) {
-            $query->where('coupon_type', $filters['coupon_type']);
-        }
-        if (!empty($filters['object_type'])) {
-            $query->where('object_type', $filters['object_type']);
-        }
+        // if (!empty($filters['coupon_type'])) {
+        //     $query->where('coupon_type', $filters['coupon_type']);
+        // }
+        // if (!empty($filters['object_type'])) {
+        //     $query->where('object_type', $filters['object_type']);
+        // }
 
         if (isset($filters['search']) && $filters['search'] != '') {
             $search = $filters['search'];

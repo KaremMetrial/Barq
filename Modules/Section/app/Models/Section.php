@@ -73,7 +73,7 @@ class Section extends Model implements TranslatableContract
         } elseif ($lat && $lng) {
             // If lat/lng provided, find country by coordinates
             // Find zone by coordinates, then get country from zone's city->governorate->country
-            $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates((float)$lat, (float)$lng);
+            $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($lat, $lng);
             if ($zone && $zone->city && $zone->city->governorate && $zone->city->governorate->country) {
                 $countryId = $zone->city->governorate->country->id;
                 $query->whereHas('country', function ($q) use ($countryId) {

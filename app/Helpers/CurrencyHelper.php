@@ -262,7 +262,7 @@ class CurrencyHelper
      */
     public static function toMinorUnits( $amount, $factor): int
     {
-        return (int) $amount * $factor;
+        return $amount * $factor;
     }
 
     /**
@@ -274,10 +274,9 @@ class CurrencyHelper
      * @param int|null $decimalPlaces If null, uses decimal places for currency when known else 2
      * @return float
      */
-    public static function fromMinorUnits(int $minor, int $factor, ?int $decimalPlaces = null): float
+    public static function fromMinorUnits(int $minor, int $factor, ?int $decimalPlaces = null)
     {
-        $decimalPlaces = $decimalPlaces ?? 2;
-        return round($minor / $factor, $decimalPlaces);
+        return $minor / $factor;
     }
 
     /**
@@ -306,9 +305,9 @@ class CurrencyHelper
      * @param int $currencyUnit Currency unit divisor (e.g., 100 for cents)
      * @return int Unsigned big integer in minor units (e.g., 12345)
      */
-    public static function priceToUnsignedBigInt(float $price, int $currencyUnit = 100): int
+    public static function priceToUnsignedBigInt($price, $currencyUnit = 100): int
     {
-        return (int)round($price * $currencyUnit);
+        return $price * $currencyUnit;
     }
 
     /**

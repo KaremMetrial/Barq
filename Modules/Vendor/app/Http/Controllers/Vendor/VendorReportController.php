@@ -32,16 +32,18 @@ class VendorReportController extends Controller
             return $this->errorResponse(__('message.vendor_no_store'), 400);
         }
 
-        // Get date range from request (default: last 7 days)
-        $endDate = $request->input('end_date', now());
-        $startDate = $request->input('start_date', now()->subDays(6));
+        $filterType = $request->input('filter_type', 'day');
+        $chartFilterType = $request->input('chart_filter_type', 'day');
+
+        $endDate = now();
+        $startDate = $this->getStartDateBasedOnFilter($filterType, $endDate);
 
         try {
             // Get the store's currency
             $currencyInfo = $this->getStoreCurrencyInfo($storeId);
 
             $reportData = [
-                'operational_performance' => $this->getOperationalPerformance($storeId, $startDate, $endDate, $currencyInfo),
+                'operational_performance' => $this->getOperationalPerformance($storeId, $startDate, $endDate, $filterType, $currencyInfo, $chartFilterType),
                 'financial_information' => $this->getFinancialInformation($vendor, $currencyInfo),
                 'wallet_data' => $this->getWalletData($vendor, $currencyInfo),
                 'transactions' => $this->getRecentTransactions($vendor, $currencyInfo),
@@ -53,339 +55,717 @@ class VendorReportController extends Controller
             return $this->errorResponse($e->getMessage(), 500);
         }
     }
-protected function changeDirection(float $percent): string
-{
-    return $percent > 0 ? 'up' : ($percent < 0 ? 'down' : 'flat');
-}
+
+    protected function changeDirection(float $percent): string
+    {
+        return $percent > 0 ? 'up' : ($percent < 0 ? 'down' : 'flat');
+    }
 
     /**
      * Get operational performance data
      */
-    protected function getOperationalPerformance(int $storeId, $startDate, $endDate, array $currencyInfo): array
+    protected function getOperationalPerformance(int $storeId, $startDate, $endDate, string $filterType, array $currencyInfo, string $chartFilterType): array
     {
         $factor = $currencyInfo['factor'];
-        // Get daily sales metrics
-        $today = now();
-        $yesterday = now()->subDay();
 
-        // Total sales for today
-        $totalSalesToday = Order::where('store_id', $storeId)
-            ->whereDate('created_at', $today)
-            ->where('status', 'delivered')
-            ->sum('total_amount');
+        // Get previous period dates for comparison
+        $previousPeriodDates = $this->getPreviousPeriodDates($filterType, $startDate);
+        $previousStartDate = $previousPeriodDates['start'];
+        $previousEndDate = $previousPeriodDates['end'];
 
-        // Order count for today
-        $orderCountToday = Order::where('store_id', $storeId)
-            ->whereDate('created_at', $today)
-            ->where('status', 'delivered')
-            ->count();
+        $previousChartPeriodDates = $this->getPreviousPeriodDates($chartFilterType, $startDate);
+        $previousChartStartDate = $previousChartPeriodDates['start'];
+        $previousChartEndDate = $previousChartPeriodDates['end'];
 
-        // Average order value for today
-        $avgOrderValueToday = $orderCountToday > 0
-            ? $totalSalesToday / $orderCountToday
-            : 0;
+        // Get comparison label
+        $compareLabel = $this->getComparisonLabel($filterType);
 
-        // Peak hours analysis (group by hour)
-        $peakHours = Order::where('store_id', $storeId)
-            ->whereDate('created_at', $today)
-            ->where('status', 'delivered')
-            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as order_count, SUM(total_amount) as total_sales')
-            ->groupBy('hour')
-            ->orderByDesc('order_count')
-            ->first();
-
-        $peakHour = $peakHours ? $peakHours->hour : null;
-        $peakHourRange = $peakHour !== null ? "{$peakHour}:00 - " . ($peakHour + 1) . ":00" : "N/A";
-
-        // Initialize peak hour change percent variable
-        $peakHourChangePercent = 0;
-
-        // Get historical data for peak hour comparison (last 7 days, same hour)
-        if ($peakHour !== null && $peakHours) {
-            $historicalPeakHourData = Order::where('store_id', $storeId)
-                ->where('status', 'delivered')
-                ->whereBetween('created_at', [now()->subDays(7), now()->subDay()])
-                ->selectRaw('DATE(created_at) as date, HOUR(created_at) as hour, COUNT(*) as order_count, SUM(total_amount) as total_sales')
-                ->groupBy('date', 'hour')
-                ->get();
-
-            // Filter historical data for the same peak hour
-            $samePeakHourHistorical = $historicalPeakHourData->filter(function ($item) use ($peakHour) {
-                return $item->hour == $peakHour;
-            });
-
-            if ($samePeakHourHistorical->isNotEmpty()) {
-                // Calculate average historical performance for this hour
-                $avgHistoricalOrderCount = $samePeakHourHistorical->avg('order_count');
-                $avgHistoricalSales = $samePeakHourHistorical->avg('total_sales');
-
-                // Calculate percentage change based on order count
-                if ($avgHistoricalOrderCount > 0) {
-                    $orderCountChange = (($peakHours->order_count - $avgHistoricalOrderCount) / $avgHistoricalOrderCount) * 100;
-                    $salesChange = (($peakHours->total_sales - $avgHistoricalSales) / $avgHistoricalSales) * 100;
-
-                    // Use the more significant change (absolute value)
-                    $peakHourChangePercent = abs($orderCountChange) > abs($salesChange) ? $orderCountChange : $salesChange;
-                }
-            }
-        }
-
-        // Weekly sales data for chart
-        $weeklySales = Order::where('store_id', $storeId)
+        // Current period metrics
+        $totalSalesCurrent = Order::where('store_id', $storeId)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'delivered')
-            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total_sales, COUNT(*) as order_count')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        // Calculate percentage changes from yesterday
-        $totalSalesYesterday = Order::where('store_id', $storeId)
-            ->whereDate('created_at', $yesterday)
-            ->where('status', 'delivered')
             ->sum('total_amount');
 
-        $orderCountYesterday = Order::where('store_id', $storeId)
-            ->whereDate('created_at', $yesterday)
+        $orderCountCurrent = Order::where('store_id', $storeId)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'delivered')
             ->count();
 
-        $salesChangePercent = $totalSalesYesterday > 0
-            ? (($totalSalesToday - $totalSalesYesterday) / $totalSalesYesterday) * 100
+        $avgOrderValueCurrent = $orderCountCurrent > 0
+            ? $totalSalesCurrent / $orderCountCurrent
             : 0;
 
-        $orderCountChangePercent = $orderCountYesterday > 0
-            ? (($orderCountToday - $orderCountYesterday) / $orderCountYesterday) * 100
+        // Previous period metrics
+        $totalSalesPrevious = Order::where('store_id', $storeId)
+            ->whereBetween('created_at', [$previousStartDate, $previousEndDate])
+            ->where('status', 'delivered')
+            ->sum('total_amount');
+
+        $orderCountPrevious = Order::where('store_id', $storeId)
+            ->whereBetween('created_at', [$previousStartDate, $previousEndDate])
+            ->where('status', 'delivered')
+            ->count();
+
+        $avgOrderValuePrevious = $orderCountPrevious > 0
+            ? $totalSalesPrevious / $orderCountPrevious
             : 0;
 
-        $avgOrderValueYesterday = $orderCountYesterday > 0
-            ? $totalSalesYesterday / $orderCountYesterday
-            : 0;
+        // Calculate percentage changes
+        $salesChangePercent = $totalSalesPrevious > 0
+            ? (($totalSalesCurrent - $totalSalesPrevious) / $totalSalesPrevious) * 100
+            : ($totalSalesCurrent > 0 ? 100 : 0);
 
-        $avgOrderValueChangePercent = $avgOrderValueYesterday > 0
-            ? (($avgOrderValueToday - $avgOrderValueYesterday) / $avgOrderValueYesterday) * 100
-            : 0;
+        $orderCountChangePercent = $orderCountPrevious > 0
+            ? (($orderCountCurrent - $orderCountPrevious) / $orderCountPrevious) * 100
+            : ($orderCountCurrent > 0 ? 100 : 0);
 
-        // Format weekly sales for chart
-        $weeklySalesChart = $weeklySales->map(function ($item) use ($factor) {
-            return [
-                'date' => $item->date,
-                'total_sales' => CurrencyHelper::fromMinorUnits($item->total_sales, $factor),
-                'order_count' => (int) $item->order_count,
-                'day_name' => Carbon::parse($item->date)->translatedFormat('l')
-            ];
-        });
+        $avgOrderValueChangePercent = $avgOrderValuePrevious > 0
+            ? (($avgOrderValueCurrent - $avgOrderValuePrevious) / $avgOrderValuePrevious) * 100
+            : ($avgOrderValueCurrent > 0 ? 100 : 0);
+
+        // Get peak analysis based on filter type
+        $peakAnalysis = $this->getPeakAnalysis($storeId, $startDate, $endDate, $filterType);
+        $peakHourRange = $peakAnalysis['peak_range'] ?? "N/A";
+        $peakHourChangePercent = $peakAnalysis['change_percent'] ?? 0;
 
         return [
             'daily_metrics' => [
                 'total_sales' => [
-                    'value' => CurrencyHelper::fromMinorUnits($totalSalesToday, $factor),
+                    'value' => CurrencyHelper::fromMinorUnits($totalSalesCurrent, $factor),
                     'change_percent' => (float) $salesChangePercent,
                     'change_direction' => $this->changeDirection($salesChangePercent),
-                    'compare_to' => 'أمس',
+                    'compare_to' => $compareLabel,
                     'currency' => $currencyInfo['symbol']
                 ],
-
-             'order_count' => [
-    'value' => (int) $orderCountToday,
-    'change_percent' => (float) $orderCountChangePercent,
-    'change_direction' => $this->changeDirection($orderCountChangePercent),
-    'compare_to' => 'أمس',
-],
-
-              'average_order_value' => [
-    'value' => CurrencyHelper::fromMinorUnits($avgOrderValueToday, $factor),
-    'change_percent' => (float) $avgOrderValueChangePercent,
-    'change_direction' => $this->changeDirection($avgOrderValueChangePercent),
-    'compare_to' => 'أمس',
-    'currency' => $currencyInfo['symbol']
-],
-'peak_hours' => [
-    'value' => $peakHourRange,
-    'change_percent' => (float) $peakHourChangePercent,
-    'change_direction' => $this->changeDirection($peakHourChangePercent),
-    'compare_to' => 'متوسط آخر 7 أيام',
-],
-
+                'order_count' => [
+                    'value' => (int) $orderCountCurrent,
+                    'change_percent' => (float) $orderCountChangePercent,
+                    'change_direction' => $this->changeDirection($orderCountChangePercent),
+                    'compare_to' => $compareLabel,
+                ],
+                'average_order_value' => [
+                    'value' => CurrencyHelper::fromMinorUnits($avgOrderValueCurrent, $factor),
+                    'change_percent' => (float) $avgOrderValueChangePercent,
+                    'change_direction' => $this->changeDirection($avgOrderValueChangePercent),
+                    'compare_to' => $compareLabel,
+                    'currency' => $currencyInfo['symbol']
+                ],
+                'peak_hours' => [
+                    'value' => $peakHourRange,
+                    'change_percent' => (float) $peakHourChangePercent,
+                    'change_direction' => $this->changeDirection($peakHourChangePercent),
+                    'compare_to' => $compareLabel,
+                ],
             ],
-            'weekly_sales_chart' => $this->getWeeklySalesChart(
-                $storeId,
-                now()->startOfWeek(Carbon::SATURDAY)
-            ),
-            'peak_hour_analysis' => $this->getPeakHoursSlots($storeId, $today),
+            'weekly_sales_chart' => $this->getWeeklySalesChart($storeId,$previousChartStartDate,$previousChartEndDate,$chartFilterType),
+            'peak_hour_analysis' => $this->getPeakHoursSlots($storeId, $startDate, $endDate, $filterType),
         ];
     }
-    protected function buildMetric(
-    float|int $value,
-    float $changePercent,
-    ?string $currencySymbol = null,
-    bool $isMoney = false,
-    string $compareTo = 'أمس'
-): array {
-    $direction = $changePercent > 0
-        ? 'up'
-        : ($changePercent < 0 ? 'down' : 'flat');
-
-    return [
-        'value' => $value,
-        'formatted' => $isMoney
-            ? trim(number_format($value, 2)) . ' ' . $currencySymbol
-            : (string) $value,
-        'change_percent' => abs(round($changePercent, 2)),
-        'change_direction' => $direction,
-        'compare_to' => $compareTo,
-    ];
-}
-
-protected function getWeeklySalesChart(int $storeId, Carbon $weekStart): array
-{
-    $daysMap = [
-        'sat' => 'السبت',
-        'sun' => 'الأحد',
-        'mon' => 'الإثنين',
-        'tue' => 'الثلاثاء',
-        'wed' => 'الأربعاء',
-        'thu' => 'الخميس',
-        'fri' => 'الجمعة',
-    ];
-
-    $data = [];
-    $maxValue = 0;
-
-    foreach ($daysMap as $dayKey => $dayName) {
-        $date = $weekStart->copy()->next($dayKey);
-
-        $total = Order::where('store_id', $storeId)
-            ->whereDate('created_at', $date)
-            ->where('status', 'delivered')
-            ->sum('total_amount'); // minor units if you use them
-
-        $maxValue = max($maxValue, $total);
-
-        $data[] = [
-            'day_key' => $dayKey,
-            'day_name' => $dayName,
-            'total_sales' => (int) $total,
-            'is_peak' => false,
-        ];
-    }
-
-    // mark peak day
-    foreach ($data as &$day) {
-        if ($day['total_sales'] === $maxValue && $maxValue > 0) {
-            $day['is_peak'] = true;
-            break;
-        }
-    }
-
-    return [
-        'currency' => 'KWD',
-        'max_value' => $maxValue,
-        'days' => $data,
-    ];
-}
 
     /**
-     * Get peak hour analysis data
+     * Get weekly sales chart data based on filter type
      */
-    protected function getPeakHourAnalysis(int $storeId, $date, int $factor): array
+    protected function getWeeklySalesChart(int $storeId, Carbon $startDate, Carbon $endDate, string $filterType): array
     {
-        $hourlyData = Order::where('store_id', $storeId)
-            ->whereDate('created_at', $date)
-            ->where('status', 'delivered')
-            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as order_count, SUM(total_amount) as total_sales')
-            ->groupBy('hour')
-            ->orderBy('hour')
-            ->get();
+        // Get data based on filter type
+        $chartData = [];
+        $maxValue = 0;
 
-        $hours = [];
-        $maxOrders = 0;
-        $maxSales = 0;
+        switch ($filterType) {
+            case 'day':
+                // Hourly data for day filter
+                $hourlyData = Order::where('store_id', $storeId)
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->where('status', 'delivered')
+                    ->selectRaw('HOUR(created_at) as hour, SUM(total_amount) as total_sales, COUNT(*) as order_count')
+                    ->groupBy('hour')
+                    ->orderBy('hour')
+                    ->get()
+                    ->keyBy('hour');
 
-        foreach ($hourlyData as $data) {
-            $hours[$data->hour] = [
-                'order_count' => (int) $data->order_count,
-                'total_sales' => CurrencyHelper::fromMinorUnits($data->total_sales, $factor)
-            ];
-
-            if ($data->order_count > $maxOrders) {
-                $maxOrders = $data->order_count;
-                $maxSales = $data->total_sales;
-            }
-        }
-
-        // Fill in missing hours
-        for ($i = 0; $i < 24; $i++) {
-            if (!isset($hours[$i])) {
-                $hours[$i] = [
-                    'order_count' => 0,
-                    'total_sales' => 0
+                $hourLabels = [
+                    '00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00',
+                    '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00',
+                    '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
                 ];
-            }
+
+                $daysMap = [];
+                foreach ($hourLabels as $index => $hour) {
+                    $daysMap[$hour] = $hour;
+                }
+
+                foreach ($daysMap as $hourKey => $hourLabel) {
+                    $hour = (int) substr($hourKey, 0, 2);
+                    $data = $hourlyData[$hour] ?? null;
+                    $total = $data ? (int)$data->total_sales : 0;
+
+                    $maxValue = max($maxValue, $total);
+
+                    $chartData[] = [
+                        'day_key' => 'hour_' . $hour,
+                        'day_name' => $hourLabel,
+                        'total_sales' => (int) $total,
+                        'is_peak' => false,
+                    ];
+                }
+                break;
+
+            case 'week':
+                // Daily data for week filter (last 7 days)
+                $daysMap = [
+                    'sat' => 'السبت',
+                    'sun' => 'الأحد',
+                    'mon' => 'الإثنين',
+                    'tue' => 'الثلاثاء',
+                    'wed' => 'الأربعاء',
+                    'thu' => 'الخميس',
+                    'fri' => 'الجمعة',
+                ];
+
+                $currentDate = $startDate->copy();
+                $dayIndex = 0;
+
+                while ($currentDate->lte($endDate)) {
+                    $dayOfWeek = strtolower($currentDate->format('D'));
+                    $dayKey = array_keys($daysMap)[$dayIndex % 7] ?? $dayOfWeek;
+                    $dayName = $daysMap[$dayKey] ?? $currentDate->translatedFormat('l');
+
+                    $total = Order::where('store_id', $storeId)
+                        ->whereDate('created_at', $currentDate)
+                        ->where('status', 'delivered')
+                        ->sum('total_amount');
+
+                    $maxValue = max($maxValue, $total);
+
+                    $chartData[] = [
+                        'day_key' => $dayKey,
+                        'day_name' => $dayName,
+                        'total_sales' => (int) $total,
+                        'is_peak' => false,
+                    ];
+
+                    $currentDate->addDay();
+                    $dayIndex++;
+
+                    // Limit to 7 days for week view
+                    if ($dayIndex >= 7) break;
+                }
+                break;
+
+            case 'month':
+                // Weekly data for month filter (last 4 weeks)
+                $currentWeekStart = $startDate->copy();
+                $weekNumber = 1;
+
+                while ($currentWeekStart->lte($endDate)) {
+                    $weekEnd = $currentWeekStart->copy()->addDays(6);
+                    if ($weekEnd->gt($endDate)) {
+                        $weekEnd = $endDate->copy();
+                    }
+
+                    $total = Order::where('store_id', $storeId)
+                        ->whereBetween('created_at', [$currentWeekStart, $weekEnd])
+                        ->where('status', 'delivered')
+                        ->sum('total_amount');
+
+                    $maxValue = max($maxValue, $total);
+
+                    $chartData[] = [
+                        'day_key' => 'week_' . $weekNumber,
+                        'day_name' => 'أسبوع ' . $weekNumber,
+                        'total_sales' => (int) $total,
+                        'is_peak' => false,
+                    ];
+
+                    $currentWeekStart->addWeek();
+                    $weekNumber++;
+
+                    // Limit to 5 weeks for month view
+                    if ($weekNumber > 5) break;
+                }
+                break;
+
+            case 'year':
+                // Monthly data for year filter (last 12 months)
+                $monthsMap = [
+                    'jan' => 'يناير',
+                    'feb' => 'فبراير',
+                    'mar' => 'مارس',
+                    'apr' => 'أبريل',
+                    'may' => 'مايو',
+                    'jun' => 'يونيو',
+                    'jul' => 'يوليو',
+                    'aug' => 'أغسطس',
+                    'sep' => 'سبتمبر',
+                    'oct' => 'أكتوبر',
+                    'nov' => 'نوفمبر',
+                    'dec' => 'ديسمبر'
+                ];
+
+                $currentMonth = $startDate->copy()->startOfMonth();
+                $monthIndex = 0;
+
+                while ($currentMonth->lte($endDate) && $monthIndex < 12) {
+                    $monthEnd = $currentMonth->copy()->endOfMonth();
+                    if ($monthEnd->gt($endDate)) {
+                        $monthEnd = $endDate->copy();
+                    }
+
+                    $total = Order::where('store_id', $storeId)
+                        ->whereBetween('created_at', [$currentMonth, $monthEnd])
+                        ->where('status', 'delivered')
+                        ->sum('total_amount');
+
+                    $maxValue = max($maxValue, $total);
+
+                    $monthKey = strtolower($currentMonth->format('M'));
+                    $monthName = $monthsMap[$monthKey] ?? $currentMonth->translatedFormat('F');
+
+                    $chartData[] = [
+                        'day_key' => $monthKey,
+                        'day_name' => $monthName,
+                        'total_sales' => (int) $total,
+                        'is_peak' => false,
+                    ];
+
+                    $currentMonth->addMonth();
+                    $monthIndex++;
+                }
+                break;
         }
 
-        ksort($hours);
+        // mark peak day/hour/week/month
+        foreach ($chartData as &$item) {
+            if ($item['total_sales'] === $maxValue && $maxValue > 0) {
+                $item['is_peak'] = true;
+                break;
+            }
+        }
 
         return [
-            'hourly_data' => array_values($hours),
-            'peak_hour' => array_search(max(array_column($hours, 'order_count')), array_column($hours, 'order_count')),
-            'peak_sales' => CurrencyHelper::fromMinorUnits($maxSales, $factor)
+            'currency' => 'KWD', // Keep as KWD or get from currencyInfo
+            'max_value' => (int) $maxValue,
+            'days' => $chartData,
         ];
     }
-protected function getPeakHoursSlots(int $storeId, Carbon $date): array
-{
-    $slots = [
-        ['from' => 9,  'to' => 12],
-        ['from' => 12, 'to' => 15],
-        ['from' => 15, 'to' => 18],
-        ['from' => 18, 'to' => 21],
-        ['from' => 21, 'to' => 24],
-        ['from' => 0,  'to' => 3],
-    ];
 
-    $result = [];
-    $maxOrders = 0;
+    /**
+     * Get peak hours slots based on filter type
+     */
+    protected function getPeakHoursSlots(int $storeId, Carbon $startDate, Carbon $endDate, string $filterType): array
+    {
+        switch ($filterType) {
+            case 'day':
+                // Original peak hours slots for day filter
+                $slots = [
+                    ['from' => 9,  'to' => 12],
+                    ['from' => 12, 'to' => 15],
+                    ['from' => 15, 'to' => 18],
+                    ['from' => 18, 'to' => 21],
+                    ['from' => 21, 'to' => 24],
+                    ['from' => 0,  'to' => 3],
+                ];
 
-    foreach ($slots as $slot) {
+                $result = [];
+                $maxOrders = 0;
+
+                foreach ($slots as $slot) {
+                    $query = Order::where('store_id', $storeId)
+                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->where('status', 'delivered');
+
+                    // slot crosses midnight
+                    if ($slot['from'] > $slot['to']) {
+                        $query->where(function ($q) use ($slot) {
+                            $q->whereRaw('HOUR(created_at) >= ?', [$slot['from']])
+                              ->orWhereRaw('HOUR(created_at) < ?', [$slot['to']]);
+                        });
+                    } else {
+                        $query->whereRaw(
+                            'HOUR(created_at) >= ? AND HOUR(created_at) < ?',
+                            [$slot['from'], $slot['to']]
+                        );
+                    }
+
+                    $count = $query->count();
+                    $maxOrders = max($maxOrders, $count);
+
+                    $result[] = [
+                        'from' => sprintf('%02d:00', $slot['from']),
+                        'to'   => sprintf('%02d:00', $slot['to']),
+                        'orders_count' => $count,
+                        'is_peak' => false,
+                    ];
+                }
+
+                // mark peak
+                foreach ($result as &$item) {
+                    if ($item['orders_count'] === $maxOrders && $maxOrders > 0) {
+                        $item['is_peak'] = true;
+                        break;
+                    }
+                }
+
+                return $result;
+
+            case 'week':
+                // Daily slots for week filter
+                $days = [
+                    ['key' => 'sat', 'name' => 'السبت', 'from' => 'السبت', 'to' => ''],
+                    ['key' => 'sun', 'name' => 'الأحد', 'from' => 'الأحد', 'to' => ''],
+                    ['key' => 'mon', 'name' => 'الإثنين', 'from' => 'الإثنين', 'to' => ''],
+                    ['key' => 'tue', 'name' => 'الثلاثاء', 'from' => 'الثلاثاء', 'to' => ''],
+                    ['key' => 'wed', 'name' => 'الأربعاء', 'from' => 'الأربعاء', 'to' => ''],
+                    ['key' => 'thu', 'name' => 'الخميس', 'from' => 'الخميس', 'to' => ''],
+                    ['key' => 'fri', 'name' => 'الجمعة', 'from' => 'الجمعة', 'to' => ''],
+                ];
+
+                $result = [];
+                $maxOrders = 0;
+
+                foreach ($days as $day) {
+                    // Map day key to day number (MySQL: 1=Sunday, 7=Saturday)
+                    $dayNumberMap = ['sat' => 7, 'sun' => 1, 'mon' => 2, 'tue' => 3, 'wed' => 4, 'thu' => 5, 'fri' => 6];
+                    $dayNumber = $dayNumberMap[$day['key']] ?? 0;
+
+                    $count = Order::where('store_id', $storeId)
+                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->where('status', 'delivered')
+                        ->whereRaw('DAYOFWEEK(created_at) = ?', [$dayNumber])
+                        ->count();
+
+                    $maxOrders = max($maxOrders, $count);
+
+                    $result[] = [
+                        'from' => $day['from'],
+                        'to'   => $day['to'],
+                        'orders_count' => $count,
+                        'is_peak' => false,
+                    ];
+                }
+
+                // mark peak
+                foreach ($result as &$item) {
+                    if ($item['orders_count'] === $maxOrders && $maxOrders > 0) {
+                        $item['is_peak'] = true;
+                        break;
+                    }
+                }
+
+                return $result;
+
+            case 'month':
+                // Weekly slots for month filter
+                $weeks = [];
+                $maxOrders = 0;
+
+                $currentWeekStart = $startDate->copy();
+                $weekNumber = 1;
+
+                while ($currentWeekStart->lte($endDate)) {
+                    $weekEnd = $currentWeekStart->copy()->addDays(6);
+                    if ($weekEnd->gt($endDate)) {
+                        $weekEnd = $endDate->copy();
+                    }
+
+                    $count = Order::where('store_id', $storeId)
+                        ->whereBetween('created_at', [$currentWeekStart, $weekEnd])
+                        ->where('status', 'delivered')
+                        ->count();
+
+                    $maxOrders = max($maxOrders, $count);
+
+                    $weeks[] = [
+                        'from' => 'أسبوع ' . $weekNumber,
+                        'to'   => '',
+                        'orders_count' => $count,
+                        'is_peak' => false,
+                    ];
+
+                    $currentWeekStart->addWeek();
+                    $weekNumber++;
+
+                    if ($weekNumber > 5) break;
+                }
+
+                // mark peak
+                foreach ($weeks as &$week) {
+                    if ($week['orders_count'] === $maxOrders && $maxOrders > 0) {
+                        $week['is_peak'] = true;
+                        break;
+                    }
+                }
+
+                return $weeks;
+
+            case 'year':
+                // Monthly slots for year filter
+                $monthsMap = [
+                    ['key' => 'jan', 'name' => 'يناير', 'from' => 'يناير', 'to' => ''],
+                    ['key' => 'feb', 'name' => 'فبراير', 'from' => 'فبراير', 'to' => ''],
+                    ['key' => 'mar', 'name' => 'مارس', 'from' => 'مارس', 'to' => ''],
+                    ['key' => 'apr', 'name' => 'أبريل', 'from' => 'أبريل', 'to' => ''],
+                    ['key' => 'may', 'name' => 'مايو', 'from' => 'مايو', 'to' => ''],
+                    ['key' => 'jun', 'name' => 'يونيو', 'from' => 'يونيو', 'to' => ''],
+                    ['key' => 'jul', 'name' => 'يوليو', 'from' => 'يوليو', 'to' => ''],
+                    ['key' => 'aug', 'name' => 'أغسطس', 'from' => 'أغسطس', 'to' => ''],
+                    ['key' => 'sep', 'name' => 'سبتمبر', 'from' => 'سبتمبر', 'to' => ''],
+                    ['key' => 'oct', 'name' => 'أكتوبر', 'from' => 'أكتوبر', 'to' => ''],
+                    ['key' => 'nov', 'name' => 'نوفمبر', 'from' => 'نوفمبر', 'to' => ''],
+                    ['key' => 'dec', 'name' => 'ديسمبر', 'from' => 'ديسمبر', 'to' => ''],
+                ];
+
+                $result = [];
+                $maxOrders = 0;
+
+                $currentMonth = $startDate->copy()->startOfMonth();
+                $monthIndex = 0;
+
+                while ($currentMonth->lte($endDate) && $monthIndex < 12) {
+                    $monthEnd = $currentMonth->copy()->endOfMonth();
+                    if ($monthEnd->gt($endDate)) {
+                        $monthEnd = $endDate->copy();
+                    }
+
+                    $count = Order::where('store_id', $storeId)
+                        ->whereBetween('created_at', [$currentMonth, $monthEnd])
+                        ->where('status', 'delivered')
+                        ->count();
+
+                    $maxOrders = max($maxOrders, $count);
+
+                    $monthKey = strtolower($currentMonth->format('M'));
+                    $monthName = '';
+                    foreach ($monthsMap as $month) {
+                        if ($month['key'] === $monthKey) {
+                            $monthName = $month['name'];
+                            break;
+                        }
+                    }
+
+                    $result[] = [
+                        'from' => $monthName,
+                        'to'   => '',
+                        'orders_count' => $count,
+                        'is_peak' => false,
+                    ];
+
+                    $currentMonth->addMonth();
+                    $monthIndex++;
+                }
+
+                // mark peak
+                foreach ($result as &$item) {
+                    if ($item['orders_count'] === $maxOrders && $maxOrders > 0) {
+                        $item['is_peak'] = true;
+                        break;
+                    }
+                }
+
+                return $result;
+
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * Get peak analysis based on filter type
+     */
+    protected function getPeakAnalysis(int $storeId, Carbon $startDate, Carbon $endDate, string $filterType): array
+    {
         $query = Order::where('store_id', $storeId)
-            ->whereDate('created_at', $date)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'delivered');
 
-        // slot crosses midnight
-        if ($slot['from'] > $slot['to']) {
-            $query->where(function ($q) use ($slot) {
-                $q->whereRaw('HOUR(created_at) >= ?', [$slot['from']])
-                  ->orWhereRaw('HOUR(created_at) < ?', [$slot['to']]);
-            });
-        } else {
-            $query->whereRaw(
-                'HOUR(created_at) >= ? AND HOUR(created_at) < ?',
-                [$slot['from'], $slot['to']]
-            );
+        switch ($filterType) {
+            case 'day':
+                $query->selectRaw('HOUR(created_at) as time_unit, COUNT(*) as order_count, SUM(total_amount) as total_sales')
+                    ->groupBy('time_unit')
+                    ->orderByDesc('order_count');
+                break;
+            case 'week':
+                $query->selectRaw('DAYOFWEEK(created_at) as time_unit, COUNT(*) as order_count, SUM(total_amount) as total_sales')
+                    ->groupBy('time_unit')
+                    ->orderByDesc('order_count');
+                break;
+            case 'month':
+                $query->selectRaw('WEEK(created_at, 3) as time_unit, COUNT(*) as order_count, SUM(total_amount) as total_sales')
+                    ->groupBy('time_unit')
+                    ->orderByDesc('order_count');
+                break;
+            case 'year':
+                $query->selectRaw('MONTH(created_at) as time_unit, COUNT(*) as order_count, SUM(total_amount) as total_sales')
+                    ->groupBy('time_unit')
+                    ->orderByDesc('order_count');
+                break;
         }
 
-        $count = $query->count();
+        $peakData = $query->first();
 
-        $maxOrders = max($maxOrders, $count);
+        if (!$peakData) {
+            return ['peak_range' => 'N/A', 'change_percent' => 0];
+        }
 
-        $result[] = [
-            'from' => sprintf('%02d:00', $slot['from']),
-            'to'   => sprintf('%02d:00', $slot['to']),
-            'orders_count' => $count,
-            'is_peak' => false,
+        // Format peak range
+        $peakRange = $this->formatPeakRange($peakData->time_unit, $filterType);
+
+        // Get previous period for comparison
+        $previousPeriodDates = $this->getPreviousPeriodDates($filterType, $startDate);
+        $previousPeakData = Order::where('store_id', $storeId)
+            ->whereBetween('created_at', [$previousPeriodDates['start'], $previousPeriodDates['end']])
+            ->where('status', 'delivered');
+
+        switch ($filterType) {
+            case 'day':
+                $previousPeakData->selectRaw('HOUR(created_at) as time_unit, COUNT(*) as order_count')
+                    ->groupBy('time_unit')
+                    ->orderByDesc('order_count');
+                break;
+            case 'week':
+                $previousPeakData->selectRaw('DAYOFWEEK(created_at) as time_unit, COUNT(*) as order_count')
+                    ->groupBy('time_unit')
+                    ->orderByDesc('order_count');
+                break;
+            case 'month':
+                $previousPeakData->selectRaw('WEEK(created_at, 3) as time_unit, COUNT(*) as order_count')
+                    ->groupBy('time_unit')
+                    ->orderByDesc('order_count');
+                break;
+            case 'year':
+                $previousPeakData->selectRaw('MONTH(created_at) as time_unit, COUNT(*) as order_count')
+                    ->groupBy('time_unit')
+                    ->orderByDesc('order_count');
+                break;
+        }
+
+        $previousData = $previousPeakData->first();
+        $previousCount = $previousData ? (float)$previousData->order_count : 0;
+
+        $changePercent = $previousCount > 0
+            ? (($peakData->order_count - $previousCount) / $previousCount) * 100
+            : ($peakData->order_count > 0 ? 100 : 0);
+
+        return [
+            'peak_range' => $peakRange,
+            'change_percent' => $changePercent
         ];
     }
 
-    // mark peak
-    foreach ($result as &$item) {
-        if ($item['orders_count'] === $maxOrders && $maxOrders > 0) {
-            $item['is_peak'] = true;
-            break;
+    /**
+     * Format peak range based on filter type
+     */
+    protected function formatPeakRange($timeUnit, string $filterType): string
+    {
+        switch ($filterType) {
+            case 'day':
+                return sprintf('%02d:00 - %02d:00', $timeUnit, ($timeUnit + 1) % 24);
+            case 'week':
+                $days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                return $days[$timeUnit - 1] ?? 'N/A';
+            case 'month':
+                return "أسبوع " . $timeUnit;
+            case 'year':
+                $months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                          'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                return $months[$timeUnit - 1] ?? 'N/A';
+            default:
+                return 'N/A';
         }
     }
 
-    return $result;
-}
+    /**
+     * Get previous period dates for comparison
+     */
+    protected function getPreviousPeriodDates(string $filterType, Carbon $currentStartDate): array
+    {
+        $duration = $currentStartDate->diffInDays(now());
+
+        switch ($filterType) {
+            case 'day':
+                $previousStart = $currentStartDate->copy()->subDay();
+                $previousEnd = $currentStartDate->copy()->subSecond();
+                break;
+            case 'week':
+                $previousStart = $currentStartDate->copy()->subDays(7);
+                $previousEnd = $currentStartDate->copy()->subSecond();
+                break;
+            case 'month':
+                $previousStart = $currentStartDate->copy()->subDays(30);
+                $previousEnd = $currentStartDate->copy()->subSecond();
+                break;
+            case 'year':
+                $previousStart = $currentStartDate->copy()->subDays(365);
+                $previousEnd = $currentStartDate->copy()->subSecond();
+                break;
+            default:
+                $previousStart = $currentStartDate->copy()->subDay();
+                $previousEnd = $currentStartDate->copy()->subSecond();
+        }
+
+        return [
+            'start' => $previousStart,
+            'end' => $previousEnd
+        ];
+    }
+
+    /**
+     * Get comparison label based on filter type
+     */
+    protected function getComparisonLabel(string $filterType): string
+    {
+        switch ($filterType) {
+            case 'week':
+                return 'الأسبوع الماضي';
+            case 'month':
+                return 'الشهر الماضي';
+            case 'year':
+                return 'العام الماضي';
+            case 'day':
+            default:
+                return 'أمس';
+        }
+    }
+
+    /**
+     * Get start date based on filter type
+     */
+    protected function getStartDateBasedOnFilter(string $filterType, Carbon $endDate): Carbon
+    {
+        switch ($filterType) {
+            case 'week':
+                return $endDate->copy()->subDays(7);
+            case 'month':
+                return $endDate->copy()->subDays(30);
+            case 'year':
+                return $endDate->copy()->subDays(365);
+            case 'day':
+            default:
+                return $endDate->copy()->subDay();
+        }
+    }
+
+    protected function buildMetric(
+        float|int $value,
+        float $changePercent,
+        ?string $currencySymbol = null,
+        bool $isMoney = false,
+        string $compareTo = 'أمس'
+    ): array {
+        $direction = $changePercent > 0
+            ? 'up'
+            : ($changePercent < 0 ? 'down' : 'flat');
+
+        return [
+            'value' => $value,
+            'formatted' => $isMoney
+                ? trim(number_format($value, 2)) . ' ' . $currencySymbol
+                : (string) $value,
+            'change_percent' => abs(round($changePercent, 2)),
+            'change_direction' => $direction,
+            'compare_to' => $compareTo,
+        ];
+    }
 
     /**
      * Get financial information
@@ -405,7 +785,7 @@ protected function getPeakHoursSlots(int $storeId, Carbon $date): array
                 'currency' => $currencyInfo['symbol']
             ],
             'commissions' => [
-                'total_paid' => 0, // Would need to calculate from commission transactions
+                'total_paid' => 0,
                 'currency' => $currencyInfo['symbol']
             ]
         ];
@@ -417,8 +797,8 @@ protected function getPeakHoursSlots(int $storeId, Carbon $date): array
     protected function getWalletData($vendor, array $currencyInfo): array
     {
         $factor = $currencyInfo['factor'];
-        $balance = Balance::where('balanceable_id', $vendor->id)
-            ->where('balanceable_type', get_class($vendor))
+        $balance = Balance::where('balanceable_id', $vendor->store_id)
+            ->where('balanceable_type', 'store')
             ->first();
 
         if (!$balance) {
@@ -443,15 +823,12 @@ protected function getPeakHoursSlots(int $storeId, Carbon $date): array
     {
         $factor = $currencyInfo['factor'];
         $transactions = Transaction::where(function($query) use ($vendor) {
-                $query->where('store_id', $vendor->store_id)
-                      ->orWhere(function($q) use ($vendor) {
-                          $q->where('transactionable_type', 'store')
-                            ->where('transactionable_id', $vendor->store_id);
-                      });
-            })
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+            $query->where('transactionable_type', 'store')
+                  ->where('transactionable_id', $vendor->store_id);
+        })
+        ->orderBy('created_at', 'desc')
+        ->limit(10)
+        ->get();
 
         return $transactions->map(function ($transaction) use ($factor) {
             return [

@@ -14,15 +14,15 @@ class CreateSectionRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'unique:section_translations,name'],
             'icon' => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg,webp', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
             'is_restaurant' => ['nullable', 'boolean'],
-            'type' => ['required', 'string', Rule::in(SectionTypeEnum::values()), 'unique:sections,type'],
+            'type' => ['required', 'string', Rule::in(SectionTypeEnum::values())],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', Rule::exists('categories', 'id')],
             'countries' => ['required', 'array'],
-            'countries.*' => ['integer', Rule::exists('categories', 'id')],
+            'countries.*' => ['integer', Rule::exists('countries', 'id')],
         ];
 
         // Make categories required if type is not delivery_company

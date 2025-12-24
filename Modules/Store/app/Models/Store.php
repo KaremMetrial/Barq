@@ -471,6 +471,10 @@ class Store extends Model implements TranslatableContract
         // Return the stored currency factor or default to 100
         return $this->currency_factor ?? $this->address?->zone?->city?->governorate?->country?->currency_factor ?? 100;
     }
+    public function getCurrencyCode(): string
+    {
+        return $this->currency_code ?? $this->address?->zone?->city?->governorate?->country?->currency_code ?? 'USD';
+    }
 
     /**
      * Check if the store is open now based on working days and is_closed flag

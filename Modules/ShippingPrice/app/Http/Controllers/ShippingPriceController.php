@@ -2,6 +2,7 @@
 
 namespace Modules\ShippingPrice\Http\Controllers;
 
+use App\Helpers\CurrencyHelper;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -46,16 +47,18 @@ class ShippingPriceController extends Controller
         $vehicles = $validated['vehicles'];
 
         $zone = \Modules\Zone\Models\Zone::findOrFail($zoneId);
+        $currencyFactor = $zone->getCurrencyFactor();
         $shippingPricesData = [];
 
         foreach ($vehicles as $vehicleData) {
             $vehicle = \Modules\Vehicle\Models\Vehicle::findOrFail($vehicleData['vehicle_id']);
+
             $shippingPricesData[] = [
                 'name' => $zone->name,
-                'base_price' => $vehicleData['base_price'],
-                'max_price' => $vehicleData['max_price'],
-                'per_km_price' => $vehicleData['per_km_price'],
-                'max_cod_price' => $vehicleData['max_cod_price'],
+                'base_price' => CurrencyHelper::toMinorUnits($vehicleData['base_price'], $currencyFactor),
+                'max_price' => CurrencyHelper::toMinorUnits($vehicleData['max_price'], $currencyFactor),
+                'per_km_price' => CurrencyHelper::toMinorUnits($vehicleData['per_km_price'], $currencyFactor),
+                'max_cod_price' => CurrencyHelper::toMinorUnits($vehicleData['max_cod_price'], $currencyFactor),
                 'enable_cod' => $vehicleData['enable_cod'],
                 'is_active' => $vehicleData['is_active'] ?? true,
                 'zone_id' => $zoneId,
@@ -84,31 +87,61 @@ class ShippingPriceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
-    {
-        // Check if it's a multiple update request
-        if ($request->has('zone_id') && $request->has('vehicles')) {
-            $updateRequest = new UpdateMultipleShippingPriceRequest();
-            $updateRequest->merge($request->all());
-            $validated = $updateRequest->validateResolved();
+public function update(UpdateMultipleShippingPriceRequest $request, $id = null)
+{
+    $validated = $request->validated();
+    $zoneId = $validated['zone_id'];
+    $vehicles = $validated['vehicles'];
 
-            $zoneId = $validated['zone_id'];
-            $vehicles = $validated['vehicles'];
+    $zone = \Modules\Zone\Models\Zone::findOrFail($zoneId);
+    $currencyFactor = $zone->getCurrencyFactor();
+    $shippingPricesData = [];
 
-            $shippingPrices = $this->ShippingPriceService->updateMultipleShippingPrices($zoneId, $vehicles);
+    foreach ($vehicles as $vehicleData) {
+        $vehicle = \Modules\Vehicle\Models\Vehicle::findOrFail($vehicleData['vehicle_id']);
 
-            return $this->successResponse([
-                'ShippingPrices' => ShippingPriceResource::collection($shippingPrices)
-            ], __('message.success'));
-        }
-
-        // Single update
-        $ShippingPrice = $this->ShippingPriceService->updateShippingPrice($id, $request->validated());
-        return $this->successResponse([
-            'ShippingPrice' => new ShippingPriceResource($ShippingPrice)
-        ], __('message.success'));
+        // Prepare data with currency conversion
+        $shippingPricesData[] = [
+            'name' => $zone->name . ' - ' . $vehicle->name,
+            'base_price' => CurrencyHelper::toMinorUnits($vehicleData['base_price'], $currencyFactor),
+            'max_price' => CurrencyHelper::toMinorUnits($vehicleData['max_price'], $currencyFactor),
+            'per_km_price' => CurrencyHelper::toMinorUnits($vehicleData['per_km_price'], $currencyFactor),
+            'max_cod_price' => CurrencyHelper::toMinorUnits($vehicleData['max_cod_price'], $currencyFactor),
+            'enable_cod' => $vehicleData['enable_cod'],
+            'is_active' => $vehicleData['is_active'] ?? true,
+            'zone_id' => $zoneId,
+            'vehicle_id' => $vehicleData['vehicle_id'],
+        ];
     }
 
+    $updatedShippingPrices = [];
+
+    foreach ($shippingPricesData as $data) {
+        $vehicleId = $data['vehicle_id'];
+
+        // Check if shipping price exists for this zone and vehicle
+        $shippingPrice = $this->ShippingPriceService
+            ->getShippingPriceByZoneAndVehicle($zoneId, $vehicleId);
+
+        if ($shippingPrice) {
+            // Update existing
+            $updateData = $data;
+            unset($updateData['vehicle_id']); // Remove vehicle_id from update
+            $updatedShippingPrices[] = $this->ShippingPriceService
+                ->updateShippingPrice($shippingPrice->id, $updateData);
+        } else {
+            // Create new
+            $newData = $data;
+            unset($newData['vehicle_id']); // Remove vehicle_id for creation
+            $updatedShippingPrices[] = $this->ShippingPriceService
+                ->createShippingPrice($newData);
+        }
+    }
+
+    return $this->successResponse([
+        'ShippingPrices' => ShippingPriceResource::collection($updatedShippingPrices)
+    ], __('message.success'));
+}
 
 
     /**

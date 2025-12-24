@@ -55,7 +55,7 @@ class OtpService
                 'otp'            => $otpCode,
             ]
         );
-        $phone = $data['phone_code'] . $data['phone'];
+        $phone = $data['model_type'] != 'vendor' ? $data['phone_code'] . $data['phone'] : $data['phone'];
         $this->smsService->sendOtp(
             $phone,
             $otpCode

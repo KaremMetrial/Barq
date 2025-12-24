@@ -184,9 +184,6 @@ class ProductService
                 'currency_code' => $currencyInfo['currency_code'],
                 'currency_symbol' => $currencyInfo['currency_symbol'],
                 'currency_factor' => $factor,
-                'price_minor' => isset($price['price']) ? \App\Helpers\CurrencyHelper::toMinorUnits((int)$price['price'], (int)$factor) : null,
-                'purchase_price_minor' => isset($price['purchase_price']) ? \App\Helpers\CurrencyHelper::toMinorUnits((float)$price['purchase_price'], (int)$factor) : null,
-                'sale_price_minor' => isset($price['sale_price']) ? \App\Helpers\CurrencyHelper::toMinorUnits((int)$price['sale_price'], (int)$factor) : null,
             ]);
 
             $product->price()->updateOrCreate([], $priceData);

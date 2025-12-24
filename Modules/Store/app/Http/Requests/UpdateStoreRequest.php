@@ -3,14 +3,15 @@
 namespace Modules\Store\Http\Requests;
 
 use App\Enums\PlanTypeEnum;
-use App\Enums\StoreStatusEnum;
 use App\Enums\WorkingDayEnum;
+use App\Enums\StoreStatusEnum;
 use Illuminate\Validation\Rule;
 use Modules\Store\Models\Store;
 use App\Enums\DeliveryTypeUnitEnum;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Cache;
 
 class UpdateStoreRequest extends FormRequest
 {
@@ -104,11 +105,20 @@ class UpdateStoreRequest extends FormRequest
             $zoneId = $this->input('address.zone_id');
             $latitude = $this->input('address.latitude');
             $longitude = $this->input('address.longitude');
+            $storePhone = $this->input('store.phone');
 
             if ($zoneId && $latitude && $longitude) {
                 $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($latitude, $longitude);
                 if (!$zone || $zone->id != $zoneId) {
                     $validator->errors()->add('address.latitude', 'The provided latitude and longitude are not within the specified zone.');
+                }
+            }
+            if (Auth::guard('vendor')->check()) {
+                if ($storePhone) {
+                    $isPhoneValidated = $this->isPhoneValidated($storePhone);
+                    if (!$isPhoneValidated) {
+                        $validator->errors()->add('store.phone', 'The phone number is not validated with OTP.');
+                    }
                 }
             }
         });
@@ -129,4 +139,14 @@ class UpdateStoreRequest extends FormRequest
         unset($validated['lang']);
         $this->replace($validated);
     }
+    protected function isPhoneValidated(string $phone): bool
+    {
+        $record = \Modules\Otp\Models\Otp::where('phone',   $phone)
+            ->where('otp_verified', true)
+            ->where('otp_expires_at', '>=', now())
+            ->first();
+
+        return $record !== null;
+    }
+
 }

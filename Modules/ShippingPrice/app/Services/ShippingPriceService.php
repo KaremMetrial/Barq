@@ -77,7 +77,7 @@ class ShippingPriceService
                 $zone = \Modules\Zone\Models\Zone::findOrFail($zoneId);
                 $vehicle = \Modules\Vehicle\Models\Vehicle::findOrFail($vehicleId);
                 $data = array_filter($vehicleData, fn($value) => !blank($value));
-                $data['name'] = $zone->name . ' - ' . $vehicle->name;
+                $data['name'] = $zone->name;
                 $data['zone_id'] = $zoneId;
                 unset($data['vehicle_id']);
                 $newPrice = $this->ShippingPriceRepository->create($data);
@@ -85,5 +85,9 @@ class ShippingPriceService
             }
         }
         return $updatedPrices;
+    }
+    public function getShippingPriceByZoneAndVehicle(int $zoneId, int $vehicleId): ?ShippingPrice
+    {
+        return $this->ShippingPriceRepository->findByZoneAndVehicle($zoneId, $vehicleId);
     }
 }
