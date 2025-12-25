@@ -69,6 +69,16 @@ class CourierShiftService
     {
         $shift = $this->courierShiftRepository->find($shiftId);
 
+        if (!$shift) {
+            throw new \Exception('Shift not found');
+        }
+
+        // Verify that the shift belongs to the authenticated courier
+        $courierId = auth('sanctum')->id();
+        if ($shift->couier_id != $courierId) {
+            throw new \Exception('Unauthorized: This shift does not belong to you');
+        }
+
         if (!$shift->is_open) {
             throw new \Exception('This shift is already closed');
         }
@@ -82,20 +92,21 @@ class CourierShiftService
         if ($shift->expected_end_time && $now->greaterThan($shift->expected_end_time)) {
             $overtimeMinutes = $now->diffInMinutes($shift->expected_end_time);
 
-            // Calculate overtime pay (assuming hourly rate from courier settings)
-            $hourlyRate = 50; // Default rate, should come from courier settings
+            // Get courier's hourly rate from settings or database
+            $courier = \Modules\Couier\Models\Couier::find($courierId);
+            $hourlyRate = $courier->commission_amount ?? 50; // Use commission_amount as hourly rate, fallback to 50
             $overtimePay = ($overtimeMinutes / 60) * $hourlyRate * $overtimeRate;
         }
 
-        // Update shift
-        $this->courierShiftRepository->update([
+        // Update shift - correct parameter order: ID first, then data array
+        $this->courierShiftRepository->update($shiftId, [
             'end_time' => $now,
             'is_open' => false,
             'overtime_minutes' => $overtimeMinutes,
             'overtime_pay' => $overtimePay,
-        ], $shiftId);
+        ]);
 
-        return $shift->fresh();
+        return $shift->fresh()->load('shiftTemplate');
     }
 
     /**
@@ -233,10 +244,17 @@ class CourierShiftService
                 $endTime = Carbon::parse($dayConfig->end_time);
 
                 // Set the check date with shift start time
-                $shiftStartDateTime = $checkDate->setTime(
+                $shiftStartDateTime = $checkDate->copy()->setTime(
                     $startTime->hour,
                     $startTime->minute,
                     $startTime->second
+                );
+
+                // Set the check date with shift end time
+                $shiftEndDateTime = $checkDate->copy()->setTime(
+                    $endTime->hour,
+                    $endTime->minute,
+                    $endTime->second
                 );
 
                 // Skip if this shift start time has passed today
@@ -246,21 +264,15 @@ class CourierShiftService
 
                 // Check if this is earlier than current earliest
                 if ($shiftStartDateTime->lt($earliestTime)) {
-                    $shiftEndDateTime = $checkDate->setTime(
-                        $endTime->hour,
-                        $endTime->minute,
-                        $endTime->second
-                    );
-
                     // Calculate shift duration in minutes
-                    $duration = $startTime->diffInMinutes($endTime);
+                    $duration = $shiftStartDateTime->diffInMinutes($shiftEndDateTime);
 
                     $nextShift = [
                         'shift_template' => $template,
                         'day_config' => $dayConfig,
                         'scheduled_date' => $checkDate->toDateString(),
-                        'scheduled_start_time' => $shiftStartDateTime,
-                        'scheduled_end_time' => $shiftEndDateTime,
+                        'scheduled_start_time' => $shiftStartDateTime->toDateTimeString(),
+                        'scheduled_end_time' => $shiftEndDateTime->toDateTimeString(),
                         'duration_minutes' => $duration,
                         'break_duration' => $dayConfig->break_duration,
                         'day_name' => $dayConfig->day_name,
@@ -274,6 +286,7 @@ class CourierShiftService
 
         return $nextShift;
     }
+
 
     /**
      * Schedule a shift for a courier without starting it immediately

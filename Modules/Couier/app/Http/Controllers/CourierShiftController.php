@@ -27,7 +27,7 @@ class CourierShiftController extends Controller
     public function templates(): JsonResponse
     {
         $templates = $this->shiftTemplateService->getActiveTemplates();
-
+        
         return $this->successResponse([
             'templates' => ShiftTemplateResource::collection($templates)
         ], __('message.success'));
@@ -175,6 +175,16 @@ class CourierShiftController extends Controller
         return $this->successResponse([
             'next_shift' => $nextShift,
             'has_next_shift' => $nextShift !== null
+        ], __('message.success'));
+    }
+    public function current(): JsonResponse
+    {
+        $courierId = auth('sanctum')->id();
+        $currentShift = $this->courierShiftService->getCurrentShift($courierId);
+
+        return $this->successResponse([
+            'current_shift' => $currentShift,
+            'has_current_shift' => $currentShift !== null
         ], __('message.success'));
     }
 }

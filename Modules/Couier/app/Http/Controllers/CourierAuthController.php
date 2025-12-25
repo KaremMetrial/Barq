@@ -55,7 +55,10 @@ class CourierAuthController extends Controller
         }
 
         // Generate token
-        $token = $courier->generateToken($request->only('fcm_device'));
+        $newToken = $courier->createToken(['auth','courier']);
+        $newToken->accessToken->fcm_device = $request->fcm_device;
+        $newToken->accessToken->save();
+        $token = $newToken->plainTextToken;
 
         return $this->successResponse([
             "courier" => new CourierResource($courier->load('store.address')),

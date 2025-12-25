@@ -34,6 +34,7 @@ class StoreCollectionResource extends JsonResource
             "avg_rate" => $this->avg_rate,
             "owner_name" => $this->owner?->first_name . ' ' . $this->owner?->last_name,
             'section_name' => $this->section?->name,
+            'section_type' => $this->section?->type->value,
             'active_status' => $this->active_status,
             'count_branches' => $this->countBranches(),
             'count_orders' => $this->countOrders(),

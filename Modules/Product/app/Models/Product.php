@@ -6,6 +6,7 @@ use App\Models\Report;
 use Modules\Tag\Models\Tag;
 use Modules\Unit\Models\Unit;
 use Modules\Zone\Models\Zone;
+use App\Enums\SectionTypeEnum;
 use Modules\AddOn\Models\AddOn;
 use Modules\Offer\Models\Offer;
 use Modules\Store\Models\Store;
@@ -267,5 +268,39 @@ class Product extends Model implements TranslatableContract
         $this->status = $this->is_active ? ProductStatusEnum::ACTIVE : ProductStatusEnum::INACTIVE;
         $this->save();
         return $this->refresh();
+    }
+    public function getRelatedProductsAttribute()
+    {
+        return $this->category->products()
+        ->with([
+            'store.translations',
+            'store.storeSetting',
+            'category.translations',
+            'images',
+            'price',
+            'availability',
+            'tags',
+            'units.translations',
+            'ProductNutrition',
+            'productAllergen.translations',
+            'pharmacyInfo.translations',
+            'watermark',
+            'offers',
+            'requiredOptions',
+            'productOptions.option.translations',
+            'productOptions.optionValues.productValue.translations',
+            'addOns'
+        ])
+            ->where('id', '!=', $this->id)
+            ->whereHas('store', function ($query) {
+                $query->whereHas('section', function ($query) {
+                    $query->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY)
+                        ->where('type', '!=', SectionTypeEnum::RESTAURANT);
+                });
+            })
+            ->where('status', ProductStatusEnum::ACTIVE)
+            ->inRandomOrder()
+            ->limit(5)
+            ->get();
     }
 }

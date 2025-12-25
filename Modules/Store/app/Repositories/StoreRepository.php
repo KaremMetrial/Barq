@@ -115,7 +115,7 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
             ->with($relations)
             ->filter($filters)
             ->whereHas('products')
-            ->latest()
+            ->where('created_at', '>=', now()->subDays(3))
             ->limit(5)
             ->get();
 

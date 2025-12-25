@@ -15,6 +15,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email', 'exists:vendors,email'],
             'password' => ['required', 'string', 'min:8'],
+            'fcm_device' => ['nullable', 'string']
         ];
     }
 

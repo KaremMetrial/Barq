@@ -39,6 +39,12 @@ class ShiftTemplateRepository extends BaseRepository
                 $q->where('courier_id', $courierId);
             });
         }
+        if(auth('courier')->check())
+        {
+            $query->whereHas('courierAssignments', function ($q) {
+                $q->where('courier_id', auth('courier')->user()->id);
+            })->where('store_id', auth('courier')->user()->store_id);
+        }
         return $query->latest()->paginate($filters['per_page'] ?? 15);
     }
 
@@ -51,6 +57,15 @@ class ShiftTemplateRepository extends BaseRepository
         } else {
             // If no store provided, only return general templates (null store_id)
             $query->whereNull('store_id');
+        }
+        if(auth('courier')->check())
+        {
+            $courierStoreId = auth('courier')->user()->store_id;
+
+            $query->where(function ($q) use ($courierStoreId) {
+                $q->where('store_id', $courierStoreId)
+                  ->orWhereNull('store_id'); 
+            });
         }
 
         return $query->get();

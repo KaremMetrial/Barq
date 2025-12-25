@@ -2,17 +2,18 @@
 
 namespace Modules\Reward\Services;
 
-use App\Traits\FileUploadTrait;
-use Modules\Reward\Repositories\RewardRepository;
-use Modules\Reward\Models\Reward;
-use Illuminate\Support\Facades\DB;
-use Modules\LoyaltySetting\Models\LoyaltyTransaction;
-use App\Enums\LoyaltyTrransactionTypeEnum;
 use App\Enums\RewardType;
-
 use App\Enums\OrderStatus;
 use Modules\User\Models\User;
+use App\Helpers\CurrencyHelper;
+use App\Traits\FileUploadTrait;
+use Modules\Reward\Models\Reward;
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Facades\Auth;
+use App\Enums\LoyaltyTrransactionTypeEnum;
+use Modules\Reward\Repositories\RewardRepository;
+use Modules\LoyaltySetting\Models\LoyaltyTransaction;
 
 class RewardService
 {
@@ -41,6 +42,7 @@ class RewardService
                 'public'
             );
         }
+        $data['value_amount'] = CurrencyHelper::toMinorUnits($data['value_amount'], $data['currency_factor']);
 
         return $this->rewardRepository->create($data);
     }
@@ -60,6 +62,7 @@ class RewardService
                 'public'
             );
         }
+        $data['value_amount'] = CurrencyHelper::toMinorUnits($data['value_amount'], $data['currency_factor']);
 
         return $this->rewardRepository->update($id, $data);
     }

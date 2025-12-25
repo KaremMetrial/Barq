@@ -32,7 +32,6 @@ class ShiftTemplateController extends Controller
         }
 
         $templates = $this->shiftTemplateService->getAllTemplates($filters);
-
         return $this->successResponse([
             'templates' => ShiftTemplateResource::collection($templates),
             'pagination' => new PaginationResource($templates)

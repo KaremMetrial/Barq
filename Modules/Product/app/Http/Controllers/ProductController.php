@@ -38,6 +38,7 @@ class ProductController extends Controller
         $product = $this->productService->getProductById($id);
         return $this->successResponse([
             "product" => new ProductResource($product),
+            "related_products" => ProductResource::collection($product->relatedProducts)
         ], __("message.success"));
     }
     public function home(): JsonResponse

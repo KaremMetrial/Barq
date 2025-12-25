@@ -115,6 +115,10 @@ class UpdateStoreRequest extends FormRequest
             }
             if (Auth::guard('vendor')->check()) {
                 if ($storePhone) {
+                    $existingStore = Store::where('phone', $storePhone)->where('id', '=', $this->route('store'))->first();
+                    if ($existingStore) {
+                        return;
+                    }
                     $isPhoneValidated = $this->isPhoneValidated($storePhone);
                     if (!$isPhoneValidated) {
                         $validator->errors()->add('store.phone', 'The phone number is not validated with OTP.');
@@ -141,6 +145,7 @@ class UpdateStoreRequest extends FormRequest
     }
     protected function isPhoneValidated(string $phone): bool
     {
+        $phone = ltrim($phone, '0');
         $record = \Modules\Otp\Models\Otp::where('phone',   $phone)
             ->where('otp_verified', true)
             ->where('otp_expires_at', '>=', now())

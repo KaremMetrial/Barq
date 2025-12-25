@@ -13,16 +13,7 @@ class UpdateProductRequest extends FormRequest
     public function prepareForValidation(): void
     {
         $product = $this->filterArray($this->input('product', []));
-        if (auth('vendor')->check()) {
-            $vendor = auth('vendor')->user();
-            if ($vendor && $vendor->store_id) {
-                $product['store_id'] = $vendor->store_id;
-            } else {
-                abort(422, 'Authenticated vendor does not have a store assigned.');
-            }
-        }
-
-        $this->merge([
+        $this->merge(input: [
             'product' => $product,
             'pharmacyInfo' => $this->filterArray($this->input('pharmacyInfo', [])),
             'productAllergen' => $this->filterArray($this->input('productAllergen', [])),
@@ -62,7 +53,7 @@ class UpdateProductRequest extends FormRequest
             'product.is_reviewed' => ['nullable', 'boolean'],
             'product.is_featured' => ['nullable', 'boolean'],
             'product.is_active' => ['nullable', 'boolean'],
-            'product.store_id' => ['nullable', 'integer', 'exists:stores,id'],
+            // 'product.store_id' => ['nullable', 'integer', 'exists:stores,id'],
             'product.category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'product.max_cart_quantity' => ['nullable', 'integer', 'min:1'],
             'product.weight'             => ['nullable', 'numeric', 'min:0'],
@@ -147,6 +138,17 @@ class UpdateProductRequest extends FormRequest
 
     public function authorize(): bool
     {
+        // $user = auth('admin')->user();
+        // if ($user) {
+        //     return true;
+        // }
+
+        // $vendor = auth('vendor')->user();
+        // if ($vendor) {
+        //     $product = $this->route('product');
+        //     return $product && $vendor->store_id && $vendor->store_id == $product->store_id;
+        // }
+
         return true;
     }
 
