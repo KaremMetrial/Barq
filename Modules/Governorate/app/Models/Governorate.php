@@ -16,6 +16,7 @@ class Governorate extends Model implements TranslatableContract
 {
     use Translatable;
     public $translatedAttributes = ['name'];
+    protected $with = ['translations'];
     protected $fillable = [
         'country_id',
         'is_active',

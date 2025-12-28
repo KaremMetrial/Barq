@@ -189,6 +189,7 @@ class Store extends Model implements TranslatableContract
     {
         return $this->hasMany(Category::class);
     }
+
     public function scopeFilter($query, $filters)
     {
         $query;
@@ -354,7 +355,52 @@ class Store extends Model implements TranslatableContract
         }
         return $query;
     }
+    public function getProductCategories()
+{
+    // Check if the section type is not 'restaurant'
+    if ($this->section->type->value != 'restaurant') {
+        // If section type is not 'restaurant', get only parent categories that have products from this store
+        return Category::with('children')
+            ->whereNull('parent_id') // Only parent categories
+            ->whereHas('products', function ($query) {
+                $query->where('store_id', $this->id); // Products should belong to this store
+            })
+            ->orWhere(function ($query) {
+                $query->whereHas('children', function ($q) {
+                    $q->whereHas('products', function ($qq) {
+                        $qq->where('store_id', $this->id); // Products from this store within children categories
+                    });
+                });
+            })
+            ->get();
+    }
 
+    // If the section type is 'restaurant', get all categories with children that have products from this store
+    return Category::with('children')
+        ->whereHas('products', function ($query) {
+            $query->where('store_id', $this->id); // Products should belong to this store
+        })
+        ->get();
+}
+
+
+
+    public function getReviewCountFormatted(): string
+    {
+        $reviewCount = $this->orders()
+            ->whereHas('reviews', function ($query) {
+                $query->whereHas('order', function ($query) {
+                    $query->where('status', 'delivered');
+                });
+            })
+            ->count();
+
+        if ($reviewCount > 1000) {
+            return __('message.review_count_above_1000');
+        }
+
+        return __('message.review_count', ['count' => $reviewCount ?? 0]);
+    }
     public function getDeliveryFee(?int $vehicleId = null, ?float $distanceKm = null): ?int
     {
         $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);

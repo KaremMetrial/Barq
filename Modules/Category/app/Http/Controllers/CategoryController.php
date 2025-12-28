@@ -21,7 +21,7 @@ class CategoryController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only('search', 'getParent');
+        $filters = $request->all();
         $categories = $this->categoryService->getAllCountries();
         return $this->successResponse([
             "categories" => CategoryResource::collection($categories->load('children')),

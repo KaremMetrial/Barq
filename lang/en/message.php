@@ -45,4 +45,7 @@ return [
     'store_is_closed' => 'Store is currently closed.',
     'some_products_unavailable' => 'Some products in the cart are unavailable.',
     'some_products_out_of_stock' => 'Some products are out of stock',
+
+    'review_count' => ':count reviews',
+    'review_count_above_1000' => '1,000+ reviews',
 ];

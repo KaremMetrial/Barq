@@ -42,6 +42,7 @@ class StoreResource extends JsonResource
             "section" => new SectionResource($this->section),
             "banners" => $this->getProductBanners(),
             "categories" => $this->getCategoriesString(),
+            "getStoreCategory" => CategoryResource::collection($this->getProductCategories()),
             'store_setting' => new StoreSettingResource($this->whenLoaded('storeSetting')),
             "delivery_fee" => $this->getDeliveryFee() ? (int) $this->getDeliveryFee() : null,
             "active_sale" => $this->whenLoaded('offers', function () {
@@ -53,6 +54,8 @@ class StoreResource extends JsonResource
             // "cart_count" => $this->getCartCount()
             // "cart_total_price" => $this->getCartTotalPrice(),
             // "cart_item_count" => $this->getCartItemCount()
+            "address" => $this->address ? $this->address_place : null,
+            "count_reviews" => $this->getReviewCountFormatted(),
         ];
     }
     private function getCartCount(): int

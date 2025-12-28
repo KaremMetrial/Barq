@@ -174,18 +174,20 @@ class ProductService
     {
         if (!empty($price)) {
             // Get currency information from the store (cached)
-            $currencyInfo = \App\Helpers\CurrencyHelper::getCurrencyInfoFromStore($product->store);
-
+            $currencyInfo = \App\Helpers\CurrencyHelper::getCurrencyInfoFromStore(store: $product->store);
             // Use provided currency_factor or fallback to store's currency_factor or default to 100
             $factor = $price['currency_factor'] ?? $currencyInfo['currency_factor'] ?? 100;
-
             // Add currency information to price data and minor-unit values
+
+            $price['price'] = \App\Helpers\CurrencyHelper::toMinorUnits($price['price'], $factor);
+            $price['purchase_price'] = \App\Helpers\CurrencyHelper::toMinorUnits($price['purchase_price'], $factor);
+            $price['sale_price'] = \App\Helpers\CurrencyHelper::toMinorUnits($price['sale_price'], $factor);
+
             $priceData = array_merge($price, [
                 'currency_code' => $currencyInfo['currency_code'],
                 'currency_symbol' => $currencyInfo['currency_symbol'],
                 'currency_factor' => $factor,
             ]);
-
             $product->price()->updateOrCreate([], $priceData);
         }
     }

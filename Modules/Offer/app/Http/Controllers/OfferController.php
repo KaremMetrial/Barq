@@ -11,6 +11,7 @@ use App\Http\Resources\PaginationResource;
 use Modules\Offer\Http\Resources\OfferResource;
 use Modules\Offer\Http\Requests\CreateOfferRequest;
 use Modules\Offer\Http\Requests\UpdateOfferRequest;
+use Modules\Offer\Http\Resources\AdminOfferResource;
 
 class OfferController extends Controller
 {
@@ -28,7 +29,7 @@ class OfferController extends Controller
         $filters = request()->all();
         $offers = $this->offerService->getAllOffers($filters);
         return $this->successResponse([
-            "offers" => OfferResource::collection($offers),
+            "offers" => AdminOfferResource::collection($offers->load('offerable')),
             "pagination" => new PaginationResource($offers)
         ], __('message.success'));
     }
@@ -40,7 +41,7 @@ class OfferController extends Controller
     {
         $offer = $this->offerService->createOffer($request->all());
         return $this->successResponse([
-            'offer' => new OfferResource($offer->refresh())
+            'offer' => new AdminOfferResource($offer->refresh())
         ], __('message.success'));
     }
 

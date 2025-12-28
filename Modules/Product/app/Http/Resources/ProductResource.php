@@ -215,9 +215,9 @@ class ProductResource extends JsonResource
     }
     protected function getBannerTextFromOffer($offer): ?string
     {
-        $discount = number_format($offer->discount_amount, 0);
+        $discount = $offer->discount_amount;
         $type = $offer->discount_type;
-
+        $discount = \App\Helpers\CurrencyHelper::fromMinorUnits($discount, $offer->currency_factor ?? 1);
         if ($type === \App\Enums\SaleTypeEnum::PERCENTAGE) {
             return __("message.store.discount_banner_percentage", ['discount' => $discount]);
         }

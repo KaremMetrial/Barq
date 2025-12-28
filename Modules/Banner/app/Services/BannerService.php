@@ -53,6 +53,7 @@ class BannerService
         $today = Carbon::today();
 
         $banners = Banner::where('is_active', true)
+            ->filter($filters = [])
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
             ->inRandomOrder()

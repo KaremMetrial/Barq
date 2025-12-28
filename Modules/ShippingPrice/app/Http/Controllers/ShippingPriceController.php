@@ -142,7 +142,7 @@ public function update(UpdateMultipleShippingPriceRequest $request, $id = null)
         'ShippingPrices' => ShippingPriceResource::collection($updatedShippingPrices)
     ], __('message.success'));
 }
-
+    
 
     /**
      * Get shipping statistics

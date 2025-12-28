@@ -36,6 +36,14 @@ class OrderObserver
                 'Order created'
             );
         }
+
+        if ($order->store) {
+            $this->orderNotificationService->sendNewOrderNotificationToStore(
+                $order->store,
+                $order->id,
+                $order->total_amount
+            );
+        }
     }
 
     /**
@@ -51,6 +59,16 @@ class OrderObserver
                 $order->status->value
             );
         }
+
+        if ($order->isDirty('status') && $order->store) {
+            $this->orderNotificationService->sendOrderStatusNotificationToStore(
+                $order->store,
+                $order->id,
+                $order->status->value
+            );
+        }
+
+
         // Check if status has changed
         if ($order->isDirty('status')) {
          if (auth('user')->check()) {

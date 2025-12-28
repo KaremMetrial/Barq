@@ -124,13 +124,14 @@ class FirebaseService
     }
     public function fcmTest()
     {
-        $tokens = ['fU1rei9cQFiXUt-U76Tk-Y:APA91bE2ye1qmgi10rT8ef_PdO9k9Lwd_x6LtDYfRifyYc9RCbqA6h8eBJJZNx82jpJSe1XK6xTkEBQ5fE8BY9Gh5O_fBe018H6qEHjR-Nd0BZ7yobko-mE'];
-        
-        $title = 'Order DELIVERED';
-        $body = 'Your order has been delivered';
+        $tokens = ['foB8bWoNSkOp0xWPEOq47p:APA91bGQ_FIVIQC70KAPAJgC5G1sprujHak9RvvWXaJsjXEq92-ABjakgwtlqu3Qvufn0h28Pul45Wrh8mc9iDmYVcOxk1QiPqVdW_Fkio_o9mcKy-uGT9s'];
+
+        $title = "New Order Received!";
+        $body = "You have a new order";
         $data = [
             'order_id' => 1,
-            'status' => 'pending',
+            'store_id' => 1,
+            'notification_type' => 'new_order',
         ];
         $message = CloudMessage::new()
             ->withNotification(FirebaseNotification::create($title, $body))

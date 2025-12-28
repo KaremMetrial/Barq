@@ -19,6 +19,7 @@ use Modules\Reward\Models\Reward;
 class Country extends Model implements TranslatableContract
 {
     use Translatable;
+    protected $with = ['translations'];
 
     public $translatedAttributes = ['name'];
     protected $fillable = [

@@ -176,8 +176,9 @@ class CurrencyHelper
         }
 
         // First try to get currency from store's direct fields (denormalized data)
-        $currencyCode = $store->currency_code;
+        $currencyCode = $store->getCurrencyCode();
         $currencySymbol = $store->currency_symbol;
+        $currencyFactor = $store->getCurrencyCode();
 
         // If not set on store, fall back to country-based resolution
         if (empty($currencyCode) || empty($currencySymbol)) {

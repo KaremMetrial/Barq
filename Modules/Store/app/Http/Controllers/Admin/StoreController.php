@@ -35,13 +35,7 @@ class StoreController extends Controller implements HasMiddleware
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only([
-            'search',
-            'status',
-            'section_id',
-            'category_id',
-            'rating'
-        ]);
+        $filters = $request->all();
         $Stores = $this->StoreService->getAdminAllStores($filters);
         return $this->successResponse([
             "Stores" => StoreCollectionResource::collection($Stores),

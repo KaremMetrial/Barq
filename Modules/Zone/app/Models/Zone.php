@@ -19,6 +19,7 @@ class Zone extends Model implements TranslatableContract
     use Translatable;
 
     public $translatedAttributes = ['name'];
+    protected $with = ['translations'];
 
     protected $fillable = [
         'city_id',
@@ -109,7 +110,7 @@ class Zone extends Model implements TranslatableContract
     }
     public static function findZoneByCoordinates($lat, $lng): ?self
     {
-        $zones = self::where('is_active', true)->latest()->get();
+        $zones = self::with(['city.translations', 'city.governorate.translations', 'city.governorate.country.translations'])->where('is_active', true)->latest()->get();
         foreach ($zones as $zone) {
             if (self::pointInPolygon($lat, $lng, $zone->area)) {
                 return $zone;

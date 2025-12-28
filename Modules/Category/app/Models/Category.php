@@ -29,6 +29,7 @@ class Category extends Model implements TranslatableContract
         'parent_id',
         'store_id',
     ];
+    protected $with = ['translations'];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -78,19 +79,29 @@ class Category extends Model implements TranslatableContract
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }
-        if (isset($filters['store_id'])) {
-            $query->where('store_id', $filters['store_id']);
-        }
+
         if (!auth('admin')->check()) {
             $query->whereIsActive(true);
+            // if (isset($filters['store_id'])) {
+            //     $query->where('store_id', $filters['store_id'])
+            //     ->orWhereHas('products', function ($q) use ($filters) {
+            //         $q->where('store_id', $filters['store_id']);
+            //     });
+            // }
         }
         if(auth('vendor')->check())
         {
             $query->where('store_id', auth('vendor')->user()->store_id)
-            ->orWhereHas('products', function ($q) {
-                $q->where('store_id', auth('vendor')->user()->store_id);
+                ->orWhereHas('products', function ($q) {
+                    $q->where('store_id', auth('vendor')->user()->store_id);
+                });
+        }
+        if(isset($filters['section_id'])){
+            $query->whereHas('sections', function ($q) use ($filters) {
+                $q->where('section_id', $filters['section_id']);
             });
         }
+
         return $query->latest();
     }
 }

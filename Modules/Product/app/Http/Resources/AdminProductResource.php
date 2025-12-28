@@ -69,6 +69,7 @@ class AdminProductResource extends JsonResource
                     "is_open" => $this->store->isOpenNow(),
                     "is_closed" => $this->store->is_closed,
                     "is_active" => $this->store->is_active,
+                    "store_type" => $this->store->section->type->value,
                 ];
             }),
             "category"   => $this->whenLoaded('category', function () {

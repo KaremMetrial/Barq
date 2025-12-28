@@ -50,7 +50,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->getProductById($id);
         return $this->successResponse([
-            "product" => new AdminProductResource($product),
+            "product" => new AdminProductResource($product->load(['pharmacyInfo'])),
         ], __("message.success"));
     }
 

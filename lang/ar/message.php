@@ -46,4 +46,7 @@ return [
     'store_is_closed' => 'المتجر مغلق حالياً.',
     'some_products_unavailable' => 'بعض المنتجات في السلة غير متاحة.',
     'some_products_out_of_stock' => 'بعض المنتجات في السلة غير متاحة.',
+
+    'review_count' => ':count تقييم',
+    'review_count_above_1000' => '1,000+ تقييم',
 ];

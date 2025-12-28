@@ -39,30 +39,35 @@ class ShippingPriceCollectionResource extends JsonResource
             $vehicleName = $shippingPrice->vehicle->name ?? 'Unknown Vehicle';
             $vehicleIcon = $shippingPrice->vehicle->icon ? asset('storage/'. $shippingPrice->vehicle->icon) : null;
             $basePrices[] = [
+                'shipping_price_id' => $shippingPrice->id,
                 'vehicle_id' => $shippingPrice->vehicle_id,
                 'vehicle_name' => $vehicleName,
                 'vehicle_icon' => $vehicleIcon,
                 'base_price' => $shippingPrice->base_price,
             ];
             $maxPrices[] = [
+                'shipping_price_id' => $shippingPrice->id,
                 'vehicle_id' => $shippingPrice->vehicle_id,
                 'vehicle_name' => $vehicleName,
                 'vehicle_icon' => $vehicleIcon,
                 'max_price' => $shippingPrice->max_price,
             ];
             $perKmPrices[] = [
+                'shipping_price_id' => $shippingPrice->id,
                 'vehicle_id' => $shippingPrice->vehicle_id,
                 'vehicle_name' => $vehicleName,
                 'vehicle_icon' => $vehicleIcon,
                 'per_km_price' => $shippingPrice->per_km_price,
             ];
             $maxCodPrices[] = [
+                'shipping_price_id' => $shippingPrice->id,
                 'vehicle_id' => $shippingPrice->vehicle_id,
                 'vehicle_name' => $vehicleName,
                 'vehicle_icon' => $vehicleIcon,
                 'max_cod_price' => $shippingPrice->max_cod_price,
             ];
             $enableCods[] = [
+                'shipping_price_id' => $shippingPrice->id,
                 'vehicle_id' => $shippingPrice->vehicle_id,
                 'vehicle_name' => $vehicleName,
                 'vehicle_icon' => $vehicleIcon,

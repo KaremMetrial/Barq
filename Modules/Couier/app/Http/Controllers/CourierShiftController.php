@@ -7,10 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
+use Modules\Address\Services\AddressService;
 use Modules\Couier\Services\ShiftTemplateService;
 use Modules\Couier\Services\CourierShiftService;
 use Modules\Couier\Http\Resources\ShiftTemplateResource;
 use Modules\Couier\Http\Resources\CourierShiftResource;
+use Stevebauman\Location\Facades\Location;
 
 class CourierShiftController extends Controller
 {
@@ -18,7 +20,8 @@ class CourierShiftController extends Controller
 
     public function __construct(
         protected ShiftTemplateService $shiftTemplateService,
-        protected CourierShiftService $courierShiftService
+        protected CourierShiftService $courierShiftService,
+        protected AddressService $addressService
     ) {}
 
     /**
@@ -27,7 +30,7 @@ class CourierShiftController extends Controller
     public function templates(): JsonResponse
     {
         $templates = $this->shiftTemplateService->getActiveTemplates();
-        
+
         return $this->successResponse([
             'templates' => ShiftTemplateResource::collection($templates)
         ], __('message.success'));
@@ -167,14 +170,22 @@ class CourierShiftController extends Controller
     /**
      * Get next available shift for login prompt
      */
-    public function next(): JsonResponse
+    public function next(Request $request): JsonResponse
     {
+        $lat = $request->header('lat');
+        $long = $request->header('long');
+        $zone = $this->addressService->getAddressByLatLong($lat, $long);
+        $addressName = $zone?->getFullAddressAttribute();
+        $position = Location::get(request()->ip());
+
         $courierId = auth('sanctum')->id();
         $nextShift = $this->courierShiftService->getNextShift($courierId);
 
         return $this->successResponse([
             'next_shift' => $nextShift,
-            'has_next_shift' => $nextShift !== null
+            'has_next_shift' => $nextShift !== null,
+            "is_available" => $zone ? true : false,
+            "address_name" => $addressName ?? ($position ? $position->cityName . ', ' . $position->countryName . ', ' . $position->regionName : null)
         ], __('message.success'));
     }
     public function current(): JsonResponse
