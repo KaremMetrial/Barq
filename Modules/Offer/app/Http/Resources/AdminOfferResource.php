@@ -37,7 +37,7 @@ class AdminOfferResource extends JsonResource
             "offerable_id" => $this->offerable_id,
             "offerable" => $this->whenLoaded('offerable', function () {
                 return match ($this->offerable_type) {
-                    'product' => new ProductResource($this->offerable->load(['price','store'])),
+                    'product' => new ProductResource($this->offerable->load(['price','store', 'offers'])),
                     default => null,
                 };
             }),

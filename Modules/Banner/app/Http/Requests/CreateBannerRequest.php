@@ -18,7 +18,7 @@ class CreateBannerRequest extends FormRequest
         return [
             "title" => ["required", "string", "max:255"],
             "image" => ["required", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
-            "link" => ["required", "string", "max:255"],
+            "link" => ["nullable", "string", "max:255"],
             "start_date" => ["required", "date", "after_or_equal:today"],
             "end_date" => ["required", "date", "after:start_date"],
             "is_active" => ["nullable", "boolean"],

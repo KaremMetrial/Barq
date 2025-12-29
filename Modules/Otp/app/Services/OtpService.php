@@ -116,6 +116,7 @@ class OtpService
         if (request()->input('update_profile') != 'true') {
             $newToken = $user->createToken('auth_token',['user']);
             $newToken->accessToken->fcm_device = request()->input('fcm_device');
+            $newToken->accessToken->language_code = request()->header('Accept-Language');
             $newToken->accessToken->save();
             $token = $newToken->plainTextToken;
         }

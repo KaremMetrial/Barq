@@ -11,6 +11,7 @@ use Modules\Reward\Models\Reward;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Artisan;
 use App\Enums\LoyaltyTrransactionTypeEnum;
 use Modules\Reward\Repositories\RewardRepository;
 use Modules\LoyaltySetting\Models\LoyaltyTransaction;
@@ -25,6 +26,7 @@ class RewardService
 
     public function getAllRewards($filters = [])
     {
+        $filters['except_prize'] = true;
         return $this->rewardRepository->paginate(
             $filters,
             15,
@@ -62,8 +64,9 @@ class RewardService
                 'public'
             );
         }
-        $data['value_amount'] = CurrencyHelper::toMinorUnits($data['value_amount'], $data['currency_factor']);
-
+        if (isset($data['currency_factor'])) {
+            $data['value_amount'] = CurrencyHelper::toMinorUnits($data['value_amount'], $data['currency_factor']);
+        }
         return $this->rewardRepository->update($id, $data);
     }
 
@@ -220,4 +223,64 @@ class RewardService
             'spending_reward' => $spendingReward,
         ];
     }
+
+    public function getAllRedemption(array $filters = [])
+    {
+        return $this->rewardRepository->getAllRedemptions($filters);
+    }
+
+    public function stats()
+    {
+        // System rewards count
+        $systemRewards = Reward::count();
+
+        // Redemption operations count
+        $redemptionOperations = \Modules\Reward\Models\RewardRedemption::count();
+
+        // Total points spent
+        $pointsSpent = \Modules\Reward\Models\RewardRedemption::sum('points_spent');
+
+        // Total order value (from delivered orders)
+        $totalOrderValue = \Modules\Order\Models\Order::where('status', OrderStatus::DELIVERED)
+            ->sum('total_amount');
+
+        // Number of customers (users with orders)
+        $customersCount = \Modules\User\Models\User::whereHas('orders', function ($query) {
+            $query->where('status', OrderStatus::DELIVERED);
+        })->count();
+
+        // Last withdrawal on points (latest loyalty transaction with negative points)
+        $lastPointsWithdrawal = LoyaltyTransaction::where('points', '<', 0)
+            ->latest('created_at')
+            ->first();
+
+        // Total points (sum of all user loyalty points)
+        $totalPoints = \Modules\User\Models\User::sum('loyalty_points');
+
+        // Number of customers with points
+        $customersWithPoints = \Modules\User\Models\User::where('loyalty_points', '>', 0)->count();
+
+
+        return [
+            'system_rewards' => $systemRewards,
+            'redemption_operations' => $redemptionOperations,
+            'points_spent' => $pointsSpent,
+            'total_order_value' => $totalOrderValue,
+            'customers_count' => $customersCount,
+            'last_points_withdrawal' => $lastPointsWithdrawal ? [
+                'amount' => abs($lastPointsWithdrawal->points),
+                'date' => $lastPointsWithdrawal->created_at,
+                'user_id' => $lastPointsWithdrawal->user_id,
+            ] : null,
+            'total_points' => $totalPoints,
+            'customers_with_points' => $customersWithPoints,
+        ];
+    }
+    public function resetAllLoyaltyPoints()
+    {
+        Artisan::call('loyalty:reset-points', [
+            '--confirm' => true,
+        ]);
+    }
+
 }

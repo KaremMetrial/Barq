@@ -23,7 +23,7 @@ class CreateRewardRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg,webp', 'max:2048'],
+            'image' => ['nullable', 'required_if:type,prize', 'image', 'mimes:jpg,png,jpeg,gif,svg,webp', 'max:2048'],
             'type' => ['required', 'string', Rule::in(RewardType::values())],
             'points_cost' => ['required', 'integer', 'min:1'],
             'value_amount' => ['required', 'numeric', 'min:0'],

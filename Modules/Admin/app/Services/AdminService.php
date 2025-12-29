@@ -60,7 +60,7 @@ class AdminService
     {
         return $this->AdminRepository->delete($id);
     }
-        public function login(array $data)
+    public function login(array $data)
     {
         $admin = $this->AdminRepository->firstWhere([
             'email' => $data['email']
@@ -72,6 +72,8 @@ class AdminService
         }
         $newToken = $admin->createToken('token',['admin']);
         $newToken->accessToken->fcm_device = request()->input('fcm_device');
+        $newToken->accessToken->country_id = request()->input('country_id');
+        $newToken->accessToken->language_code = request()->header('Accept-Language');
         $newToken->accessToken->save();
         $token = $newToken->plainTextToken;
 

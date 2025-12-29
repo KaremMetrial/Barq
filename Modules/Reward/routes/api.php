@@ -7,6 +7,9 @@ use Modules\Reward\Http\Controllers\RewardController;
 // Admin routes
 Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('v1/admin')->group(function () {
     Route::get('rewards/dashboard', [AdminRewardController::class, 'dashboard']);
+    Route::get('rewards/stats', [AdminRewardController::class, 'stats']);
+    Route::get('rewards/redemption', [AdminRewardController::class, 'getAllRedemption']);
+    Route::post('loyality/reset', [AdminRewardController::class, 'resetLoyality']);
     Route::apiResource('rewards', AdminRewardController::class);
 });
 

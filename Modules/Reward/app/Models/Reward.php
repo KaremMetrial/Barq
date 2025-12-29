@@ -175,7 +175,27 @@ class Reward extends Model
         if (isset($filters['is_active'])) {
             $query->where('is_active', $filters['is_active']);
         }
-
+        if(isset($filters['except_prize'])){
+            $query->where('type', '!=', 'prize');
+        }
         return $query->latest();
     }
+    public static function getRewardStats($filters = [])
+    {
+        // Base query for active rewards
+        $query = self::query()->active()->filter($filters);
+
+        // Aggregating and getting the statistics
+        return $query->select(
+            \DB::raw('COUNT(DISTINCT redemptions.user_id) as number_of_customers'), // Number of unique customers who redeemed
+            \DB::raw('SUM(redemptions.points_spent) as total_points_spent'), // Total points spent on redemptions
+            \DB::raw('SUM(value_amount) as total_value_redeemed'), // Total value redeemed
+            \DB::raw('SUM(total_redemptions) as total_redemptions'), // Total redemptions made
+            \DB::raw('MAX(redemptions.created_at) as last_redemption_date') // Last redemption date
+        )
+        ->leftJoin('reward_redemptions as redemptions', 'reward_redemptions.reward_id', '=', 'rewards.id')
+        ->groupBy('rewards.id')
+        ->first();
+    }
+
 }

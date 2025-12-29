@@ -57,6 +57,7 @@ class CourierAuthController extends Controller
         // Generate token
         $newToken = $courier->createToken('auth',['courier']);
         $newToken->accessToken->fcm_device = $request->fcm_device;
+        $newToken->accessToken->language_code = request()->header('Accept-Language');
         $newToken->accessToken->save();
         $token = $newToken->plainTextToken;
 

@@ -131,11 +131,12 @@ class VendorReportController extends Controller
         return [
             'daily_metrics' => [
                 'total_sales' => [
-                    'value' => CurrencyHelper::fromMinorUnits($totalSalesCurrent, $factor),
+                    'value' => (int) $totalSalesCurrent,
                     'change_percent' => (float) $salesChangePercent,
                     'change_direction' => $this->changeDirection($salesChangePercent),
                     'compare_to' => $compareLabel,
-                    'currency' => $currencyInfo['symbol']
+                    'currency' => $currencyInfo['symbol'],
+                    'currency_factor' => $factor,
                 ],
                 'order_count' => [
                     'value' => (int) $orderCountCurrent,
@@ -144,11 +145,12 @@ class VendorReportController extends Controller
                     'compare_to' => $compareLabel,
                 ],
                 'average_order_value' => [
-                    'value' => CurrencyHelper::fromMinorUnits($avgOrderValueCurrent, $factor),
+                    'value' => (int) $avgOrderValueCurrent,
                     'change_percent' => (float) $avgOrderValueChangePercent,
                     'change_direction' => $this->changeDirection($avgOrderValueChangePercent),
                     'compare_to' => $compareLabel,
-                    'currency' => $currencyInfo['symbol']
+                    'currency' => $currencyInfo['symbol'],
+                    'currency_factor' => $factor,
                 ],
                 'peak_hours' => [
                     'value' => $peakHourRange,
@@ -779,10 +781,11 @@ class VendorReportController extends Controller
 
         return [
             'wallet_balance' => [
-                'total_balance' => $balance ? CurrencyHelper::fromMinorUnits($balance->total_balance, $factor) : 0,
-                'available_balance' => $balance ? CurrencyHelper::fromMinorUnits($balance->available_balance, $factor) : 0,
-                'pending_balance' => $balance ? CurrencyHelper::fromMinorUnits($balance->pending_balance, $factor) : 0,
-                'currency' => $currencyInfo['symbol']
+                'total_balance' => $balance ? (int) $balance->total_balance : 0,
+                'available_balance' => $balance ? (int) $balance->available_balance : 0,
+                'pending_balance' => $balance ? (int) $balance->pending_balance : 0,
+                'currency' => $currencyInfo['symbol'],
+                'currency_factor' => $factor,
             ],
             'commissions' => [
                 'total_paid' => 0,
@@ -810,9 +813,10 @@ class VendorReportController extends Controller
         }
 
         return [
-            'total_balance' => CurrencyHelper::fromMinorUnits($balance->total_balance, $factor),
-            'available_for_withdrawal' => CurrencyHelper::fromMinorUnits($balance->available_balance, $factor),
-            'currency' => $currencyInfo['symbol']
+            'total_balance' => $balance->total_balance,
+            'available_for_withdrawal' => $balance->available_balance,
+            'currency' => $currencyInfo['symbol'],
+            'currency_factor' => $factor,
         ];
     }
 
@@ -834,8 +838,9 @@ class VendorReportController extends Controller
             return [
                 'id' => $transaction->id,
                 'type' => $transaction->type,
-                'amount' => CurrencyHelper::fromMinorUnits($transaction->amount, $factor),
+                'amount' => (int) $transaction->amount,
                 'currency' => $transaction->currency,
+                'currency_factor' => $factor,
                 'description' => $transaction->description,
                 'created_at' => $transaction->created_at->format('Y-m-d H:i:s'),
                 'formatted_date' => $transaction->created_at->translatedFormat('d M Y, h:i A')

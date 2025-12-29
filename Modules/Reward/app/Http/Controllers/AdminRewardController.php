@@ -9,6 +9,7 @@ use Modules\Reward\Http\Requests\CreateRewardRequest;
 use Modules\Reward\Http\Requests\UpdateRewardRequest;
 use Modules\Reward\Http\Resources\RewardResource;
 use App\Http\Resources\PaginationResource;
+use Modules\Reward\Http\Resources\RewardRedemptionResource;
 use Modules\User\Http\Resources\UserResource;
 
 class AdminRewardController extends Controller
@@ -88,7 +89,28 @@ class AdminRewardController extends Controller
         return $this->successResponse([
             'top_points_users' => UserResource::collection($stats['top_points_users']),
             'top_spenders' => $topSpenders,
-            'rewards' => RewardResource::collection($stats['rewards']),
+            'loyalty_reward' => $stats['loyalty_reward'] ? new RewardResource($stats['loyalty_reward']) : null,
+            'spending_reward' => $stats['spending_reward'] ? new RewardResource($stats['spending_reward']) : null,
         ], __('message.success'));
+    }
+    public function stats()
+    {
+        $stats = $this->rewardService->stats();
+        return $this->successResponse([
+            'stats' => $stats
+        ]);
+    }
+    public function getAllRedemption()
+    {
+        $redemption  = $this->rewardService->getAllRedemption();
+        return $this->successResponse([
+            'redemption' => RewardRedemptionResource::collection($redemption),
+            'pagination' => new PaginationResource($redemption)
+        ]);
+    }
+    public function resetLoyality()
+    {
+        $this->rewardService->resetAllLoyaltyPoints();
+        return $this->successResponse();
     }
 }

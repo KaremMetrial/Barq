@@ -89,4 +89,36 @@ class RewardRepository implements RewardRepositoryInterface
         $reward->increment('total_redemptions');
         return $reward;
     }
+
+    public function getAllRedemptions(array $filters = [])
+    {
+        $query = RewardRedemption::with(['user', 'reward']);
+
+        if (isset($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (isset($filters['reward_id'])) {
+            $query->where('reward_id', $filters['reward_id']);
+        }
+
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (isset($filters['from_date'])) {
+            $query->where('redeemed_at', '>=', $filters['from_date']);
+        }
+
+        if (isset($filters['to_date'])) {
+            $query->where('redeemed_at', '<=', $filters['to_date']);
+        }
+
+        return $query->latest('redeemed_at')->paginate(15);
+    }
+
+    public function stats()
+    {
+        return Reward::getRewardStats($filters = []);
+    }
 }

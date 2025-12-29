@@ -14,6 +14,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email', 'exists:admins,email'],
             'password' => ['required', 'string'],
+            'country_id' => ['nullable', 'numeric', 'exists:countries,id'],
         ];
     }
 
