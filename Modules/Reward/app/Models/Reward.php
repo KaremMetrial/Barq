@@ -65,6 +65,10 @@ class Reward extends Model
     {
         return $this->hasMany(RewardRedemption::class);
     }
+    public function countOfUse()
+    {
+        return $this->redemptions()->count();
+    }
 
     /**
      * Scope for active rewards
