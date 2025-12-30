@@ -25,7 +25,8 @@ class MessageController extends Controller
     {
         if (auth('user')->check()) return 'user';
         if (auth('vendor')->check()) return 'vendor';
-        if (auth('sanctum')->check()) return 'admin';
+        if (auth('admin')->check()) return 'admin';
+        if(auth('courier')->check()) return 'courier';
         return null;
     }
 
@@ -33,7 +34,7 @@ class MessageController extends Controller
     {
         $messages = $this->messageService->getMessagesByConversation($conversationId);
         return $this->successResponse([
-            'messages' => MessageResource::collection($messages),
+            'messages' => MessageResource::collection(resource: $messages),
         ], __('message.success'));
     }
 
@@ -47,7 +48,6 @@ class MessageController extends Controller
         $data = $request->validated();
         $data['messageable_type'] = $guard;
         $data['messageable_id'] = auth($guard)->id();
-
         $message = $this->messageService->createMessage($data);
 
         if ($guard === 'admin' && $message->conversation->admin_id === null) {

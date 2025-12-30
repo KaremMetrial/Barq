@@ -41,6 +41,7 @@ class ProductService
     public function createProduct(array $data): ?Product
     {
         return DB::transaction(function () use ($data) {
+            \Log::info('Creating product with data: ', $data);
             $data['availability']['store_id'] = $data['product']['store_id'];
             $data['product']['barcode'] = $data['product']['barcode'] ?? $this->generateUniqueBarcode();
             $product = $this->ProductRepository->create($data['product']);

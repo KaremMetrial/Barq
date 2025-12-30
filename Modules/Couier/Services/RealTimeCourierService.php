@@ -116,26 +116,37 @@ class RealTimeCourierService
     }
 
     /**
-     * Notify courier location updates for real-time tracking
+     * Notify courier location updates for real-time tracking (Enhanced with caching)
      */
-    public function updateCourierLocation(int $courierId, float $lat, float $lng): void
+    public function updateCourierLocation(int $courierId, float $lat, float $lng, array $metadata = []): void
     {
         try {
-            $this->pusher->trigger("couriers", "location-update.{$courierId}", [
+            $locationData = [
                 'lat' => $lat,
                 'lng' => $lng,
                 'timestamp' => now()->toISOString(),
-                'accuracy' => null, // Can be added if GPS accuracy is available
-            ]);
+                'accuracy' => $metadata['accuracy'] ?? null,
+                'speed' => $metadata['speed'] ?? null,
+                'heading' => $metadata['heading'] ?? null,
+            ];
 
-            Log::info("Pusher: Courier location updated", [
+            // Store in cache for real-time operations
+            \Illuminate\Support\Facades\Cache::put("courier_location:{$courierId}", $locationData, 3600);
+
+            // Append to shift location history (if courier is on shift)
+            $this->appendLocationToShiftCache($courierId, $locationData);
+
+            // Broadcast to subscribers
+            $this->pusher->trigger("couriers", "location-update.{$courierId}", $locationData);
+
+            Log::info("Courier location cached and broadcasted", [
                 'courier_id' => $courierId,
                 'lat' => $lat,
                 'lng' => $lng
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Pusher: Failed to update courier location", [
+            Log::error("Failed to cache courier location", [
                 'courier_id' => $courierId,
                 'error' => $e->getMessage()
             ]);
@@ -143,7 +154,39 @@ class RealTimeCourierService
     }
 
     /**
-     * Notify order status changes
+     * Append location to current shift's cache
+     */
+    private function appendLocationToShiftCache(int $courierId, array $locationData): void
+    {
+        // Get current shift for courier
+        $currentShift = \Modules\Couier\Models\CouierShift::where('couier_id', $courierId)
+            ->where('is_open', true)
+            ->whereNull('end_time')
+            ->first();
+
+        if (!$currentShift) {
+            return; // Courier not on active shift
+        }
+
+        $cacheKey = "shift_locations:{$courierId}:{$currentShift->id}";
+
+        // Get existing locations or initialize empty array
+        $locations = \Illuminate\Support\Facades\Cache::get($cacheKey, []);
+
+        // Add new location
+        $locations[] = $locationData;
+
+        // Keep only last 1000 locations to prevent memory issues
+        if (count($locations) > 1000) {
+            $locations = array_slice($locations, -1000);
+        }
+
+        // Store with extended TTL (24 hours for long shifts)
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $locations, now()->addHours(24));
+    }
+
+    /**
+     * Notify order status changes to order.{orderId} channel
      */
     public function notifyOrderStatusChanged(int $orderId, string $newStatus, array $additionalData = []): void
     {
@@ -151,12 +194,13 @@ class RealTimeCourierService
             $data = array_merge([
                 'order_id' => $orderId,
                 'status' => $newStatus,
+                'event' => 'status_changed',
                 'changed_at' => now()->toISOString(),
             ], $additionalData);
 
-            $this->pusher->trigger("orders", "order-status-changed.{$orderId}", $data);
+            $this->pusher->trigger("order.{$orderId}", "status_changed", $data);
 
-            Log::info("Pusher: Order status changed", [
+            Log::info("Pusher: Order status changed on order.{$orderId}", [
                 'order_id' => $orderId,
                 'new_status' => $newStatus
             ]);
@@ -164,6 +208,60 @@ class RealTimeCourierService
         } catch (\Exception $e) {
             Log::error("Pusher: Failed to send status change notification", [
                 'order_id' => $orderId,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Notify order assignment to order.{orderId} channel
+     */
+    public function notifyOrderAssignedToOrder(int $orderId, array $assignmentData): void
+    {
+        try {
+            $data = array_merge([
+                'order_id' => $orderId,
+                'event' => 'assigned',
+                'assigned_at' => now()->toISOString(),
+            ], $assignmentData);
+
+            $this->pusher->trigger("order.{$orderId}", "assigned", $data);
+
+            Log::info("Pusher: Order assigned on order.{$orderId}", [
+                'order_id' => $orderId
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Pusher: Failed to send assignment notification", [
+                'order_id' => $orderId,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Notify order updates to order.{orderId} channel
+     */
+    public function notifyOrderUpdate(int $orderId, string $event, array $data = []): void
+    {
+        try {
+            $payload = array_merge([
+                'order_id' => $orderId,
+                'event' => $event,
+                'timestamp' => now()->toISOString(),
+            ], $data);
+
+            $this->pusher->trigger("order.{$orderId}", $event, $payload);
+
+            Log::info("Pusher: Order {$event} on order.{$orderId}", [
+                'order_id' => $orderId,
+                'event' => $event
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Pusher: Failed to send order update", [
+                'order_id' => $orderId,
+                'event' => $event,
                 'error' => $e->getMessage()
             ]);
         }

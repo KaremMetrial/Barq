@@ -69,7 +69,7 @@ class Reward extends Model
     {
         return $this->redemptions()->count();
     }
-
+    
     /**
      * Scope for active rewards
      */

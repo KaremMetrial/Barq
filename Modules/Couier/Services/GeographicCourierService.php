@@ -54,38 +54,7 @@ class GeographicCourierService
      */
     public function findNearestActiveCouriers(float $lat, float $lng, float $radiusKm = 5.0): Collection
     {
-        $baseQuery = DB::table('couiers')
-            ->join('couier_shifts', 'couiers.id', '=', 'couier_shifts.couier_id')
-            ->select([
-                'couiers.*',
-                'couier_shifts.id as shift_id',
-                'couier_shifts.start_time',
-                'couier_shifts.is_open',
-                DB::raw("(
-                    6371 * acos(
-                        cos(radians(?)) *
-                        cos(radians(CAST(JSON_UNQUOTE(JSON_EXTRACT(couiers.current_location, '$.lat')) AS DECIMAL(10,8)))) *
-                        cos(radians(CAST(JSON_UNQUOTE(JSON_EXTRACT(couiers.current_location, '$.lng')) AS DECIMAL(11,8))) - radians(?)) +
-                        sin(radians(?)) *
-                        sin(radians(CAST(JSON_UNQUOTE(JSON_EXTRACT(couiers.current_location, '$.lat')) AS DECIMAL(10,8))))
-                    )
-                ) AS distance_km")
-            ])
-            ->setBindings([$lat, $lng, $lat], 'select')
-            ->where('couiers.status', 'active')
-            ->where('couiers.avaliable_status', 'available')
-            ->where('couier_shifts.is_open', true)
-            ->whereNull('couier_shifts.end_time') // Not ended yet
-            ->having('distance_km', '<=', $radiusKm)
-            ->orderBy('distance_km', 'asc')
-            ->take(20);
-
-        return collect($baseQuery->get())->map(function ($data) {
-            $courier = Couier::find($data->id);
-            $courier->distance_km = $data->distance_km;
-            $courier->active_shift = CouierShift::find($data->shift_id);
-            return $courier;
-        });
+        return collect();
     }
 
     /**

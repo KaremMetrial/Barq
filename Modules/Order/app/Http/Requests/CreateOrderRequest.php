@@ -253,7 +253,7 @@ class CreateOrderRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::guard('user')->check() && Auth::guard('user')->user()->is_active && Auth::guard('user')->user()->status != UserStatusEnum::BLOCKED;
+        return Auth::guard('user')->check() && Auth::guard('user')->user()->status != UserStatusEnum::BLOCKED;
     }
 
     /**

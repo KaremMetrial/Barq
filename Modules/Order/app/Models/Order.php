@@ -16,11 +16,11 @@ use Modules\Review\Models\Review;
 use Modules\Address\Models\Address;
 use Modules\PosShift\Models\PosShift;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Order\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\PaymentMethod\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\Order\Observers\OrderObserver;
 
 #[ObservedBy([OrderObserver::class])]
 class Order extends Model

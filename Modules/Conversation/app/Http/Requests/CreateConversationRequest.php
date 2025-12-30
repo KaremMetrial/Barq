@@ -14,6 +14,8 @@ class CreateConversationRequest extends FormRequest
     {
         return $this->merge([
             'user_id' => auth('user')->check() ? auth('user')->id() : null,
+            'admin_id' => auth('admin')->check() ? auth('admin')->id() : null,
+            'couier_id' => auth('courier')->check() ? auth('courier')->id() : null,
         ]);
     }
     /**

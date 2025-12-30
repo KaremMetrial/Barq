@@ -44,27 +44,54 @@ Route::prefix('v1')->group(function () {
     | Vendor Routes
     |--------------------------------------------------------------------------
     */
-    // Route::middleware('auth:vendor')
-    //     ->prefix('vendor/conversations')
-    //     ->controller(ConversationController::class)
-    //     ->group(function () {
-    //         Route::get('/', 'index');
-    //         Route::post('/', 'store');
-    //         Route::get('/{id}', 'show');
-    //         Route::put('/{id}', 'update');
-    //         Route::delete('/{id}', 'destroy');
-    //     });
+    Route::middleware('auth:vendor')
+        ->prefix('vendor/conversations')
+        ->controller(ConversationController::class)
+        ->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('/{id}', 'show');
+            Route::put('/{id}', 'update');
+            Route::delete('/{id}', 'destroy');
+        });
 
-    // Route::middleware('auth:vendor')
-    //     ->prefix('vendor/messages')
-    //     ->controller(MessageController::class)
-    //     ->group(function () {
-    //         Route::get('/conversation/{conversationId}', 'index');
-    //         Route::post('/', 'store');
-    //         Route::get('/{id}', 'show');
-    //         Route::put('/{id}', 'update');
-    //         Route::delete('/{id}', 'destroy');
-    //     });
+    Route::middleware('auth:vendor')
+        ->prefix('vendor/messages')
+        ->controller(MessageController::class)
+        ->group(function () {
+            Route::get('/conversation/{conversationId}', 'index');
+            Route::post('/', 'store');
+            Route::get('/{id}', 'show');
+            Route::put('/{id}', 'update');
+            Route::delete('/{id}', 'destroy');
+        });
+
+            /*
+    |--------------------------------------------------------------------------
+    | Courier Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('auth:courier')
+        ->prefix('courier/conversations')
+        ->controller(ConversationController::class)
+        ->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('/{id}', 'show');
+            Route::put('/{id}', 'update');
+            Route::delete('/{id}', 'destroy');
+        });
+
+    Route::middleware('auth:courier')
+        ->prefix('courier/messages')
+        ->controller(MessageController::class)
+        ->group(function () {
+            Route::get('/conversation/{conversationId}', 'index');
+            Route::post('/', 'store');
+            Route::get('/{id}', 'show');
+            Route::put('/{id}', 'update');
+            Route::delete('/{id}', 'destroy');
+        });
 
     /*
     |--------------------------------------------------------------------------

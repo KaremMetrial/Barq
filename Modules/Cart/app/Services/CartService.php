@@ -345,9 +345,11 @@ class CartService
         // Get product price safely
         $productPrice = 0;
         if ($product->price) {
-            $productPrice =  $product->price->priceMinorValue($factor);
+            $productPrice =  $product->price->price;
         }
-
+        if ($product->price && $product->price->sale_price) {
+            $productPrice = $product->price->sale_price;
+        }
         // Use existing item's options if no options provided in update
         $optionValueId = $item['product_option_value_id'] ?? ($existingItem ? $existingItem->product_option_value_id : null);
 
@@ -356,12 +358,12 @@ class CartService
             foreach ($optionValueId as $optionId) {
                 $opt = $options[$optionId] ?? null;
                 if ($opt) {
-                    $optionPrice += CurrencyHelper::toMinorUnits($opt->price, $factor);
+                    $optionPrice += $opt->price;
                 }
             }
         } elseif ($optionValueId) {
             $opt = $options[$optionValueId] ?? null;
-            $optionPrice = $opt ? CurrencyHelper::toMinorUnits($opt->price, $factor) : 0;
+            $optionPrice = $opt ? $opt->price : 0;
         }
 
         // Use existing item's add-ons if no add-ons provided in update
@@ -395,6 +397,8 @@ class CartService
                 $totalPrice = max(0, $totalPrice - $offer->discount_amount);
             }
         }
+
+
 
         return [
             'product_id' => $item['product_id'],

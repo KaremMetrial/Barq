@@ -30,7 +30,9 @@ class CreateUserRequest extends FormRequest
             "last_name" => ["required", "string", "max:255"],
             "email" => ["nullable", "string", "email", Rule::unique("users")],
             "phone_code" => ["required", "string", "max:255"],
-            "phone" => ["required", "string", "regex:/^\+?[1-9]\d{1,14}$/","max:255", Rule::unique("users")],
+            "phone" => ["required", "string", "regex:/^\+?[1-9]\d{1,14}$/","max:255", Rule::unique("users")->where(function ($query) {
+                return $query->where('phone_code', $this->phone_code);
+            })],
             "password" => ["nullable", "string"],
             "avatar" => ["nullable", "image", "mimes:jpeg,png,jpg,gif,svg", "max:2048"],
             "status" => ["nullable", "string", Rule::in(UserStatusEnum::values())],

@@ -48,5 +48,31 @@ class Conversation extends Model
     {
         return $this->hasMany(Message::class, 'conversation_id');
     }
-
+    public static function scopeFilter($query, $filters): mixed
+    {
+        if(isset($filters['type'])) {
+            $query->where('type', $filters['type']);
+        }
+        if(isset($filters['user_agent'])) {
+            switch ($filters['user_agent']) {
+                case 'user':
+                    $query->whereNotNull('user_id');
+                    break;
+                case 'vendor':
+                    $query->whereNotNull('vendor_id');
+                    break;
+                case 'admin':
+                    $query->whereNotNull('admin_id');
+                    break;
+                case 'courier':
+                    $query->whereNotNull('couier_id');
+                    break;
+            }
+        }
+        return $query->latest();
+    }
+    public function getLastMessageAttribute()
+    {
+        return $this->messages()->latest()->first();
+    }
 }

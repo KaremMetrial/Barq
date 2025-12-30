@@ -3,6 +3,8 @@
 namespace Modules\Order\Services;
 
 use Modules\User\Models\User;
+use Modules\Store\Models\Store;
+use Modules\Vendor\Models\Vendor;
 use App\Jobs\SendFcmNotificationJob;
 use App\Notifications\FirebasePushNotification;
 
@@ -47,7 +49,7 @@ class OrderNotificationService
         }
 
         $title = "New Order Received!";
-        $body = "You have a new order #{$orderId} worth {$orderAmount} {$store->currency_code ?? 'USD'}";
+        $body = "You have a new order";
 
         $data = [
             'order_id' => $orderId,

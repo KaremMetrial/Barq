@@ -7,6 +7,7 @@ use Modules\Couier\Models\Couier;
 use Modules\Couier\Models\CouierShift;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Exception;
 
@@ -97,8 +98,13 @@ class SmartOrderAssignmentService
             // Create assignment with timeout
             $assignment = $this->createAssignment($courierId, $orderData, $timeoutSeconds);
 
-            // Send real-time notification
+            // Send real-time notifications
             $this->realtimeService->notifyOrderAssigned($courierId, $assignment);
+            $this->realtimeService->notifyOrderAssignedToOrder($assignment->order_id, [
+                'courier_id' => $courierId,
+                'assignment_id' => $assignment->id,
+                'expires_in' => $assignment->time_remaining ?? $timeoutSeconds,
+            ]);
 
             // Schedule timeout handler
             $this->scheduleTimeoutHandling($assignment->id, $timeoutSeconds);
@@ -138,7 +144,7 @@ class SmartOrderAssignmentService
             $assignment->save();
 
             // Notify relevant parties
-            \Log::info('Assignment accepted for order: ' . $assignment->order_id . ' - ' . $courierId);
+            Log::info('Assignment accepted for order: ' . $assignment->order_id . ' - ' . $courierId);
             $this->realtimeService->notifyOrderStatusChanged(
                 $assignment->order_id,
                 'accepted',
@@ -146,13 +152,13 @@ class SmartOrderAssignmentService
             );
 
             // Cancel notification for other couriers
-            \Log::info('Assignment accepted for order: ' . $assignment->order_id . ' - ' . $courierId);
+            Log::info('Assignment accepted for order: ' . $assignment->order_id . ' - ' . $courierId);
             $this->realtimeService->notifyOrderStatusChanged(
                 $assignment->order_id,
                 'assignment_finalized',
                 ['accepted_courier_id' => $courierId]
             );
-            \Log::info('Assignment finalized for order: ' . $assignment->order_id . ' - ' . $courierId);
+            Log::info('Assignment finalized for order: ' . $assignment->order_id . ' - ' . $courierId);
             DB::commit();
             return true;
 
@@ -286,7 +292,7 @@ class SmartOrderAssignmentService
             }
 
             $assignment->update($updateData);
-            \Log::info('Assignment status updated for order: ' . $assignment->order_id . ' - ' . $newStatus);
+            Log::info('Assignment status updated for order: ' . $assignment->order_id . ' - ' . $newStatus);
             // Real-time notification
             $this->realtimeService->notifyOrderStatusChanged(
                 $assignment->order_id,

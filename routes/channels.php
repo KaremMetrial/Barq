@@ -12,8 +12,8 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('order.{orderId}', function ($user, $orderId) {
     return match (true) {
         $user instanceof Admin => true,
-        $user instanceof Vendor => $user->orders()->where('id', $orderId)->exists(),
-        $user instanceof Couier => $user->assignedOrders()->where('id', $orderId)->exists(),
+        $user instanceof Vendor => $user->store->orders()->where('id', $orderId)->exists(),
+        $user instanceof Couier => $user->assignments()->where('id', $orderId)->exists(),
         $user instanceof User => $user->orders()->where('id', $orderId)->exists(),
         default => false,
     };

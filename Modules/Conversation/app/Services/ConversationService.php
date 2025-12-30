@@ -61,7 +61,7 @@ class ConversationService
     public function getConversationsByGuard($id, $guard, $perPage = 15)
     {
         if ($guard === 'admin') {
-            return $this->ConversationRepository->findAllForAdmin($perPage);
+            return $this->ConversationRepository->findAllForAdmin($perPage, request()->all());
         }
         return $this->ConversationRepository->findByGuard($id, $guard, $perPage);
     }

@@ -3,12 +3,13 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Couier\Http\Controllers\CouierController;
-use Modules\Couier\Http\Controllers\CourierAuthController;
-use Modules\Couier\Http\Controllers\Admin\ShiftTemplateController;
-use Modules\Couier\Http\Controllers\Admin\CourierShiftController as AdminCourierShiftController;
-use Modules\Couier\Http\Controllers\CourierShiftController;
 use Modules\Couier\Http\Controllers\CourierMapController;
+use Modules\Couier\Http\Controllers\CourierAuthController;
+use Modules\Couier\Http\Controllers\CourierShiftController;
+use Modules\Couier\Http\Controllers\CourierLocationController;
+use Modules\Couier\Http\Controllers\Admin\ShiftTemplateController;
 use Modules\Couier\Http\Controllers\Admin\OrderManagementController;
+use Modules\Couier\Http\Controllers\Admin\CourierShiftController as AdminCourierShiftController;
 
 Route::prefix('v1')->group(function () {
     // Public Courier Authentication Routes
@@ -65,6 +66,8 @@ Route::prefix('v1')->group(function () {
         Route::prefix('shifts')->group(function () {
             Route::get('/', [CourierShiftController::class, 'index']);
             Route::get('/schedule', [CourierShiftController::class, 'schedule']);
+            Route::get('/schedule-shifts', [CourierShiftController::class, 'scheduleShifts']);
+            Route::get('/calendar', [CourierShiftController::class, 'calendarSchedule']);
             Route::post('/start', [CourierShiftController::class, 'start']);
             Route::get('/current', [CourierShiftController::class, 'current']);
             Route::get('/next', [CourierShiftController::class, 'next']);
@@ -97,6 +100,9 @@ Route::prefix('v1')->group(function () {
             // Earnings Summary
             Route::get('/earnings/summary', [CourierMapController::class, 'earningsSummary']);
         });
+
+        Route::post('/location/update', [CourierLocationController::class, 'updateLocation']);
+
     });
 
     // Admin Order Management

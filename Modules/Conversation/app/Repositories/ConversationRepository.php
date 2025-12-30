@@ -18,6 +18,9 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
     }
     public function findByGuard($id, $guard,$perPage = 15)
     {
+        if($guard == 'courier'){
+            $guard = 'couier';
+        }
         $column = $guard . '_id';
         return Conversation::with(['user', 'admin'])
             ->where($column, $id)
@@ -28,8 +31,8 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
     /**
      * Find conversations for admin/support (all conversations)
      */
-    public function findAllForAdmin($perPage = 15)
+    public function findAllForAdmin($perPage = 15, $filters = [])
     {
-        return Conversation::with(['user', 'vendor', 'admin', 'order'])->paginate($perPage);
+        return Conversation::with(['user', 'vendor', 'admin', 'order' ,'couier'])->filter($filters)->paginate($perPage);
     }
 }

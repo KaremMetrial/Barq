@@ -27,6 +27,17 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
+    ->withSchedule(function ($schedule) {
+        // Auto-close expired courier shifts every hour
+        $schedule->command('shifts:auto-close-expired --hours=2')
+                ->hourly()
+                ->withoutOverlapping()
+                ->runInBackground();
+
+        $schedule->command('cache:warm-courier-locations')
+            ->everyTenMinutes()
+            ->withoutOverlapping();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
           $middleware->append(SetApiLocale::class);
             $middleware->alias([

@@ -5,14 +5,15 @@ namespace Modules\Conversation\Http\Controllers;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Pagination\Paginator;
+use App\Http\Resources\PaginationResource;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Modules\Conversation\Events\ConversationStarted;
 use Modules\Conversation\Services\ConversationService;
+use Modules\Conversation\Http\Resources\MessageResource;
 use Modules\Conversation\Http\Resources\ConversationResource;
 use Modules\Conversation\Http\Requests\CreateConversationRequest;
 use Modules\Conversation\Http\Requests\UpdateConversationRequest;
-use App\Http\Resources\PaginationResource;
-use Modules\Conversation\Http\Resources\MessageResource;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
 
 class ConversationController extends Controller
 {
@@ -24,7 +25,8 @@ class ConversationController extends Controller
     {
         if (auth('user')->check()) return 'user';
         if (auth('vendor')->check()) return 'vendor';
-        if (auth('sanctum')->check()) return 'admin';
+        if(auth('courier')->check()) return 'courier';
+        if (auth('admin')->check()) return 'admin';
         return null;
     }
 
@@ -32,7 +34,6 @@ class ConversationController extends Controller
     {
         $guard = $this->getAuthenticatedGuard();
         $userId = auth($guard)->id();
-
         $perPage = $request->get('per_page', 15);
         $conversations = $this->conversationService->getConversationsByGuard($userId, $guard, $perPage);
 
@@ -73,7 +74,6 @@ class ConversationController extends Controller
     {
         $guard = $this->getAuthenticatedGuard();
         $data = $request->validated();
-
         // For admin, they can create conversations for users/vendors
         if ($guard !== 'admin') {
             $data[$guard . '_id'] = auth($guard)->id();
@@ -86,10 +86,10 @@ class ConversationController extends Controller
 
             if ($existingConversation && is_null($existingConversation->end_time)) {
             $messagesQuery = $existingConversation->messages()->orderBy('created_at', 'asc');
-            
+
             // Get the total count of messages in the conversation
             $totalMessages = $messagesQuery->count();
-            
+
             // Pagination parameters
             $perPage = $request->get('per_page', 15);
 
