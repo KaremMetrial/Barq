@@ -3,9 +3,10 @@
 namespace Modules\Conversation\Http\Requests;
 
 use Illuminate\Validation\Rule;
+use App\Enums\ConversationTypeEnum;
+use App\Enums\ConversationStatusEnum;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Enums\ConversationStatusEnum;
 
 class UpdateConversationRequest extends FormRequest
 {
@@ -15,11 +16,13 @@ class UpdateConversationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'compaign_id'  => ['nullable', 'integer', 'exists:compaigns,id'],
-            'store_id'     => ['nullable', 'integer', 'exists:stores,id'],
-            'status'       => ['nullable', Rule::in(ConversationStatusEnum::values())],
-            'notes'        => ['nullable', 'string'],
-            'responded_at' => ['nullable', 'date'],
+            'type' => ['nullable', 'string', Rule::in(ConversationTypeEnum::values())],
+            'start_time' => ['nullable','date'],
+            'end_time' => ['nullable', 'date'],
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'admin_id' => ['nullable', 'integer', 'exists:admins,id'],
+            'couier_id' => ['nullable', 'integer', 'exists:couiers,id'],
+            'order_id' => ['nullable', 'integer', 'exists:orders,id'],
         ];
     }
 

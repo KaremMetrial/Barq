@@ -41,6 +41,13 @@
         {
             return $this->belongsTo(City::class);
         }
+        public function scopeByCountry($query, $countryId)
+        {
+            return $query->whereHas('city.governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            })->orWhereNull('city_id');
+        }
+
     public function scopeFilter($query, $filters)
     {
         $country = null;
@@ -63,9 +70,18 @@
         if (!$country) {
             $country = $this->getCountryFromIp();
         }
+        if (!auth('admin')->check() && $country) {
+                return $query->whereRaw('1 = 0');
+        }
 
-        if (!$country) {
-            return $query->whereRaw('1 = 0');
+        if (auth('admin')->check()) {
+            if (auth('admin')->user()->currentAccessToken()->country_id) {
+                $country = Country::find(auth('admin')->user()->currentAccessToken()->country_id);
+                if ($country) {
+                    return $query->byCountry($country->id);
+                }
+            }
+            return $query;
         }
 
         return $query;

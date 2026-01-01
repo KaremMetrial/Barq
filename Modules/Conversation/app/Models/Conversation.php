@@ -19,7 +19,8 @@ class Conversation extends Model
         'user_id',
         'admin_id',
         'couier_id',
-        'order_id'
+        'order_id',
+        'vendor_id',
     ];
     protected $casts = [
         'type' => ConversationTypeEnum::class,

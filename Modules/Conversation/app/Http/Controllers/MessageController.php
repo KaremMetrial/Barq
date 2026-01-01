@@ -11,6 +11,7 @@ use App\Services\PusherService;
 use Modules\Conversation\Http\Resources\MessageResource;
 use Modules\Conversation\Http\Requests\CreateMessageRequest;
 use Modules\Conversation\Http\Requests\UpdateMessageRequest;
+use Modules\Order\Events\OrderAssignmentToCourier;
 
 class MessageController extends Controller
 {
@@ -59,6 +60,16 @@ class MessageController extends Controller
 
         // ✅ broadcast via PusherService (socket-aware)
         $this->pusherService->broadcastMessage($message, $socketId);
+
+        // ✅ Trigger OrderAssignmentToCourier event if courier sends message for an order
+        if ($guard === 'courier' && $message->conversation->order_id) {
+            $order = $message->conversation->order;
+            $courier = auth('courier')->user();
+
+            if ($order && $courier) {
+                OrderAssignmentToCourier::dispatch($order, $courier);
+            }
+        }
 
         return $this->successResponse([
             'message' => new MessageResource($message),

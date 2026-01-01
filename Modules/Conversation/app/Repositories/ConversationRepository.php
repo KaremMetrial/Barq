@@ -6,6 +6,8 @@ use Modules\Conversation\Models\Conversation;
 use Modules\Conversation\Repositories\Contracts\ConversationRepositoryInterface;
 use App\Repositories\BaseRepository;
 
+use function PHPSTORM_META\type;
+
 class ConversationRepository extends BaseRepository implements ConversationRepositoryInterface
 {
     public function __construct(Conversation $model)
@@ -24,6 +26,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         $column = $guard . '_id';
         return Conversation::with(['user', 'admin'])
             ->where($column, $id)
+            ->where('type', request()->get('type', 'support'))
             ->where('end_time', null)
             ->paginate($perPage);
     }

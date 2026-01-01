@@ -195,12 +195,38 @@ class ConversationController extends Controller
             }
             $conversation = $this->conversationService->updateConversation($id, $request->validated());
         }
+        $this->markMessagesAsRead($conversation, $guard);
 
         return $this->successResponse([
             'conversation' => new ConversationResource($conversation),
         ], __('message.success'));
     }
 
+    private function markMessagesAsRead($conversation, $guard)
+    {
+        $currentUserId = auth($guard)->id();
+        $currentUserType = $guard;
+
+        $messagesToMark = $conversation->messages()
+            ->where(function ($query) use ($currentUserId, $currentUserType) {
+                $query->where(function ($q) use ($currentUserId, $currentUserType) {
+                    $q->where('messageable_id', '!=', $currentUserId)
+                        ->orWhere('messageable_type', '!=', $currentUserType);
+                })->where('is_read', false);
+            })
+            ->get();
+
+        foreach ($messagesToMark as $message) {
+            $readBy = $message->read_by ?? [];
+            if (!in_array($currentUserId, $readBy)) {
+                $readBy[] = $currentUserId;
+
+                $message->update([
+                    'is_read' => true,
+                ]);
+            }
+        }
+    }
     public function destroy($id)
     {
         $guard = $this->getAuthenticatedGuard();

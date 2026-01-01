@@ -3,6 +3,7 @@
 namespace Modules\Banner\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
 use App\Traits\ApiResponse;
 use Modules\Banner\Http\Requests\CreateBannerRequest;
 use Modules\Banner\Http\Requests\UpdateBannerRequest;
@@ -23,9 +24,11 @@ class BannerController extends Controller
      */
     public function index(): JsonResponse
     {
-        $banners = $this->bannerService->getAllBanners();
+        $filters = request()->all();
+        $banners = $this->bannerService->getAllBanners($filters);
         return $this->successResponse([
             "banners" => BannerResource::collection($banners),
+            'pagination' => new PaginationResource($banners),
         ], __("message.success"));
     }
 

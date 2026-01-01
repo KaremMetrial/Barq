@@ -1,9 +1,11 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DeepLinkController;
 use App\Services\FirebaseService;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TokenController;
+use App\Http\Controllers\DeepLinkController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionController;
 
@@ -24,3 +26,5 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum','ability:admin,vendor'])->
     Route::get('transactions/stats', [TransactionController::class, 'stats'])->name('admin.transactions.stats');
     Route::post('transactions/pay', [TransactionController::class, 'pay'])->name('admin.transactions.pay');
 });
+
+Route::put('v1/update-token', [TokenController::class, 'updateToken'])->middleware('auth:sanctum')->name('update.token');

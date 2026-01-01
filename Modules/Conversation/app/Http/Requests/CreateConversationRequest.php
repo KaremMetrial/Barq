@@ -12,10 +12,10 @@ class CreateConversationRequest extends FormRequest
 {
     public function prepareForValidation()
     {
-        return $this->merge([
-            'user_id' => auth('user')->check() ? auth('user')->id() : null,
-            'admin_id' => auth('admin')->check() ? auth('admin')->id() : null,
-            'couier_id' => auth('courier')->check() ? auth('courier')->id() : null,
+        $this->merge([
+            'user_id' => $this->input('user_id') ?? (auth('user')->check() ? auth('user')->id() : null),
+            'admin_id' => $this->input('admin_id') ?? (auth('admin')->check() ? auth('admin')->id() : null),
+            'couier_id' => $this->input('couier_id') ?? (auth('courier')->check() ? auth('courier')->id() : null),
         ]);
     }
     /**

@@ -171,7 +171,6 @@ class StoreService
     {
         $store = auth('vendor')->user()->store;
         $today = Carbon::today()->toDateString();
-
         $stats = $store->orders()
             ->selectRaw('
                 COUNT(*) as total_orders,

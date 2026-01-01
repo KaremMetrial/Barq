@@ -2,18 +2,21 @@
 
 namespace Modules\Couier\Http\Controllers;
 
+use Carbon\Carbon;
+use App\Enums\OrderStatus;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Modules\Order\Models\Order;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 use App\Http\Controllers\Controller;
-use Modules\Couier\Services\SmartOrderAssignmentService;
-use Modules\Couier\Services\GeographicCourierService;
 use Modules\Couier\Services\OrderReceiptService;
 use Modules\Couier\Models\CourierOrderAssignment;
+use Modules\Order\Events\OrderAssignmentToCourier;
 use Modules\Couier\Http\Resources\FullOrderResource;
+use Modules\Couier\Services\GeographicCourierService;
 use Modules\Couier\Http\Resources\OrderReceiptResource;
-use Illuminate\Support\Collection;
-use Carbon\Carbon;
+use Modules\Couier\Services\SmartOrderAssignmentService;
 
 class CourierMapController extends Controller
 {
@@ -86,7 +89,7 @@ class CourierMapController extends Controller
     /**
      * Handle order assignment response (accept/reject)
      */
-    public function respondToAssignment(Request $request, $assignmentId): JsonResponse
+    public function respondToAssignment(Request $request, $assignmentId)
     {
         $request->validate([
             'action' => 'required|in:accept,reject',
@@ -99,6 +102,13 @@ class CourierMapController extends Controller
             if ($request->action === 'accept') {
                 // $success = $this->assignmentService->acceptAssignment($assignmentId, $courierId);
                 // $message = $success ? __('Order accepted successfully') : __('Failed to accept order');
+                $order = Order::find($assignmentId);
+                $oldStatus = $order->status;
+                $order->status = OrderStatus::ON_THE_WAY;
+                $order->couier_id = $courierId;
+                $order->save();
+                event(new \Modules\Order\Events\OrderStatusChanged($order, $oldStatus, $order->status));
+                OrderAssignmentToCourier::dispatch($order, auth('sanctum')->user());
             } else {
                 if (!$request->filled('reason')) {
                     return $this->errorResponse(__('Reason is required for rejection'), 422);
@@ -222,13 +232,6 @@ class CourierMapController extends Controller
                     'distance_km' => $assignment->actual_distance_km,
                     'duration_minutes' => $assignment->actual_duration_minutes,
                     'earning' => $assignment->actual_earning,
-                ],
-
-                'ratings' => [
-                    'customer_rating' => $assignment->customer_rating,
-                    'courier_rating' => $assignment->courier_rating,
-                    'customer_feedback' => $assignment->customer_feedback,
-                    'courier_feedback' => $assignment->courier_feedback,
                 ],
 
                 'timings' => [

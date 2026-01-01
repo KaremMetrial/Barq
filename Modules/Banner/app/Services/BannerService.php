@@ -16,9 +16,9 @@ class BannerService
         protected BannerRepository $BannerRepository
     ) {}
 
-    public function getAllBanners(): Collection
+    public function getAllBanners($filters = [])
     {
-        return $this->BannerRepository->all();
+        return $this->BannerRepository->paginate($filters);
     }
 
     public function createBanner(array $data): ?Banner

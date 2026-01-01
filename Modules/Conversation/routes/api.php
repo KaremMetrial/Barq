@@ -39,6 +39,11 @@ Route::prefix('v1')->group(function () {
         // Optional alias if you’re already using this somewhere:
         Route::post('/pusher/auth', [MessageController::class, 'pusherAuth']);
     });
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/broadcasting/auth', [MessageController::class, 'pusherAuth']);
+        // Optional alias if you’re already using this somewhere:
+        Route::post('/pusher/auth', [MessageController::class, 'pusherAuth']);
+    });
     /*
     |--------------------------------------------------------------------------
     | Vendor Routes

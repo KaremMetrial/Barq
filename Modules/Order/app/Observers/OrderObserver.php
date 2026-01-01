@@ -2,11 +2,16 @@
 
 namespace Modules\Order\Observers;
 
+use Carbon\Carbon;
 use App\Enums\OrderStatus;
 use Modules\Order\Models\Order;
-use Modules\Order\Models\OrderStatusHistory;
-use Modules\Order\Services\OrderNotificationService;
+use Illuminate\Support\Facades\Log;
+use Modules\Order\Jobs\CancelOrderJob;
 use Modules\User\Services\LoyaltyService;
+use Modules\Order\Models\OrderStatusHistory;
+use Modules\Order\Events\OrderNotAcceptedOnTime;
+use Modules\Order\Events\OrderAssignmentToCourier;
+use Modules\Order\Services\OrderNotificationService;
 
 class OrderObserver
 {
@@ -44,6 +49,15 @@ class OrderObserver
                 $order->total_amount
             );
         }
+        $this->scheduleAutoCancellation($order);
+    }
+
+    private function scheduleAutoCancellation(Order $order): void
+    {
+        $cancellationWindowMinutes = (int) config('settings.order.cancellation_window_minutes', 5);
+        // Dispatch the event
+        CancelOrderJob::dispatch($order)
+            ->delay(now()->addMinutes($cancellationWindowMinutes));
     }
 
     /**
@@ -126,6 +140,15 @@ class OrderObserver
                     $order
                 );
             }
+            if ($order->isDirty('courier_id')) {
+                $this->handleCourierUpdate($order);
+            }
+        }
+    }
+    private function handleCourierUpdate(Order $order): void
+    {
+        if ($order->courier) {
+            OrderAssignmentToCourier::dispatch($order, $order->courier);
         }
     }
 

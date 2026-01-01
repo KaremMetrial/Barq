@@ -28,11 +28,27 @@ class ConversationResource extends JsonResource
             'type_label' => ConversationTypeEnum::label($this->type->value),
             'start_time'  => $this->start_time,
             'end_time'    => $this->end_time,
-            'user_id'     => $this->user_id ? new UserResource($this->whenLoaded('user')) : null,
-            'vendor_id'   => $this->vendor_id ? new VendorResource($this->whenLoaded('vendor')) : null,
-            'admin_id'    => $this->admin_id ? new AdminResource($this->whenLoaded('admin')) : null,
-            'couier_id'   => $this->couier_id ? new CouierResource($this->whenLoaded('couier')) : null,
+            'user_id'     => $this->user_id,
+            'vendor_id'   => $this->vendor_id,
+            'admin_id'    => $this->admin_id,
+            'couier_id'   => $this->couier_id ,
             'last_message' => $this->last_message,
+            'status'      => $this->getStatus(),
+            'user' => $this->user ? new UserResource($this->whenLoaded('user')) : null,
+            'vendor' => $this->vendor ? new VendorResource($this->whenLoaded('vendor')) : null,
+            'admin' => $this->admin ? new AdminResource($this->whenLoaded('admin')) : null,
+            'couier' => $this->couier ? new CouierResource($this->whenLoaded('couier')) : null,
         ];
+        }
+    public function getStatus()
+    {
+        if ($this->end_time) {
+            $status = 'ENDED';
+        }  else if ($this->admin_id && $this->end_time == null) {
+            $status = 'ACTIVE';
+        } else {
+            $status = 'PENDING';
+        }
+        return $status;
     }
 }

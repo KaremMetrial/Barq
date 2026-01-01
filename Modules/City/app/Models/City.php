@@ -4,14 +4,15 @@ namespace Modules\City\Models;
 
 use Modules\Zone\Models\Zone;
 use Modules\Banner\Models\Banner;
+use Modules\Country\Models\Country;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Governorate\Models\Governorate;
 use function PHPUnit\Framework\throwException;
 use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
@@ -52,6 +53,13 @@ class City extends Model implements TranslatableContract
     {
         return $this->hasMany(Banner::class);
     }
+    public function scopeByCountry($query, $countryId)
+    {
+        return $query->whereHas('governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+        });
+    }
+
     public function scopeFilter($query, $filters): mixed
     {
         if (isset($filters['governorate_id']) && $filters['governorate_id'] != 0) {
@@ -68,6 +76,16 @@ class City extends Model implements TranslatableContract
         {
             $query->whereIsActive(true);
         }
+        if (auth('admin')->check()) {
+            if (auth('admin')->user()->currentAccessToken()->country_id) {
+                $country = Country::find(auth('admin')->user()->currentAccessToken()->country_id);
+                if ($country) {
+                    return $query->byCountry($country->id);
+                }
+            }
+            return $query;
+        }
+
         return $query->latest();
     }
 }

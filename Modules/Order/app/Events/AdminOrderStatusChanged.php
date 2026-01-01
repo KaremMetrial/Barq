@@ -7,7 +7,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class OrderStatusChanged implements ShouldBroadcast
+class AdminOrderStatusChanged implements ShouldBroadcast
 {
     use Dispatchable, SerializesModels;
 
@@ -32,7 +32,7 @@ class OrderStatusChanged implements ShouldBroadcast
     }
     public function broadcastAs(): string
     {
-        return 'order.status.changed';
+        return 'admin.order.status.changed';
     }
     public function broadcastWith(): array
     {

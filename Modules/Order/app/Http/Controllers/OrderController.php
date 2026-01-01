@@ -27,7 +27,7 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $userId = auth('user')->id();
-        $filter = $request->only('search', 'status');
+        $filter = $request->only('search', 'status','from_date','to_date', 'courier_id');
 
         // Get current order (latest active order)
         $currentOrder = $this->orderService->getCurrentOrder($userId);

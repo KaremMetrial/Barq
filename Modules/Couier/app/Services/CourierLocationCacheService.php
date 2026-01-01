@@ -36,7 +36,6 @@ class CourierLocationCacheService
                 $locationData,
                 now()->addSeconds(self::CACHE_TTL)
             );
-
             // Update zone-based indexes
             $this->updateCourierZoneIndexes($courierId, $locationData);
 
@@ -143,7 +142,7 @@ class CourierLocationCacheService
         }
 
         // Get courier's assigned zones
-        $zones = $courier->zonesToCover()->pluck('id')->toArray();
+        $zones = $courier->zonesToCover()->pluck('zones.id')->toArray();
 
         foreach ($zones as $zoneId) {
             $zoneCouriers = Cache::get(self::ZONE_COURIERS_KEY_PREFIX . $zoneId, []);

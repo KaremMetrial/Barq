@@ -4,6 +4,7 @@ namespace Modules\Conversation\Observers;
 
 use Modules\Conversation\Models\Message;
 use Modules\Conversation\Events\ConversationStarted;
+use Modules\Conversation\Events\ConversationMessageSent;
 
 class MessageObserver
 {
@@ -12,6 +13,7 @@ class MessageObserver
      */
     public function created(Message $message): void {
         ConversationStarted::dispatch($message->conversation);
+        ConversationMessageSent::dispatch($message);
     }
 
     /**

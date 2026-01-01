@@ -176,7 +176,9 @@ class Product extends Model implements TranslatableContract
         if(isset($filters['status'])){
             $query->where('status', $filters['status']);
         }
-
+        if(!$admin && !$vendor){
+            $query->whereIsActive(true);
+        }
         if ($admin) {
             return $query->latest();
         }

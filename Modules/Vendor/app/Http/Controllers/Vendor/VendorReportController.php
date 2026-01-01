@@ -813,8 +813,8 @@ class VendorReportController extends Controller
         }
 
         return [
-            'total_balance' => $balance->total_balance,
-            'available_for_withdrawal' => $balance->available_balance,
+            'total_balance' => (int) $balance->total_balance,
+            'available_for_withdrawal' => (int) $balance->available_balance,
             'currency' => $currencyInfo['symbol'],
             'currency_factor' => $factor,
         ];

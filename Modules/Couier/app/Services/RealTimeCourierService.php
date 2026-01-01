@@ -3,11 +3,13 @@
 namespace Modules\Couier\Services;
 
 use Pusher\Pusher;
-use Modules\Couier\Models\CourierOrderAssignment;
-use Modules\Couier\Events\OrderAssignedToCourier;
-use Modules\Couier\Events\OrderAcceptedByCourier;
-use Modules\Couier\Events\OrderStatusChanged;
 use Illuminate\Support\Facades\Log;
+use Modules\Couier\Events\NewOrderAssigned;
+use Modules\Couier\Events\OrderStatusChanged;
+use Modules\Couier\Events\OrderAssignedExpired;
+use Modules\Couier\Events\OrderAcceptedByCourier;
+use Modules\Couier\Events\OrderAssignedToCourier;
+use Modules\Couier\Models\CourierOrderAssignment;
 
 class RealTimeCourierService
 {
@@ -48,7 +50,7 @@ class RealTimeCourierService
                 'assigned_at' => $assignment->assigned_at->toISOString(),
             ];
 
-            $this->pusher->trigger("couriers", "new-order-assigned.{$courierId}", $data);
+            event(new NewOrderAssigned($courierId, $data));
 
             Log::info("Pusher: New order assigned to courier", [
                 'courier_id' => $courierId,
@@ -69,11 +71,7 @@ class RealTimeCourierService
     public function notifyOrderExpiring(int $courierId, int $orderId, int $secondsLeft): void
     {
         try {
-            $this->pusher->trigger("couriers", "order-expiring.{$courierId}", [
-                'order_id' => $orderId,
-                'seconds_left' => $secondsLeft,
-                'expires_at' => now()->addSeconds($secondsLeft)->toISOString(),
-            ]);
+            event(new OrderAssignedExpired($courierId, $orderId, $secondsLeft));
 
             Log::info("Pusher: Order expiring notification sent", [
                 'courier_id' => $courierId,

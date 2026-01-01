@@ -31,15 +31,7 @@ class ConversationStarted implements ShouldBroadcast
     }
     public function broadcastAs(): string
     {
-        if ($this->conversation->user) {
-            return 'conversation.started.for.user';
-        } elseif ($this->conversation->vendor) {
-            return 'conversation.started.for.vendor';
-        } elseif ($this->conversation->couier) {
-            return 'conversation.started.for.courier';
-        }
-
-        return 'conversation.started';
+        return 'conversation.started.id.' . $this->conversation->id;
     }
 
     public function broadcastWith(): array

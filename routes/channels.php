@@ -18,3 +18,6 @@ Broadcast::channel('order.{orderId}', function ($user, $orderId) {
         default => false,
     };
 });
+Broadcast::channel('couriers',function ($user) {
+    return $user instanceof Couier;
+});

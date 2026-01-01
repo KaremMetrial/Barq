@@ -2,11 +2,12 @@
 
 namespace Modules\Conversation\Models;
 
+use App\Enums\MessageTypeEnum;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Modules\Conversation\Observers\MessageObserver;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
 #[ObservedBy([MessageObserver::class])]
 class Message extends Model
@@ -19,10 +20,12 @@ class Message extends Model
         'messageable_id',
         'read_at',
         'read_by',
+        'is_read',
     ];
 
     protected $casts = [
         'read_by' => 'array',
+        'type' => MessageTypeEnum::class,
     ];
     public function conversation(): BelongsTo
     {

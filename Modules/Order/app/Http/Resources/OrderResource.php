@@ -11,6 +11,7 @@ use App\Enums\PaymentStatusEnum;
 use App\Enums\OrderInputTypeEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Review\Http\Resources\ReviewResource;
+use Modules\Couier\Services\CourierLocationCacheService;
 
 class OrderResource extends JsonResource
 {
@@ -102,11 +103,17 @@ class OrderResource extends JsonResource
             }),
 
             'courier' => $this->when($this->relationLoaded('courier'), function () {
+                $locationCache = app(CourierLocationCacheService::class);
+                $courierLocation = $this->courier ? $locationCache->getCourierLocation($this->courier->id) : null;
+
                 return $this->courier ? [
                     'id' => $this->courier->id,
                     'name' => $this->courier->first_name . ' ' . $this->courier->last_name,
                     'phone' => $this->courier->phone,
                     'avatar' => $this->courier->avatar ? asset('storage/' . $this->courier->avatar) : null,
+                    'unread_messages_count' => (int) $this->courierUnreadMessagesCount(),
+                    'lat' => $courierLocation ? (string) $courierLocation['lat'] : '',
+                    'lng' => $courierLocation ? (string) $courierLocation['lng'] : '',
                 ] : null;
             }),
 
@@ -138,7 +145,25 @@ class OrderResource extends JsonResource
                 $review = $this->reviews()->where('reviewable_id', $this->user_id)->where('reviewable_type', 'user')->first();
                 return $review ? new ReviewResource($review) : null;
             }),
+            'remaining_time_to_cancel_order' => $this->getRemainingTimeToCancelOrder(),
         ];
+    }
+    private function getRemainingTimeToCancelOrder(): ?int
+    {
+        $cancellationWindowMinutes = (int) config('settings.order.cancellation_window_minutes', 5);
+
+        if (!$this->created_at) {
+            return null;
+        }
+
+        $cancellationDeadline = $this->created_at->addMinutes($cancellationWindowMinutes);
+        $now = now();
+
+        if ($now->greaterThanOrEqualTo($cancellationDeadline)) {
+            return 0;
+        }
+
+        return $now->diffInMinutes($cancellationDeadline);
     }
     private function shouldShowOtp(Request $request): bool
     {

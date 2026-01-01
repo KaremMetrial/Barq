@@ -2,7 +2,9 @@
 
 namespace Modules\Category\Models;
 
+use Modules\Store\Models\Store;
 use Modules\Coupon\Models\Coupon;
+use Modules\Country\Models\Country;
 use Modules\Product\Models\Product;
 use Modules\Section\Models\Section;
 use Modules\Interest\Models\Interest;
@@ -13,7 +15,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
-use Modules\Store\Models\Store;
 
 class Category extends Model implements TranslatableContract
 {
@@ -74,6 +75,15 @@ class Category extends Model implements TranslatableContract
     {
         return $this->belongsTo(Store::class);
     }
+    public function scopeByCountry($query, $countryId)
+    {
+        return $query->whereHas('sections', function ($q) use ($countryId) {
+            $q->whereHas('country', function ($q) use ($countryId) {
+                $q->where('countries.id', $countryId);
+            });
+        });
+    }
+
     public function scopeFilter($query, $filters)
     {
         if (isset($filters['search'])) {
@@ -100,6 +110,16 @@ class Category extends Model implements TranslatableContract
             $query->whereHas('sections', function ($q) use ($filters) {
                 $q->where('section_id', $filters['section_id']);
             });
+        }
+
+        if (auth('admin')->check()) {
+            if (auth('admin')->user()->currentAccessToken()->country_id) {
+                $country = Country::find(auth('admin')->user()->currentAccessToken()->country_id);
+                if ($country) {
+                    return $query->byCountry($country->id);
+                }
+            }
+            return $query;
         }
 
         return $query->latest();

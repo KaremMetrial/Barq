@@ -152,7 +152,28 @@ class ProductService
 
     private function syncPrice(Product $product, array $price): void
     {
+        dd($price);
+
         if (!empty($price)) {
+            $price = array_filter($price, fn($value) => $value !== null);
+            // Handle currency conversion if factor is provided
+            if (isset($price['currency_factor'])) {
+                $factor = (int) $price['currency_factor'];
+
+                // Convert prices to minor units for storage
+                if (isset($price['price'])) {
+                    $price['price'] = \App\Helpers\CurrencyHelper::toMinorUnits((int) $price['price'], $factor);
+                }
+
+                if (isset($price['purchase_price'])) {
+                    $price['purchase_price'] = \App\Helpers\CurrencyHelper::toMinorUnits((int) $price['purchase_price'], $factor);
+                }
+
+                if (isset($price['sale_price'])) {
+                    $price['sale_price'] = \App\Helpers\CurrencyHelper::toMinorUnits((int) $price['sale_price'], $factor);
+                }
+            }
+
             $product->price()->updateOrCreate([], $price);
         }
     }

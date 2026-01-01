@@ -7,40 +7,43 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class OrderStatusChanged implements ShouldBroadcast
+class OrderNotAcceptedOnTime implements ShouldBroadcast
 {
     use Dispatchable, SerializesModels;
 
     public $order;
-    public $oldStatus;
-    public $newStatus;
+    public $timeoutReason;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(Order $order, $oldStatus, $newStatus)
+    public function __construct(Order $order, string $timeoutReason = 'Restaurant did not accept order within 5 minutes')
     {
         $this->order = $order;
-        $this->oldStatus = $oldStatus;
-        $this->newStatus = $newStatus;
+        $this->timeoutReason = $timeoutReason;
     }
+
     public function broadcastOn(): array
     {
         return [
             new \Illuminate\Broadcasting\PrivateChannel('order.' . $this->order->id),
+            new \Illuminate\Broadcasting\PrivateChannel('admin.orders'),
+            new \Illuminate\Broadcasting\PrivateChannel('store.' . $this->order->store_id),
         ];
     }
+
     public function broadcastAs(): string
     {
-        return 'order.status.changed';
+        return 'order.timeout.expired';
     }
+
     public function broadcastWith(): array
     {
         return [
             'order_id' => $this->order->id,
-            'old_status' => $this->oldStatus->value,
-            'new_status' => $this->newStatus->value,
-            'changed_at' => now()->format('Y-m-d H:i:s'),
+            'order_number' => $this->order->order_number,
+            'reason' => $this->timeoutReason,
+            'cancelled_at' => now()->format('Y-m-d H:i:s'),
         ];
     }
 }

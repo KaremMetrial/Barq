@@ -2,6 +2,9 @@
 
 namespace Modules\Conversation\Http\Requests;
 
+use App\Enums\MessageTypeEnum;
+use Illuminate\Validation\Rule;
+use App\Enums\ConversationTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateMessageRequest extends FormRequest
@@ -10,7 +13,7 @@ class CreateMessageRequest extends FormRequest
     {
         return [
             'content'         => 'required|string',
-            'type'            => 'required|string|in:text,image,video,file',
+            'type'            => ['required', 'string', Rule::in(MessageTypeEnum::values())],
             'conversation_id' => 'required|exists:conversations,id',
         ];
     }

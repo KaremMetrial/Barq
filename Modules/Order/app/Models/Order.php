@@ -16,11 +16,12 @@ use Modules\Review\Models\Review;
 use Modules\Address\Models\Address;
 use Modules\PosShift\Models\PosShift;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Order\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Conversation\Models\Conversation;
 use Modules\PaymentMethod\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Modules\Order\Observers\OrderObserver;
 
 #[ObservedBy([OrderObserver::class])]
 class Order extends Model
@@ -162,6 +163,9 @@ class Order extends Model
             } elseif ($user->tokenCan('user')) {
                 // User sees only their own orders
                 $query->where('user_id', $user->id);
+            } elseif ($user->tokenCan('courier')) {
+                // Courier sees only orders assigned to them
+                $query->where('couier_id', $user->id);
             } else {
                 // Optional: prevent access if no proper ability
                 $query->whereRaw('0 = 1'); // returns empty
@@ -319,5 +323,25 @@ class Order extends Model
 
         return false;
     }
+    public function courierUnreadMessagesCount(): int
+    {
+        if (!$this->courier || !$this->user) {
+            return 0;
+        }
 
+        $conversation = Conversation::where('user_id', $this->user->id)
+            ->where('couier_id', $this->courier->id)
+            ->first();
+
+        if (!$conversation) {
+            return 0;
+        }
+
+        return $conversation->messages()
+            ->where('messageable_type', 'courier')
+            ->where('messageable_id', $this->courier->id)
+            ->where('is_read', false)
+            ->count();
+    }
+    
 }

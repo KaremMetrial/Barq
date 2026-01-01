@@ -28,7 +28,10 @@ class FirebaseService
      */
     public function sendToDevice($deviceTokens, string $title, string $body, array $data = []): bool
     {
-        Log::info('🚀 FKN Data', [
+        Log::info('🚀 Sending Firebase notification', [
+            'tokens' => $deviceTokens,
+            'title' => $title,
+            'body' => $body,
             'data' => $data,
         ]);
         // Normalize tokens
@@ -124,9 +127,9 @@ class FirebaseService
     }
     public function fcmTest()
     {
-        $tokens = ['foB8bWoNSkOp0xWPEOq47p:APA91bGQ_FIVIQC70KAPAJgC5G1sprujHak9RvvWXaJsjXEq92-ABjakgwtlqu3Qvufn0h28Pul45Wrh8mc9iDmYVcOxk1QiPqVdW_Fkio_o9mcKy-uGT9s'];
+        $tokens = ['cIdiV8RyT4CvJMNrxymoMc:APA91bG2U4ty2KCIKQaJZn71omW6MsS0ywP_93EM19a3iPuEMzNSSk85Wjr0lmaOklD1Ub5NZAdnD_nKqmWPrP5yfen9aq5TDU3qFSRYKhwxCNziLL88oEU'];
 
-        $title = "New Order Received!";
+        $title = "دا مش نوتفيكشن دا تيست انا عمله ملوش علاقة باى حاجة ";
         $body = "You have a new order";
         $data = [
             'order_id' => 1,

@@ -162,7 +162,6 @@ public function attachments(): MorphMany
     {
         return $this->hasMany(Order::class, 'couier_id');
     }
-
     public function scopeFilter($query, $filters)
     {
         if (isset($filters['search'])) {
@@ -195,5 +194,17 @@ public function attachments(): MorphMany
     public function balance()
     {
         return $this->morphOne(Balance::class, 'balanceable');
+    }
+    public function getCurrentLatitudeAttribute()
+    {
+        $location = app(\Modules\Couier\Services\CourierLocationCacheService::class)
+            ->getCourierLocation($this->id);
+        return $location['lat'] ?? null;
+    }
+    public function getCurrentLongitudeAttribute()
+    {
+        $location = app(\Modules\Couier\Services\CourierLocationCacheService::class)
+            ->getCourierLocation($this->id);
+        return $location['lng'] ?? null;
     }
 }

@@ -30,15 +30,15 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            // Flutter subscribes to: private-conversation.{id}
+        $data = [
             new PrivateChannel('conversation.' . $this->message->conversation_id),
-
-            // Optional per-user channel (if you want it)
             new PrivateChannel('user.' . $this->message->messageable_id . '.messages'),
         ];
+        if ($this->message->conversation->order_id) {
+            $data[] = new PrivateChannel('order.' . $this->message->conversation->order_id);
+        }
+        return $data;
     }
-
     /**
      * The event's broadcast name.
      */

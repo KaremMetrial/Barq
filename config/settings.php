@@ -20,4 +20,10 @@ return [
 
     // Enable or disable features based on your environment or requirements
     'feature_flag' => env('FEATURE_FLAG', true),
+
+    'order' => [
+        'max_items_per_order' => env('MAX_ITEMS_PER_ORDER', 50),
+        'default_status' => env('DEFAULT_ORDER_STATUS', 'pending'),
+        'cancellation_window_minutes' => (int) env('ORDER_CANCELLATION_WINDOW_MINUTES', 5),
+    ],
 ];
