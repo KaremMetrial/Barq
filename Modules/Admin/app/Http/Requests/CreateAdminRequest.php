@@ -24,6 +24,7 @@ class CreateAdminRequest extends FormRequest
             "password" => ["required", "string", "min:6"],
             "avatar" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
             "is_active" => ["nullable", "boolean"],
+            "role" => ["required", "string", 'exists:roles,name'],
         ];
     }
 

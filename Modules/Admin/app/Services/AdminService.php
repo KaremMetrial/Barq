@@ -34,7 +34,12 @@ class AdminService
             );
         }
         $data = array_filter($data, fn($value) => !blank($value));
-        return $this->AdminRepository->create($data);
+
+        $admin = $this->AdminRepository->create($data);
+        if (isset($data['role'])) {
+            $admin->syncRoles([$data['role']]);
+        }
+        return $admin;
     }
 
     public function getAdminById(int $id)
@@ -52,8 +57,13 @@ class AdminService
                 'public'
             );
         }
+
         $data = array_filter($data, fn($value) => !blank($value));
-        return $this->AdminRepository->update($id, $data);
+        $admin = $this->AdminRepository->update($id, $data);
+        if (isset($data['role'])) {
+            $admin->syncRoles([$data['role']]);
+        }
+        return $admin;
     }
 
     public function deleteAdmin(int $id): bool
@@ -70,6 +80,9 @@ class AdminService
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
+        $role = $admin->getRoleNames();
+        $permissions = $admin->getAllPermissions()->pluck('name')->toArray();
+
         $newToken = $admin->createToken('token',['admin']);
         $newToken->accessToken->fcm_device = request()->input('fcm_device');
         $newToken->accessToken->country_id = request()->input('country_id');
@@ -79,7 +92,9 @@ class AdminService
 
         return [
             'admin' => $admin,
-            'token' => $token
+            'token' => $token,
+            'permissions' => $permissions,
+            'role' => $role,
         ];
     }
     public function logout(Request $request)

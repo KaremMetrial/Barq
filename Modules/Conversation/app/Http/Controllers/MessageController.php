@@ -4,14 +4,15 @@ namespace Modules\Conversation\Http\Controllers;
 
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use App\Services\PusherService;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Modules\Conversation\Services\MessageService;
-use App\Services\PusherService;
+use Modules\Order\Events\OrderAssignmentToCourier;
+use Modules\Conversation\Jobs\SendMessageNotification;
 use Modules\Conversation\Http\Resources\MessageResource;
 use Modules\Conversation\Http\Requests\CreateMessageRequest;
 use Modules\Conversation\Http\Requests\UpdateMessageRequest;
-use Modules\Order\Events\OrderAssignmentToCourier;
 
 class MessageController extends Controller
 {
@@ -65,15 +66,25 @@ class MessageController extends Controller
         if ($guard === 'courier' && $message->conversation->order_id) {
             $order = $message->conversation->order;
             $courier = auth('courier')->user();
-
             if ($order && $courier) {
-                OrderAssignmentToCourier::dispatch($order, $courier);
+                OrderAssignmentToCourier::dispatch($order, $courier, $unreadMessagesCount = (int) $order->courierUnreadMessagesCount(), $courier->getCurrentLatitudeAttribute(), $courier->getCurrentLongitudeAttribute());
             }
         }
-
+        SendMessageNotification::dispatch($message, $message->conversation, $guard);
+        $this->markMessagesAsRead($message->conversation, $guard);
         return $this->successResponse([
             'message' => new MessageResource($message),
         ], __('message.success'));
+    }
+    private function markMessagesAsRead($conversation, $guard){
+        $currentUserId = auth($guard)->id();
+        $conversation->messages()
+        ->where('is_read', false)
+        ->where('messageable_type', '!=', $guard)
+            ->where('messageable_id', '!=', $currentUserId)
+            ->update([
+                'is_read' => true,
+            ]);
     }
 
     public function show($id)

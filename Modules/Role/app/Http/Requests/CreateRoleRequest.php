@@ -18,6 +18,9 @@ class CreateRoleRequest extends FormRequest
     {
         return [
             'name'       => ['required', 'string', 'max:255'],
+            'guard_name' => ['required', 'string', 'in:admin,vendor,user'],
+            'permissions'=> ['required', 'array', 'min:1'],
+            'permissions.*'=> ['required', 'string']
         ];
     }
 

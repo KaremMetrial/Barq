@@ -92,7 +92,6 @@ class AutoAssignCourierListener implements ShouldQueue
 
         try {
             $orderData = $this->prepareOrderDataForAssignment($event->order);
-
             // Use new cache-based assignment service
             $assignmentService = app(\Modules\Couier\Services\CacheBasedOrderAssignmentService::class);
             $assignment = $assignmentService->assignOrderToNearestCourier($orderData);

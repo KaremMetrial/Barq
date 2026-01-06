@@ -101,6 +101,7 @@ class ShippingPriceCollectionResource extends JsonResource
             'per_km_prices' => $perKmPrices,
             'max_cod_prices' => $maxCodPrices,
             'enable_cods' => $enableCods,
+            'currency_factor' => $zone->getCurrencyFactor(),
         ];
     }
 }

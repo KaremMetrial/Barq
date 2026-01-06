@@ -2,26 +2,32 @@
 
 namespace Modules\Couier\Services;
 
-use Modules\Couier\Models\CourierOrderAssignment;
+use Exception;
+use Carbon\Carbon;
+use App\Enums\OrderStatus;
 use Modules\Couier\Models\Couier;
-use Modules\Couier\Models\CouierShift;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
-use Exception;
+use Modules\Couier\Models\CouierShift;
+use Modules\Order\Repositories\OrderRepository;
+use Modules\Couier\Models\CourierOrderAssignment;
+use Modules\Order\Events\OrderAssignmentToCourier;
 
 class SmartOrderAssignmentService
 {
     protected RealTimeCourierService $realtimeService;
     protected GeographicCourierService $geographicService;
+    protected OrderRepository $orderRepository;
 
     public function __construct(
         RealTimeCourierService $realtimeService,
-        GeographicCourierService $geographicService
+        GeographicCourierService $geographicService,
+        OrderRepository $orderRepository
     ) {
         $this->realtimeService = $realtimeService;
         $this->geographicService = $geographicService;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -47,7 +53,7 @@ class SmartOrderAssignmentService
 
             // Find optimal couriers
             $criteria = array_merge($criteria, [
-                'priority' => $criteria['priority'] ?? 'balanced', // distance, rating, load
+                'priority' => $criteria['priority'] ?? 'balanced',
                 'max_results' => $criteria['max_results'] ?? 5,
                 'radius_km' => $criteria['radius_km'] ?? 5.0,
             ]);
@@ -143,6 +149,12 @@ class SmartOrderAssignmentService
             $assignment->accept();
             $assignment->save();
 
+            $order = $this->orderRepository->find($assignment->order_id);
+            $oldStatus = $order->status;
+            $order->status = OrderStatus::ON_THE_WAY;
+            $order->couier_id = $courierId;
+            $order->save();
+
             // Notify relevant parties
             Log::info('Assignment accepted for order: ' . $assignment->order_id . ' - ' . $courierId);
             $this->realtimeService->notifyOrderStatusChanged(
@@ -159,6 +171,10 @@ class SmartOrderAssignmentService
                 ['accepted_courier_id' => $courierId]
             );
             Log::info('Assignment finalized for order: ' . $assignment->order_id . ' - ' . $courierId);
+                $courier = auth('courier')->user();
+                event(new \Modules\Order\Events\OrderStatusChanged($order, $oldStatus, $order->status));
+                OrderAssignmentToCourier::dispatch($order, auth('sanctum')->user(), (int) $order->courierUnreadMessagesCount(), auth('sanctum')->user()->getCurrentLatitudeAttribute(), auth('sanctum')->user()->getCurrentLongitudeAttribute());
+
             DB::commit();
             return true;
 

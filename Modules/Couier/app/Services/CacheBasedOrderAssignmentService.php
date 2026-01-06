@@ -2,11 +2,12 @@
 
 namespace Modules\Couier\Services;
 
-use Modules\Couier\Models\CourierOrderAssignment;
+use Modules\Zone\Models\Zone;
 use Modules\Couier\Models\Couier;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Couier\Models\CourierOrderAssignment;
 
 class CacheBasedOrderAssignmentService
 {
@@ -19,6 +20,31 @@ class CacheBasedOrderAssignmentService
     ) {
         $this->locationCache = $locationCache;
         $this->realtimeService = $realtimeService;
+    }
+    private function getCouriersFromDatabase(int $zoneId, float $pickupLat, float $pickupLng): array
+    {
+        $zone = Zone::with('couriers')->find($zoneId);
+        if (!$zone) {
+            return [];
+        }
+
+        $nearestCouriers = [];
+        foreach ($zone->couriers as $courier) {
+            // Check if courier is available
+            if (!$this->isCourierAvailable($courier)) {
+                continue;
+            }
+
+            // For database fallback, we don't have location data, so treat all as at pickup location
+            // This prioritizes availability over distance
+            $nearestCouriers[] = [
+                'courier_id' => $courier->id,
+                'distance' => 0, // Assume at pickup for fallback
+                'location' => null,
+            ];
+        }
+
+        return array_slice($nearestCouriers, 0, 5); // Limit to 5
     }
 
     /**
@@ -33,7 +59,6 @@ class CacheBasedOrderAssignmentService
             $pickupLat = $orderData['pickup_lat'];
             $pickupLng = $orderData['pickup_lng'];
             $zoneId = $orderData['zone_id'] ?? $this->determineZoneFromLocation($pickupLat, $pickupLng);
-
             if (!$zoneId) {
                 Log::warning('Could not determine zone for order assignment', [
                     'pickup_lat' => $pickupLat,
@@ -50,10 +75,14 @@ class CacheBasedOrderAssignmentService
                 5.0, // 5km radius
                 5   // Top 5 couriers
             );
-
+            Log::info('Processing cache-based auto-assignment for order: ' . $orderData['order_id'] . ', found ' . count($nearestCouriers) . ' couriers in zone ' . $zoneId);
             if (empty($nearestCouriers)) {
-                Log::info('No couriers found in zone cache', ['zone_id' => $zoneId]);
-                return null;
+                Log::info('No couriers found in zone cache, falling back to database', ['zone_id' => $zoneId]);
+                $nearestCouriers = $this->getCouriersFromDatabase($zoneId, $pickupLat, $pickupLng);
+                if (empty($nearestCouriers)) {
+                    Log::info('No couriers found in zone database either', ['zone_id' => $zoneId]);
+                    return null;
+                }
             }
 
             // Try to assign to each courier in order
@@ -85,11 +114,11 @@ class CacheBasedOrderAssignmentService
     private function attemptAssignment(int $courierId, array $orderData): ?CourierOrderAssignment
     {
         $courier = Couier::find($courierId);
-
         // Validate courier availability
         if (!$this->isCourierAvailable($courier)) {
             return null;
         }
+        dd($courier);
 
         // Create assignment
         $assignment = CourierOrderAssignment::create([
@@ -105,10 +134,10 @@ class CacheBasedOrderAssignmentService
 
         // Send notifications
         $this->realtimeService->notifyOrderAssigned($courierId, $assignment);
-        $this->realtimeService->notifyOrderAssignedToOrder($assignment->order_id, [
-            'courier_id' => $courierId,
-            'assignment_id' => $assignment->id,
-        ]);
+        // $this->realtimeService->notifyOrderAssignedToOrder($assignment->order_id, [
+        //     'courier_id' => $courierId,
+        //     'assignment_id' => $assignment->id,
+        // ]);
 
         return $assignment;
     }
@@ -136,9 +165,7 @@ class CacheBasedOrderAssignmentService
         // For now, return a default zone or implement zone detection logic
 
         // Example implementation:
-        // $zone = Zone::whereRaw("ST_Contains(boundary, POINT($lng, $lat))")->first();
-        // return $zone?->id;
-
-        return 1; // Placeholder - implement proper zone detection
+        $zone = Zone::findZoneByCoordinates($lat, $lng)->first();
+        return $zone?->id;
     }
 }

@@ -23,7 +23,7 @@ class ZoneController extends Controller
      */
     public function index()
     {
-        $zones = $this->zoneService->getAllZones();
+        $zones = $this->zoneService->getAllZones(request()->all());
         return $this->successResponse([
             "zones" => ZoneResource::collection($zones),
         ], __("message.success"));

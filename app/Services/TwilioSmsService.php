@@ -10,104 +10,76 @@ use Twilio\Exceptions\TwilioException;
 class TwilioSmsService
 {
     protected Client $client;
-    protected string $whatsappFrom;
+    protected string $from;
 
     public function __construct()
     {
         $sid = config('services.twilio.sid');
         $token = config('services.twilio.token');
-        $this->whatsappFrom = config('services.twilio.whatsapp_from');
+        $this->from = config('services.twilio.number');
 
-        if (!$sid || !$token || !$this->whatsappFrom) {
-            throw new \InvalidArgumentException('Twilio credentials are missing.');
+        if (!$sid || !$token || !$this->from) {
+            throw new Exception('Twilio credentials are missing.');
         }
 
         $this->client = new Client($sid, $token);
     }
 
     /**
-     * Send OTP via WhatsApp
+     * Send OTP via WhatsApp (Content Template)
      */
-    public function sendOtp(string $receiverNumber, string $otp): bool
+    public function sendOtp(string $phone, string $otp): bool
     {
         try {
-            // Ensure the receiver number is properly formatted for WhatsApp
-            $formattedNumber = $this->formatWhatsAppNumber($receiverNumber);
+            $to = $this->formatWhatsAppNumber($phone);
 
-            // Try sending with content template first (if configured)
-            try {
-                $message = $this->client->messages->create(
-                    $formattedNumber,
-                    [
-                        'from' => $this->whatsappFrom,
-                        'contentSid' => 'HX229f5a04fd0510ce1b071852155d3e75', // Your template SID
-                        'contentVariables' => json_encode([
-                            "1" => $otp
-                        ]),
-                    ]
-                );
-            } catch (TwilioException $e) {
-                // If content template fails, fall back to simple message
-                Log::warning('Twilio content template failed, falling back to simple message', [
-                    'error' => $e->getMessage(),
-                    'to' => $formattedNumber
-                ]);
+            $message = $this->client->messages->create(
+                $to,
+                [
+                    'from' => 'whatsapp:+14155238886',
+                    'contentSid' => 'HX229f5a04fd0510ce1b071852155d3e75',
+                    'contentVariables' => json_encode([
+                        "1" => (string) $otp
+                    ]),
+                ]
+            );
 
-                $message = $this->client->messages->create(
-                    $formattedNumber,
-                    [
-                        'from' => $this->whatsappFrom,
-                        'body' => "Your OTP code is: {$otp}. This code will expire in 10 minutes."
-                    ]
-                );
-            }
-
-            Log::info('Twilio WhatsApp OTP sent successfully', [
-                'to' => $formattedNumber,
-                'sid' => $message->sid ?? 'unknown'
+            Log::info('WhatsApp OTP sent', [
+                'to' => $to,
+                'sid' => $message->sid
             ]);
 
             return true;
 
         } catch (TwilioException $e) {
-            Log::error('Twilio WhatsApp OTP failed', [
-                'error' => $e->getMessage(),
-                'to' => $receiverNumber,
-                'formatted_number' => $this->formatWhatsAppNumber($receiverNumber)
+            Log::error('Twilio WhatsApp error', [
+                'message' => $e->getMessage(),
+                'to' => $phone
             ]);
             return false;
 
         } catch (Exception $e) {
             Log::error('Unexpected WhatsApp error', [
-                'error' => $e->getMessage(),
-                'to' => $receiverNumber,
-                'formatted_number' => $this->formatWhatsAppNumber($receiverNumber)
+                'message' => $e->getMessage(),
+                'to' => $phone
             ]);
             return false;
         }
     }
 
     /**
-     * Format phone number for WhatsApp API
+     * Format phone number for WhatsApp
      */
     private function formatWhatsAppNumber(string $number): string
     {
-        // Remove any whitespace, parentheses, dashes
-        $cleanNumber = preg_replace('/[^0-9+]/', '', $number);
+        $clean = preg_replace('/[^0-9+]/', '', $number);
 
-        // Ensure it starts with +
-        if (substr($cleanNumber, 0, 1) !== '+') {
-            // If it doesn't start with +, assume it's missing the country code
-            // This is a basic assumption - you might want to make this configurable
-            if (strlen($cleanNumber) === 10) {
-                // US number without country code
-                $cleanNumber = '+1' . $cleanNumber;
-            } else {
-                // Add your default country code here if needed
-                // For example, if you're targeting Egypt: $cleanNumber = '+20' . $cleanNumber;
-            }
+        if (!str_starts_with($clean, '+')) {
+            // default country code (Egypt example)
+            $clean = '+20' . $clean;
         }
 
-        return "whatsapp:" . $cleanNumber;
+        return 'whatsapp:' . $clean;
     }
+
 }

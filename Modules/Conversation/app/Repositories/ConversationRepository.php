@@ -24,11 +24,23 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             $guard = 'couier';
         }
         $column = $guard . '_id';
-        return Conversation::with(['user', 'admin'])
-            ->where($column, $id)
-            ->where('type', request()->get('type', 'support'))
-            ->where('end_time', null)
-            ->paginate($perPage);
+        $query = Conversation::with(['user', 'admin', 'store', 'couier']);
+
+        if ($guard === 'vendor') {
+           $vendorStores = \Modules\Store\Models\Store::where('id', auth('vendor')->user()->store_id)->pluck('id');
+            $query->where(function ($q) use ($id, $vendorStores) {
+                $q->where('vendor_id', $id)
+                ->orWhereIn('store_id', $vendorStores);
+            });
+
+        } else {
+            $query->where($column, $id);
+        }
+
+        return $query->where('order_id', request()->get('order_id', null))
+                    ->where('type', request()->get('type', 'support'))
+                    ->where('end_time', null)
+                    ->paginate($perPage);
     }
 
     /**

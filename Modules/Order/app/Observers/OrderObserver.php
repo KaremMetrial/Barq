@@ -12,6 +12,7 @@ use Modules\Order\Models\OrderStatusHistory;
 use Modules\Order\Events\OrderNotAcceptedOnTime;
 use Modules\Order\Events\OrderAssignmentToCourier;
 use Modules\Order\Services\OrderNotificationService;
+use Modules\Store\Events\NewOrderEvent;
 
 class OrderObserver
 {
@@ -50,6 +51,8 @@ class OrderObserver
             );
         }
         $this->scheduleAutoCancellation($order);
+
+        broadcast(new NewOrderEvent($order));
     }
 
     private function scheduleAutoCancellation(Order $order): void
@@ -148,7 +151,7 @@ class OrderObserver
     private function handleCourierUpdate(Order $order): void
     {
         if ($order->courier) {
-            OrderAssignmentToCourier::dispatch($order, $order->courier);
+            OrderAssignmentToCourier::dispatch($order, $order->courier, $unreadMessagesCount = (int) $order->courierUnreadMessagesCount(), $order->courier->getCurrentLatitudeAttribute(), $order->courier->getCurrentLongitudeAttribute());
         }
     }
 

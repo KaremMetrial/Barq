@@ -2,11 +2,12 @@
 
 namespace Modules\Conversation\Models;
 
-use App\Enums\ConversationTypeEnum;
 use Modules\User\Models\User;
 use Modules\Admin\Models\Admin;
 use Modules\Order\Models\Order;
+use Modules\Store\Models\Store;
 use Modules\Couier\Models\Couier;
+use App\Enums\ConversationTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,6 +22,7 @@ class Conversation extends Model
         'couier_id',
         'order_id',
         'vendor_id',
+        'store_id',
     ];
     protected $casts = [
         'type' => ConversationTypeEnum::class,
@@ -32,6 +34,10 @@ class Conversation extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class,'user_id');
+    }
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class,'store_id');
     }
     public function vendor(): BelongsTo
     {

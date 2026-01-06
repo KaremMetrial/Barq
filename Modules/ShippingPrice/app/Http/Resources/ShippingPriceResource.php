@@ -28,7 +28,8 @@ class ShippingPriceResource extends JsonResource
             "vehicle_id"=> $this->vehicle_id,
             "created_at"=> $this->created_at,
             "updated_at"=> $this->updated_at,
-            "is_active" => $this->is_active
+            "is_active" => $this->is_active,
+            "currency_factor" => $this->zone->getCurrencyFactor(),
         ];
     }
 }

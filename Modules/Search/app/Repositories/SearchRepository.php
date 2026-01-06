@@ -53,9 +53,31 @@ class SearchRepository implements SearchRepositoryInterface
                                 $product,
                                 $product->offers->first()
                             ) : null,
-                            // 'has_offer' => $product->offers->isNotEmpty(),
+                            'has_offer' => $product->offers->isNotEmpty(),
                             'discount_type' => $product->offers->isNotEmpty() ? $product->offers->first()->discount_type->value : null,
-                            'discount_value' => $product->offers->isNotEmpty() ? ($product->offers->first()->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value ? number_format($product->offers->first()->discount_amount, 0) : number_format(\App\Helpers\CurrencyHelper::fromMinorUnits($product->offers->first()->discount_amount_minor ?? \App\Helpers\CurrencyHelper::toMinorUnits((float)$product->offers->first()->discount_amount, (int)($product->offers->first()->currency_factor ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100))), (int)($product->offers->first()->currency_factor ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100)), \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency($product->price->currency_code ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP'))), 0) : null,
+                            'discount_value' => $product->offers->isNotEmpty()
+                                ? (
+                                    $product->offers->first()->discount_type->value === \App\Enums\SaleTypeEnum::PERCENTAGE->value
+                                        ? number_format($product->offers->first()->discount_amount, 0)
+                                        : number_format(
+                                            \App\Helpers\CurrencyHelper::fromMinorUnits(
+                                                $product->offers->first()->discount_amount_minor
+                                                    ?? \App\Helpers\CurrencyHelper::toMinorUnits(
+                                                        (float) $product->offers->first()->discount_amount,
+                                                        (int) ($product->offers->first()->currency_factor
+                                                            ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100))
+                                                    ),
+                                                (int) ($product->offers->first()->currency_factor
+                                                    ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_factor ?? 100)),
+                                                \App\Helpers\CurrencyHelper::getDecimalPlacesForCurrency(
+                                                    $product->price->currency_code
+                                                        ?? ($product->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP')
+                                                )
+                                            ),
+                                            0
+                                        )
+                                )
+                                : null,
                             'symbol_currency' => $product->store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'
                         ])->values()
                     ];

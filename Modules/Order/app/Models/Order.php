@@ -329,8 +329,13 @@ class Order extends Model
             return 0;
         }
 
-        $conversation = Conversation::where('user_id', $this->user->id)
+        $conversation = Conversation::where(function ($query) {
+                $query->where('user_id', $this->user->id)
+                      ->orWhere('store_id', $this->store->id);
+            })
             ->where('couier_id', $this->courier->id)
+            ->where('order_id', $this->id)
+            ->where('type', 'delivery')
             ->first();
 
         if (!$conversation) {
@@ -343,5 +348,5 @@ class Order extends Model
             ->where('is_read', false)
             ->count();
     }
-    
+
 }

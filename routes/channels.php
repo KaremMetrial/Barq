@@ -21,3 +21,6 @@ Broadcast::channel('order.{orderId}', function ($user, $orderId) {
 Broadcast::channel('couriers',function ($user) {
     return $user instanceof Couier;
 });
+Broadcast::channel('store.{storeId}.new-orders', function ($user, $storeId) {
+    return $user instanceof Vendor && $user->store_id === (int) $storeId;
+});

@@ -14,6 +14,7 @@ class OrderStatusChanged implements ShouldBroadcast
     public $order;
     public $oldStatus;
     public $newStatus;
+    public bool $afterCommit = true;
 
     /**
      * Create a new event instance.

@@ -97,6 +97,7 @@ class CourierResource extends JsonResource
                         'id' => $zone->id,
                         'name' => $zone->name,
                         'city' => $zone->city?->name,
+                        'currency_factor' => $zone->getCurrencyFactor(),
                     ];
                 });
             }),

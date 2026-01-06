@@ -22,7 +22,7 @@ class CityController extends Controller
      */
     public function index()
     {
-        $cities = $this->cityService->getAllCitys();
+        $cities = $this->cityService->getAllCitys(request()->all());
         return $this->successResponse([
             "cities" => CityResource::collection($cities),
         ], __("message.success"));

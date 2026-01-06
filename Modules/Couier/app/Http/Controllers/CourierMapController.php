@@ -23,7 +23,7 @@ class CourierMapController extends Controller
     use ApiResponse;
 
     public function __construct(
-        // protected SmartOrderAssignmentService $assignmentService,
+        protected SmartOrderAssignmentService $assignmentService,
         protected GeographicCourierService $geographicService,
         protected OrderReceiptService $receiptService
     ) {}
@@ -93,38 +93,30 @@ class CourierMapController extends Controller
     {
         $request->validate([
             'action' => 'required|in:accept,reject',
-            'reason' => 'nullable|string|max:255' // Required for rejection
+            'reason' => 'nullable|string|max:255'
         ]);
 
         $courierId = auth('sanctum')->id();
-
         try {
-            if ($request->action === 'accept') {
-                // $success = $this->assignmentService->acceptAssignment($assignmentId, $courierId);
-                // $message = $success ? __('Order accepted successfully') : __('Failed to accept order');
-                $order = Order::find($assignmentId);
-                $oldStatus = $order->status;
-                $order->status = OrderStatus::ON_THE_WAY;
-                $order->couier_id = $courierId;
-                $order->save();
-                event(new \Modules\Order\Events\OrderStatusChanged($order, $oldStatus, $order->status));
-                OrderAssignmentToCourier::dispatch($order, auth('sanctum')->user());
+            if ($request->action == 'accept') {
+                $success = $this->assignmentService->acceptAssignment($assignmentId, $courierId);
+                $message = $success ? __('Order accepted successfully') : __('Failed to accept order');
             } else {
                 if (!$request->filled('reason')) {
                     return $this->errorResponse(__('Reason is required for rejection'), 422);
                 }
 
-                // $success = $this->assignmentService->rejectAssignment($assignmentId, $courierId, $request->reason);
-                // $message = $success ? __('Order rejected') : __('Failed to reject order');
+                $success = $this->assignmentService->rejectAssignment($assignmentId, $courierId, $request->reason);
+                $message = $success ? __('Order rejected') : __('Failed to reject order');
             }
 
-            // $statusCode = $success ? 200 : 400;
+            $statusCode = $success ? 200 : 400;
 
-            // return $this->successResponse([
-            //     'assignment_id' => $assignmentId,
-            //     'action' => $request->action,
-            //     // 'success' => $success,
-            // ], $message, $statusCode);
+            return $this->successResponse([
+                'assignment_id' => $assignmentId,
+                'action' => $request->action,
+                'success' => $success,
+            ], $message, $statusCode);
 
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);

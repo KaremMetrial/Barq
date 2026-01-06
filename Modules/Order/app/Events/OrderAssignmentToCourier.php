@@ -18,6 +18,9 @@ class OrderAssignmentToCourier implements ShouldBroadcast
 
     public $order;
     public $courier;
+    public $unreadMessagesCount;
+    public $lat;
+    public $lng;
 
     /**
      * Create a new event instance.
@@ -25,10 +28,13 @@ class OrderAssignmentToCourier implements ShouldBroadcast
      * @param  \Modules\Order\Models\Order  $order
      * @param  \Modules\Couier\Models\Couier  $courier
      */
-    public function __construct(Order $order, Couier $courier)
+    public function __construct(Order $order, Couier $courier, int $unreadMessagesCount, $lat = null,  $lng = null)
     {
         $this->order = $order;
         $this->courier = $courier;
+        $this->unreadMessagesCount = $unreadMessagesCount;
+        $this->lat = $lat;
+        $this->lng = $lng;
     }
 
     /**
@@ -48,10 +54,6 @@ class OrderAssignmentToCourier implements ShouldBroadcast
     }
     public function broadcastWith(): array
     {
-        // Get courier location from cache
-        $locationCache = app(CourierLocationCacheService::class);
-        $courierLocation = $locationCache->getCourierLocation($this->courier->id);
-
         return [
             'order_id' => $this->order->id,
             'courier' => [
@@ -60,9 +62,9 @@ class OrderAssignmentToCourier implements ShouldBroadcast
                 'phone' => $this->courier->phone,
                 'avatar' => $this->courier->avatar ? asset('storage/' . $this->courier->avatar) : null,
                 'assigned_at' => now()->format('Y-m-d H:i:s'),
-                'unread_messages_count' => (int) $this->order->courierUnreadMessagesCount(),
-                'lat' => $courierLocation ? (string) $courierLocation['lat'] : '',
-                'lng' => $courierLocation ? (string) $courierLocation['lng'] : '',
+                'unread_messages_count' => $this->unreadMessagesCount,
+                'lat' => $this->lat ? (string) $this->lat : null,
+                'lng' => $this->lng ? (string) $this->lng : null,
             ],
         ];
     }

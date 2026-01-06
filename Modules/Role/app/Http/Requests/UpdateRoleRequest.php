@@ -16,17 +16,11 @@ class UpdateRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'identifier' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('pos_terminals', 'identifier')->ignore($this->route('Role'))
-            ],
-            'name'      => ['nullable', 'string', 'max:255'],
-            'is_active' => ['nullable', 'boolean'],
-            'store_id'  => ['nullable', 'integer', 'exists:stores,id'],
+            'name'       => ['nullable', 'string', 'max:255'],
+            'guard_name' => ['nullable', 'string', 'in:admin,vendor,user'],
+            'permissions'=> ['nullable', 'array', 'min:1'],
+            'permissions.*'=> ['nullable', 'string']
         ];
-
     }
 
     /**

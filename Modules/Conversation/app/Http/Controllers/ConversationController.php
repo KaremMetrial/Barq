@@ -78,6 +78,11 @@ class ConversationController extends Controller
         if ($guard !== 'admin') {
             $data[$guard . '_id'] = auth($guard)->id();
         }
+        if ($guard === 'courier' && isset($data['store_id'])) {
+            // For courier-store chats, use store_id instead of vendor_id
+            unset($data['vendor_id']); // Remove vendor_id if present
+        }
+
 
         // Check if user already has an active conversation (end_time is null)
         if ($guard !== 'admin') {
@@ -170,6 +175,7 @@ class ConversationController extends Controller
                 ['path' => Paginator::resolveCurrentPath()]
             );
         }
+        $this->markMessagesAsRead($conversation, $guard);
 
         return $this->successResponse([
             'conversation' => new ConversationResource($conversation),
@@ -195,7 +201,6 @@ class ConversationController extends Controller
             }
             $conversation = $this->conversationService->updateConversation($id, $request->validated());
         }
-        $this->markMessagesAsRead($conversation, $guard);
 
         return $this->successResponse([
             'conversation' => new ConversationResource($conversation),

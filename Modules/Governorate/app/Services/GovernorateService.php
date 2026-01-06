@@ -16,9 +16,9 @@ class GovernorateService
         protected GovernorateRepository $GovernorateRepository
     ) {}
 
-    public function getAllGovernorates(): Collection
+    public function getAllGovernorates($filter = []): Collection
     {
-        return $this->GovernorateRepository->allWithTranslations();
+        return $this->GovernorateRepository->allWithTranslations($filter);
     }
 
     public function createGovernorate(array $data): ?Governorate

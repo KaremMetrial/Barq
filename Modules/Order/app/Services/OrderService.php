@@ -2,20 +2,21 @@
 
 namespace Modules\Order\Services;
 
-use App\Enums\StoreStatusEnum;
+use App\Models\ShippingPrice;
 use Modules\Zone\Models\Zone;
+use App\Enums\StoreStatusEnum;
 use App\Traits\FileUploadTrait;
 use Modules\Order\Models\Order;
 use Modules\Store\Models\Store;
 use Modules\Coupon\Models\Coupon;
 use Illuminate\Support\Facades\DB;
+use Modules\Address\Models\Address;
 use Modules\Product\Models\Product;
 use Illuminate\Support\Facades\Cache;
+use Modules\Order\Events\OrderStatusChanged;
 use Modules\StoreSetting\Models\StoreSetting;
 use Modules\Product\Models\ProductOptionValue;
 use Modules\Order\Repositories\OrderRepository;
-use Modules\Address\Models\Address;
-use App\Models\ShippingPrice;
 
 class OrderService
 {
@@ -104,12 +105,22 @@ class OrderService
             'statusHistories',
         ]);
     }
+    // private function validateStoreForOrder(int $storeId, ?int $deliveryAddressId): void
+    // {
+    //     $this->validateStoreAvailability($storeId);
+
+    //     if ($deliveryAddressId) {
+    //         $this->validateDeliveryAddress($deliveryAddressId);
+    //     }
+    // }
 
     public function createOrder(array $data): ?Order
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateOrderData($data);
-            $orderData = $this->prepareOrderData($data);
+        $this->validateOrderData($data);
+        $orderData = $this->prepareOrderData($data);
+        // $this->validateStoreForOrder($orderData['store_id'], $data['order']['delivery_address_id'] ?? null);
+
+        return DB::transaction(function () use ($data , $orderData) {
             $order = $this->createOrderRecord($orderData);
             $this->createOrderItems($order, $data['items']);
             $this->applyPostOrderLogic($order, $orderData, $data['items']);
@@ -936,7 +947,11 @@ private function getProductEffectivePrice(?Product $product): int
 
             // Fire event if status changed
             if ($updatedOrder && isset($filtered['status']) && $oldStatus != $updatedOrder->status) {
-                event(new \Modules\Order\Events\OrderStatusChanged($updatedOrder, $oldStatus, $updatedOrder->status));
+                event(new OrderStatusChanged(
+                    $updatedOrder,
+                    $oldStatus,
+                    $updatedOrder->status
+                ));
             }
 
             return $updatedOrder;

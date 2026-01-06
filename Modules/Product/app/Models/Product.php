@@ -165,9 +165,7 @@ class Product extends Model implements TranslatableContract
             $query->where('store_id', $filters['store_id']);
         }
         if (isset($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id'])->orWhereHas('category', function ($q) use ($filters) {
-                $q->where('parent_id', $filters['category_id']);
-            });
+            $query->where('category_id', $filters['category_id']);
         }
         if (isset($filters['weight'])) {
             $query->where('weight', $filters['weight']);
@@ -187,8 +185,8 @@ class Product extends Model implements TranslatableContract
             return  $query->where('store_id', $vendor->store_id);
         }
 
-        if (!$admin) {
-            $query->whereStatus(ProductStatusEnum::ACTIVE);
+        if (!$admin && !$vendor) {
+            $query->whereStatus(ProductStatusEnum::ACTIVE)->whereIsActive(true);
         }
 
          $addressId = request()->header('address-id') ?? request()->header('AddressId');
@@ -305,4 +303,17 @@ class Product extends Model implements TranslatableContract
             ->limit(5)
             ->get();
     }
+    protected static function booted()
+    {
+        $handleStatusChanges = function ($product) {
+            if ($product->isDirty('is_active') && $product->is_active) {
+                $product->status = "active";
+            }
+            if ($product->isDirty('is_active') && !$product->is_active) {
+                $product->status = "inactive";
+            }
+        };
+        static::updating($handleStatusChanges);
+    }
+
 }

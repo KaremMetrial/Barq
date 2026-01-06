@@ -32,12 +32,14 @@ class ConversationResource extends JsonResource
             'vendor_id'   => $this->vendor_id,
             'admin_id'    => $this->admin_id,
             'couier_id'   => $this->couier_id ,
+            'store_id'    => $this->store_id,
             'last_message' => $this->last_message,
             'status'      => $this->getStatus(),
             'user' => $this->user ? new UserResource($this->whenLoaded('user')) : null,
             'vendor' => $this->vendor ? new VendorResource($this->whenLoaded('vendor')) : null,
             'admin' => $this->admin ? new AdminResource($this->whenLoaded('admin')) : null,
             'couier' => $this->couier ? new CouierResource($this->whenLoaded('couier')) : null,
+            'store' => $this->store ? new StoreResource($this->whenLoaded('store')) : null,
         ];
         }
     public function getStatus()

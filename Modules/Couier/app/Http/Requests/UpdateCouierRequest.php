@@ -33,6 +33,14 @@ class UpdateCouierRequest extends FormRequest
      */
     public function rules(): array
     {
+            $couierId = $this->route('couier');
+            $existingVehicleId = null;
+            if ($couierId) {
+                $existingVehicle = \Modules\Couier\Models\CouierVehicle::where('couier_id', $couierId)->first();
+                if ($existingVehicle) {
+                    $existingVehicleId = $existingVehicle->id;
+                }
+            }
         return [
             // Courier
             "courier" => ["nullable", "array"],
@@ -72,7 +80,14 @@ class UpdateCouierRequest extends FormRequest
 
             // Courier Vehicle
             "vehicle" => ["nullable", "array"],
-            "vehicle.plate_number" => ['nullable', 'string', 'unique:couier_vehicles,plate_number,'. $this->route('couier'), 'max:255'],
+            "vehicle.plate_number" => [
+                'nullable',
+                'string',
+                'max:255',
+                $existingVehicleId
+                    ? 'unique:couier_vehicles,plate_number,' . $existingVehicleId
+                    : 'unique:couier_vehicles,plate_number'
+            ],
             "vehicle.color" => ['nullable', 'string', 'max:255'],
             "vehicle.model" => ['nullable', 'string', 'max:255'],
             "vehicle.car_license" => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],

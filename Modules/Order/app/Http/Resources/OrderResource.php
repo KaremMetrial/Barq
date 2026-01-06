@@ -112,8 +112,8 @@ class OrderResource extends JsonResource
                     'phone' => $this->courier->phone,
                     'avatar' => $this->courier->avatar ? asset('storage/' . $this->courier->avatar) : null,
                     'unread_messages_count' => (int) $this->courierUnreadMessagesCount(),
-                    'lat' => $courierLocation ? (string) $courierLocation['lat'] : '',
-                    'lng' => $courierLocation ? (string) $courierLocation['lng'] : '',
+                    'lat' => $courierLocation ? (string) $courierLocation['lat'] : null,
+                    'lng' => $courierLocation ? (string) $courierLocation['lng'] : null,
                 ] : null;
             }),
 

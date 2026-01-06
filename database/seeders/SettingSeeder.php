@@ -16,7 +16,7 @@ class SettingSeeder extends Seeder
         $settings = [
             [
                 'key' => 'support_contact_number',
-                'value' => '+20123456789',
+                'value' => '+14155238886',
                 'type' => SettingTypeEnum::STRING,
             ],
         ];

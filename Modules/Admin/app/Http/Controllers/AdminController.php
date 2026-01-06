@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Modules\Admin\Services\AdminService;
 use Modules\Admin\Http\Requests\LoginRequest;
 use Modules\Admin\Http\Resources\AdminResource;
@@ -17,7 +18,7 @@ use Modules\Order\Http\Resources\OrderResource;
 use App\Http\Resources\PaginationResource;
 class AdminController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected AdminService $adminService) {}
 
@@ -26,6 +27,7 @@ class AdminController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorize('viewAny', \Modules\Admin\Models\Admin::class);
         $admins = $this->adminService->getAllAdmins();
 
         return $this->successResponse([
@@ -85,6 +87,8 @@ class AdminController extends Controller
         return $this->successResponse([
             'admin' => new AdminResource($admin['admin']),
             'token' => $admin['token'],
+            'role' => $admin['role'][0],
+            'permissions' => $admin['permissions'],
         ], __('message.success'));
     }
     public function logout(Request $request): JsonResponse
@@ -228,7 +232,7 @@ class AdminController extends Controller
         }
         $refunds += $refundOrderQuery->whereIn('payment_status', [\App\Enums\PaymentStatusEnum::UNPAID, \App\Enums\PaymentStatusEnum::PARTIALLY_PAID])
             ->sum('total_amount');
-        
+
         // Charts
         $salesQuery = clone $query;
         $salesOverTime = $salesQuery->selectRaw('DATE(orders.created_at) as date, SUM(orders.total_amount) as value')

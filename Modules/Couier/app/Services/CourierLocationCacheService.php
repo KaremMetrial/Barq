@@ -17,6 +17,27 @@ class CourierLocationCacheService
     /**
      * Update courier location in cache
      */
+    private function cacheWithRetry(string $key, $value, int $ttl): void
+{
+    $attempts = 0;
+    $maxAttempts = 3;
+
+    while ($attempts < $maxAttempts) {
+        try {
+            Cache::put($key, $value, now()->addSeconds($ttl));
+            return;
+        } catch (\Exception $e) {
+            $attempts++;
+            if ($attempts >= $maxAttempts) {
+                throw $e;
+            }
+
+            // Wait before retry (exponential backoff)
+            sleep(pow(2, $attempts));
+        }
+    }
+}
+
     public function updateCourierLocation(int $courierId, float $lat, float $lng, array $metadata = []): bool
     {
         try {
@@ -29,12 +50,11 @@ class CourierLocationCacheService
                 'updated_at' => now()->toISOString(),
                 'timestamp' => now()->timestamp,
             ];
-
             // Store individual courier location
-            Cache::put(
+            $this->cacheWithRetry(
                 self::LOCATION_KEY_PREFIX . $courierId,
                 $locationData,
-                now()->addSeconds(self::CACHE_TTL)
+                self::CACHE_TTL
             );
             // Update zone-based indexes
             $this->updateCourierZoneIndexes($courierId, $locationData);
@@ -91,7 +111,7 @@ class CourierLocationCacheService
 
         foreach ($zoneCouriers as $courierId) {
             $location = $this->getCourierLocation($courierId);
-
+            
             if (!$location) {
                 continue;
             }
@@ -133,8 +153,9 @@ class CourierLocationCacheService
     /**
      * Update courier zone indexes
      */
-    private function updateCourierZoneIndexes(int $courierId, array $locationData): void
-    {
+private function updateCourierZoneIndexes(int $courierId, array $locationData): void
+{
+    try {
         $courier = Couier::find($courierId);
 
         if (!$courier) {
@@ -150,20 +171,27 @@ class CourierLocationCacheService
             // Add courier to zone if not already there
             if (!in_array($courierId, $zoneCouriers)) {
                 $zoneCouriers[] = $courierId;
-                Cache::put(
+                $this->cacheWithRetry(
                     self::ZONE_COURIERS_KEY_PREFIX . $zoneId,
                     $zoneCouriers,
-                    now()->addSeconds(self::CACHE_TTL)
+                    self::CACHE_TTL
                 );
             }
         }
 
         // Update courier-to-zones mapping
-        Cache::put(
+        $this->cacheWithRetry(
             self::COURIER_ZONES_KEY_PREFIX . $courierId,
             $zones,
-            now()->addSeconds(self::CACHE_TTL)
+            self::CACHE_TTL
         );
+    } catch (\Exception $e) {
+        Log::error('Failed to update courier zone indexes', [
+            'courier_id' => $courierId,
+            'error' => $e->getMessage()
+        ]);
+    }
+
     }
 
     /**

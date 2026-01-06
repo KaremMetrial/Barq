@@ -22,7 +22,7 @@ class GovernorateController extends Controller
      */
     public function index()
     {
-        $governorates = $this->governorateService->getAllGovernorates();
+        $governorates = $this->governorateService->getAllGovernorates(request()->all());
         return $this->successResponse([
             "governorates" => GovernorateResource::collection($governorates->load('country')),
         ], __("message.success"));

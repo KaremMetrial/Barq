@@ -4,9 +4,11 @@ namespace Modules\Couier\Http\Controllers;
 
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Modules\Order\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Modules\Order\Events\OrderAssignmentToCourier;
 use Modules\Couier\Services\CourierLocationCacheService;
 
 class CourierLocationController extends Controller
@@ -49,12 +51,22 @@ class CourierLocationController extends Controller
                 ]
             );
             if ($success) {
+                $order = Order::where('couier_id', $courierId)
+                    ->whereIn('status', ['on_the_way', 'delivered'])
+                    ->latest()
+                    ->first();
+
+                $unreadMessagesCount = $order ? (int) $order->courierUnreadMessagesCount() : 0;
+
+                if ($order) {
+                    OrderAssignmentToCourier::dispatch($order, auth('courier')->user(), $unreadMessagesCount, $request->latitude, $request->longitude);
+                }
+
                 return $this->successResponse([
                     'updated_at' => now()->toISOString(),
                     'courier_id' => $courierId
                 ], 'Location updated successfully');
             }
-
             Log::error('Courier location update failed: Cache service returned false', [
                 'courier_id' => $courierId,
                 'lat' => $request->latitude,

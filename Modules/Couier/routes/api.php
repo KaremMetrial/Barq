@@ -102,7 +102,6 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::post('/location/update', [CourierLocationController::class, 'updateLocation']);
-
     });
 
     // Admin Order Management

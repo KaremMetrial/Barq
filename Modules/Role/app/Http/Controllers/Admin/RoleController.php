@@ -47,7 +47,8 @@ class RoleController extends Controller
     {
         $role = $this->RoleService->getRoleById($id);
         return $this->successResponse([
-            'role' => new RoleResource($role)
+            'role' => new RoleResource($role),
+            'permissions' => $role->permissions->pluck('name')
         ], __('message.success'));
     }
 
@@ -69,5 +70,12 @@ class RoleController extends Controller
     {
         $isDeleted = $this->RoleService->deleteRole($id);
         return $this->successResponse(null, __('message.success'));
+    }
+    public function permissions(): JsonResponse
+    {
+        $permissions = $this->RoleService->getAllPermissions();
+        return $this->successResponse([
+            'permissions' => $permissions
+        ], __('message.success'));
     }
 }

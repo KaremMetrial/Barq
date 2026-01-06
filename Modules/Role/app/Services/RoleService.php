@@ -25,20 +25,24 @@ class RoleService
     {
         return DB::transaction(function () use ($data) {
             $data = array_filter($data, fn($value) => !blank($value));
-            return $this->RoleRepository->create($data);
+            $role =  $this->RoleRepository->create($data);
+            $role->syncPermissions($data['permissions']);
+            return $role;
         });
     }
 
     public function getRoleById(int $id)
     {
-        return $this->RoleRepository->find($id, ['store']);
+        return $this->RoleRepository->find($id);
     }
 
     public function updateRole(int $id, array $data)
     {
         return DB::transaction(function () use ($data, $id) {
             $data = array_filter($data, fn($value) => !blank($value));
-            return $this->RoleRepository->update($id, $data);
+            $role = $this->RoleRepository->update($id, $data);
+            $role->syncPermissions($data['permissions']);
+            return $role;
         });
 
     }
@@ -46,5 +50,12 @@ class RoleService
     public function deleteRole(int $id): bool
     {
         return $this->RoleRepository->delete($id);
+    }
+    public function getAllPermissions(): array
+    {
+        return Cache::rememberForever('permissions_list', function () {
+            $permissions = DB::table('permissions')->pluck('name')->toArray();
+            return $permissions;
+        });
     }
 }

@@ -16,22 +16,67 @@ class RolePermissionSeeder extends Seeder
         // Define all models for permission generation
         $models = [
             // App Models
-            'attachment', 'loyalty_setting', 'loyalty_transaction', 'national_identity',
-            'plan', 'report', 'seo', 'shipping_price', 'sms_provider', 'sms_setting',
-            'subscription', 'transaction',
+            'coupon_usage',
+            'plan',
+            'rating_key',
+            'report',
+            'review_rating',
+            'seo',
+            // 'sms_provider',
+            // 'sms_setting',
+            'subscription',
+            'transaction',
 
             // Module Models
-            'ad', 'addon', 'address', 'balance', 'banner', 'cart', 'cart_item', 'category',
-            'city', 'compaign', 'compaign_participation', 'contact_us', 'conversation',
-            'couier', 'couier_shift', 'couier_vehicle', 'country', 'coupon',
-            'delivery_instruction', 'favourite', 'governorate', 'interest', 'language',
-            'message', 'offer', 'option', 'order', 'order_item', 'order_proof',
-            'order_status_history', 'otp', 'page', 'pharmacy_info', 'pos_shift',
-            'pos_terminal', 'product', 'product_allergen', 'product_availability',
-            'product_image', 'product_nutrition', 'product_option', 'product_option_value',
-            'product_price', 'product_price_sale', 'product_value', 'product_watermarks',
-            'review', 'role', 'search', 'section', 'setting', 'store', 'store_setting',
-            'tag', 'unit', 'user', 'vehicle', 'vendor', 'working_day', 'zone',
+            // 'ad',
+            'addon',
+            // 'address',
+            // 'balance',
+            'banner',
+            'category',
+            'city',
+            // 'compaign',
+            // 'compaign_participation',
+            'contact_us',
+            'conversation',
+            'couier',
+            'couier_shift',
+            'couier_vehicle',
+            'courier_order_assignment',
+            'country',
+            'coupon',
+            // 'delivery_instruction',
+            'governorate',
+            // 'language',
+            'loyalty_setting',
+            'loyalty_transaction',
+            // 'message',
+            'offer',
+            'option',
+            'order',
+            // 'order_item',
+            // 'order_proof',
+            // 'order_status_history',
+            'page',
+            'payment_method',
+            'pos_shift',
+            'pos_terminal',
+            'product',
+            'review',
+            'reward',
+            'role',
+            'section',
+            'setting',
+            'shipping_price',
+            'shift_template',
+            'shift_template_day',
+            'store',
+            'user',
+            'vehicle',
+            'vendor',
+            'withdrawal',
+            'working_day',
+            'zone',
         ];
 
         // Generate CRUD permissions for each model
@@ -52,10 +97,88 @@ class RolePermissionSeeder extends Seeder
 
         $permissions = array_merge($permissions, $legacyPermissions);
 
-        // Create all permissions
+        // Create all permissions for admin guard
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'admin']);
         }
+
+        // ===== ADMIN ROLES =====
+
+        // SUPER ADMIN ROLE - Has all permissions
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'admin']);
+        $superAdminRole->syncPermissions($permissions);
+
+        // DATA ENTRY ROLE - Can manage master data
+        $dataEntryRole = Role::firstOrCreate(['name' => 'data_entry', 'guard_name' => 'admin']);
+        $dataEntryPermissions = [
+            // User management
+            'view_user', 'create_user', 'update_user', 'delete_user',
+            // Product management
+            'view_product', 'create_product', 'update_product', 'delete_product',
+            // Categories and sections
+            'view_category', 'create_category', 'update_category', 'delete_category',
+            'view_section', 'create_section', 'update_section', 'delete_section',
+            // Basic store features
+            'view_store',
+            'view_coupon', 'create_coupon', 'update_coupon', 'delete_coupon',
+            'view_offer', 'create_offer', 'update_offer', 'delete_offer',
+            'view_banner', 'create_banner', 'update_banner', 'delete_banner',
+            'view_addon', 'create_addon', 'update_addon', 'delete_addon',
+            'view_option', 'create_option', 'update_option', 'delete_option',
+            // Location data
+            'view_city', 'view_governorate', 'view_country', 'view_zone',
+            // Content management
+            'view_page', 'create_page', 'update_page', 'delete_page',
+            'view_setting', 'update_setting',
+            // Loyalty and rewards
+            'view_loyalty_setting', 'update_loyalty_setting',
+            'view_loyalty_transaction', 'view_reward',
+            // POS and terminals
+            'view_pos_shift', 'view_pos_terminal',
+        ];
+        $dataEntryRole->syncPermissions($dataEntryPermissions);
+
+        // COURIER ADMIN ROLE - Manages couriers and deliveries
+        $courierAdminRole = Role::firstOrCreate(['name' => 'courier_admin', 'guard_name' => 'admin']);
+        $courierAdminPermissions = [
+            // Courier management
+            'view_couier', 'create_couier', 'update_couier', 'delete_couier',
+            'view_vehicle', 'create_vehicle', 'update_vehicle', 'delete_vehicle',
+            'view_couier_shift', 'create_couier_shift', 'update_couier_shift', 'delete_couier_shift',
+            'view_couier_vehicle', 'create_couier_vehicle', 'update_couier_vehicle', 'delete_couier_vehicle',
+            'view_courier_order_assignment', 'create_courier_order_assignment', 'update_courier_order_assignment', 'delete_courier_order_assignment',
+            'view_shift_template', 'create_shift_template', 'update_shift_template', 'delete_shift_template',
+            'view_shift_template_day', 'create_shift_template_day', 'update_shift_template_day', 'delete_shift_template_day',
+            // Order management (delivery focused)
+            'view_order', 'update_order',
+            // 'view_delivery_instruction',
+            // Location data for delivery zones
+            'view_city', 'view_governorate', 'view_country', 'view_zone', 'view_address',
+            // Reports
+            'view_report',
+            // Working days
+            'view_working_day', 'create_working_day', 'update_working_day', 'delete_working_day',
+        ];
+        $courierAdminRole->syncPermissions($courierAdminPermissions);
+
+        // SALES ROLE - View-only access for analytics and reports
+        $salesRole = Role::firstOrCreate(['name' => 'sales', 'guard_name' => 'admin']);
+        $salesPermissions = [
+            // View permissions for analysis
+            'view_user', 'view_order', 'view_product', 'view_store',
+            'view_category', 'view_section', 'view_city', 'view_governorate', 'view_country',
+            'view_coupon', 'view_offer', 'view_banner', 'view_review', 'view_report',
+            'view_transaction', 'view_balance', 'view_subscription',
+            // Reviews and ratings
+            'view_review_rating', 'view_rating_key',
+            // Rewards
+            'view_reward',
+            // Legacy permissions
+            'view_reports', 'manage_inventory',
+        ];
+        $salesRole->syncPermissions($salesPermissions);
+
+        // ===== VENDOR ROLES =====
 
         // Create permissions for vendor guard
         $vendorPermissions = [
@@ -63,21 +186,11 @@ class RolePermissionSeeder extends Seeder
             'manage_inventory', 'view_reports', 'manage_staff', 'process_payments',
             'handle_customer_service',
             // Store management
-            'view_store', 'update_store', 'view_store_setting', 'update_store_setting',
+            'view_store', 'update_store',
             // Products
             'view_product', 'create_product', 'update_product', 'delete_product',
-            'view_product_image', 'create_product_image', 'update_product_image', 'delete_product_image',
-            'view_product_price', 'create_product_price', 'update_product_price', 'delete_product_price',
-            'view_product_option', 'create_product_option', 'update_product_option', 'delete_product_option',
-            'view_product_option_value', 'create_product_option_value', 'update_product_option_value', 'delete_product_option_value',
-            'view_product_availability', 'create_product_availability', 'update_product_availability', 'delete_product_availability',
-            'view_product_nutrition', 'create_product_nutrition', 'update_product_nutrition', 'delete_product_nutrition',
-            'view_product_allergen', 'create_product_allergen', 'update_product_allergen', 'delete_product_allergen',
-            'view_product_value', 'create_product_value', 'update_product_value', 'delete_product_value',
-            'view_product_watermarks', 'create_product_watermarks', 'update_product_watermarks', 'delete_product_watermarks',
             // Orders
-            'view_order', 'update_order', 'view_order_item', 'update_order_item',
-            'view_order_status_history', 'create_order_status_history',
+            'view_order', 'update_order',
             'view_order_proof', 'create_order_proof', 'update_order_proof', 'delete_order_proof',
             // Categories and sections
             'view_category', 'create_category', 'update_category', 'delete_category',
@@ -96,17 +209,15 @@ class RolePermissionSeeder extends Seeder
             'view_option', 'create_option', 'update_option', 'delete_option',
             'view_tag', 'create_tag', 'update_tag', 'delete_tag',
             'view_unit', 'create_unit', 'update_unit', 'delete_unit',
+            // Loyalty and rewards
+            'view_loyalty_setting', 'view_loyalty_transaction', 'view_reward',
+            // POS
+            'view_pos_shift', 'view_pos_terminal',
         ];
 
         foreach ($vendorPermissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'vendor']);
         }
-
-        // Create roles and assign permissions
-
-        // Admin role - has all permissions
-        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'admin']);
-        $adminRole->syncPermissions($permissions);
 
         // Store Owner role
         $storeOwnerRole = Role::firstOrCreate(['name' => 'store_owner', 'guard_name' => 'vendor']);
@@ -146,7 +257,7 @@ class RolePermissionSeeder extends Seeder
 
         // Vendor role
         $vendorRole = Role::firstOrCreate(['name' => 'vendor', 'guard_name' => 'vendor']);
-        $vendorPermissions = [
+        $vendorRolePermissions = [
             'view_store', 'update_store',
             'view_product', 'create_product', 'update_product', 'delete_product',
             'view_product_image', 'create_product_image', 'update_product_image', 'delete_product_image',
@@ -154,7 +265,9 @@ class RolePermissionSeeder extends Seeder
             'view_order', 'update_order', 'view_order_item',
             'view_report', 'view_review',
         ];
-        $vendorRole->syncPermissions($vendorPermissions);
+        $vendorRole->syncPermissions($vendorRolePermissions);
+
+        // ===== USER ROLES =====
 
         // Create permissions for user guard
         $userPermissions = [
@@ -168,7 +281,12 @@ class RolePermissionSeeder extends Seeder
             'view_review', 'create_review', 'update_review',
             'view_coupon', 'view_offer', 'view_banner',
             'view_order_status_history', 'create_order_status_history',
-            'view_delivery_instruction', 'view_user',
+            'view_delivery_instruction', 'view_user', 'view_balance',
+            'view_transaction', 'view_loyalty_transaction', 'view_reward',
+            'view_conversation', 'create_conversation', 'view_message', 'create_message',
+            'view_otp', 'view_interest', 'view_language', 'view_working_day',
+            'view_withdrawal', 'create_withdrawal', 'view_subscription',
+            'view_comcampaign', 'view_ad', 'view_contact_us',
         ];
 
         foreach ($userPermissions as $permission) {
