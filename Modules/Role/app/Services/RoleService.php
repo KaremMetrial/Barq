@@ -54,8 +54,12 @@ class RoleService
     public function getAllPermissions(): array
     {
         return Cache::rememberForever('permissions_list', function () {
-            $permissions = DB::table('permissions')->pluck('name')->toArray();
-            return $permissions;
+            $guard = request()->input('guard_name', 'admin');
+
+            return DB::table('permissions')
+                ->where('guard_name', $guard)
+                ->pluck('name')
+                ->toArray();
         });
     }
 }

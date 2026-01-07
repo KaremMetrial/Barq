@@ -4,6 +4,7 @@ namespace Modules\Reward\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Modules\Reward\Services\RewardService;
 use Modules\Reward\Http\Requests\CreateRewardRequest;
 use Modules\Reward\Http\Requests\UpdateRewardRequest;
@@ -11,10 +12,11 @@ use Modules\Reward\Http\Resources\RewardResource;
 use App\Http\Resources\PaginationResource;
 use Modules\Reward\Http\Resources\RewardRedemptionResource;
 use Modules\User\Http\Resources\UserResource;
+use Modules\Reward\Models\Reward;
 
 class AdminRewardController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(private RewardService $rewardService) {}
 
@@ -23,6 +25,7 @@ class AdminRewardController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Reward::class);
         $rewards = $this->rewardService->getAllRewards(request()->all());
         return $this->successResponse([
             'rewards' => RewardResource::collection($rewards),
@@ -35,6 +38,7 @@ class AdminRewardController extends Controller
      */
     public function store(CreateRewardRequest $request)
     {
+        $this->authorize('create', Reward::class);
         $reward = $this->rewardService->createReward($request->all());
         return $this->successResponse([
             'reward' => new RewardResource($reward),
@@ -47,6 +51,7 @@ class AdminRewardController extends Controller
     public function show($id)
     {
         $reward = $this->rewardService->getRewardById($id);
+        $this->authorize('view', $reward);
         return $this->successResponse([
             'reward' => new RewardResource($reward),
         ], __('message.success'));
@@ -57,6 +62,8 @@ class AdminRewardController extends Controller
      */
     public function update(UpdateRewardRequest $request, $id)
     {
+        $reward = $this->rewardService->getRewardById($id);
+        $this->authorize('update', $reward);
         $reward = $this->rewardService->updateReward($id, $request->all());
         return $this->successResponse([
             'reward' => new RewardResource($reward),
@@ -68,6 +75,8 @@ class AdminRewardController extends Controller
      */
     public function destroy($id)
     {
+        $reward = $this->rewardService->getRewardById($id);
+        $this->authorize('delete', $reward);
         $this->rewardService->deleteReward($id);
         return $this->successResponse(null, __('message.success'));
     }
@@ -77,6 +86,7 @@ class AdminRewardController extends Controller
      */
     public function dashboard()
     {
+        $this->authorize('viewAny', Reward::class);
         $stats = $this->rewardService->getDashboardStats();
 
         // Transform users and append extra data if needed
@@ -95,6 +105,7 @@ class AdminRewardController extends Controller
     }
     public function stats()
     {
+        $this->authorize('viewAny', Reward::class);
         $stats = $this->rewardService->stats();
         return $this->successResponse([
             'stats' => $stats
@@ -102,6 +113,7 @@ class AdminRewardController extends Controller
     }
     public function getAllRedemption()
     {
+        $this->authorize('viewAny', Reward::class);
         $redemption  = $this->rewardService->getAllRedemption();
         return $this->successResponse([
             'redemption' => RewardRedemptionResource::collection($redemption),
@@ -110,6 +122,8 @@ class AdminRewardController extends Controller
     }
     public function resetLoyality()
     {
+        // Only super admin can reset loyalty points - this is a critical operation
+        $this->authorize('delete', Reward::class);
         $this->rewardService->resetAllLoyaltyPoints();
         return $this->successResponse();
     }

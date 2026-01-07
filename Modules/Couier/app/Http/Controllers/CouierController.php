@@ -3,6 +3,7 @@
 namespace Modules\Couier\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -12,10 +13,11 @@ use Modules\Couier\Http\Resources\CouierResource;
 use Modules\Couier\Http\Resources\CourierResource;
 use Modules\Couier\Http\Requests\CreateCouierRequest;
 use Modules\Couier\Http\Requests\UpdateCouierRequest;
+use Modules\Couier\Models\Couier;
 
 class CouierController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected CouierService $couierService)
     {
@@ -26,6 +28,7 @@ class CouierController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Couier::class);
         $filters = $request->all();
         $couiers = $this->couierService->getAllCouiers($filters);
         return $this->successResponse([
@@ -39,6 +42,7 @@ class CouierController extends Controller
      */
     public function store(CreateCouierRequest $request): JsonResponse
     {
+        $this->authorize('create', Couier::class);
         $couier = $this->couierService->createCouier($request->all());
         return $this->successResponse([
             "couier" => new CouierResource($couier->load('store')),
@@ -51,6 +55,7 @@ class CouierController extends Controller
     public function show(int $id): JsonResponse
     {
         $couier = $this->couierService->getCouierById($id);
+        $this->authorize('view', $couier);
         return $this->successResponse([
             "couier" => new CourierResource($couier->load(['store','vehicle','zonesToCover', 'address.zone','shifts', 'attachments', 'nationalIdentity','address'])),
         ], __("message.success"));
@@ -61,6 +66,8 @@ class CouierController extends Controller
      */
     public function update(UpdateCouierRequest $request, int $id): JsonResponse
     {
+        $couier = $this->couierService->getCouierById($id);
+        $this->authorize('update', $couier);
         $couier = $this->couierService->updateCouier($id, $request->all());
         return $this->successResponse([
             "couier" => new CouierResource($couier->load('store')),
@@ -72,6 +79,8 @@ class CouierController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $couier = $this->couierService->getCouierById($id);
+        $this->authorize('delete', $couier);
         $deleted = $this->couierService->deleteCouier($id);
         return $this->successResponse(null, __("message.success"));
     }

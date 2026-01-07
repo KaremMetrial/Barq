@@ -40,6 +40,7 @@ class AdminController extends Controller
      */
     public function store(CreateAdminRequest $request): JsonResponse
     {
+        $this->authorize('create', \Modules\Admin\Models\Admin::class);
         $admin = $this->adminService->createAdmin($request->all());
 
         return $this->successResponse([
@@ -53,6 +54,7 @@ class AdminController extends Controller
     public function show(int $id): JsonResponse
     {
         $admin = $this->adminService->getAdminById($id);
+        $this->authorize('view', $admin);
 
         return $this->successResponse([
             "admin" => new AdminResource($admin),
@@ -64,6 +66,8 @@ class AdminController extends Controller
      */
     public function update(UpdateAdminRequest $request, int $id): JsonResponse
     {
+        $admin = $this->adminService->getAdminById($id);
+        $this->authorize('update', $admin);
         $admin = $this->adminService->updateAdmin($id, $request->all());
 
         return $this->successResponse([
@@ -76,6 +80,8 @@ class AdminController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $admin = $this->adminService->getAdminById($id);
+        $this->authorize('delete', $admin);
         $this->adminService->deleteAdmin($id);
 
         return $this->successResponse(null, __("message.success"));

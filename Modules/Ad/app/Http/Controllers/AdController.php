@@ -4,15 +4,17 @@ namespace Modules\Ad\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Modules\Ad\Http\Requests\CreateAdRequest;
 use Modules\Ad\Http\Requests\UpdateAdRequest;
 use Modules\Ad\Http\Resources\AdResource;
 use Modules\Ad\Services\AdService;
+use Modules\Ad\Models\Ad;
 use Illuminate\Http\JsonResponse;
 
 class AdController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected AdService $adService)
     {
@@ -23,6 +25,7 @@ class AdController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorize('viewAny', Ad::class);
         $ads = $this->adService->getAllAds();
 
         return $this->successResponse([
@@ -35,6 +38,7 @@ class AdController extends Controller
      */
     public function store(CreateAdRequest $request): JsonResponse
     {
+        $this->authorize('create', Ad::class);
         $ad = $this->adService->createAd($request->all());
 
         return $this->successResponse([
@@ -48,6 +52,7 @@ class AdController extends Controller
     public function show(int $id): JsonResponse
     {
         $ad = $this->adService->getAdById($id);
+        $this->authorize('view', $ad);
 
         return $this->successResponse([
             "ad" => new AdResource($ad),
@@ -59,6 +64,8 @@ class AdController extends Controller
      */
     public function update(UpdateAdRequest $request, int $id): JsonResponse
     {
+        $ad = $this->adService->getAdById($id);
+        $this->authorize('update', $ad);
         $ad = $this->adService->updateAd($id, $request->all());
 
         return $this->successResponse([
@@ -71,6 +78,8 @@ class AdController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $ad = $this->adService->getAdById($id);
+        $this->authorize('delete', $ad);
         $this->adService->deleteAd($id);
 
         return $this->successResponse(null, __("message.success"));

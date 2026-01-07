@@ -27,7 +27,7 @@ class SectionController extends Controller
     {
         $sections = $this->sectionService->getAllSections();
         return $this->successResponse([
-            "sections" => SectionResource::collection($sections->load('categories'))
+            "sections" => SectionResource::collection($sections)
         ], __('message.success'));
     }
 

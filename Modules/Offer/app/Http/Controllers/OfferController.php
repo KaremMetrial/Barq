@@ -3,6 +3,7 @@
 namespace Modules\Offer\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Modules\Offer\Models\Offer;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -15,7 +16,7 @@ use Modules\Offer\Http\Resources\AdminOfferResource;
 
 class OfferController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected OfferService $offerService)
     {
@@ -26,6 +27,7 @@ class OfferController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorize('viewAny', Offer::class);
         $filters = request()->all();
         $offers = $this->offerService->getAllOffers($filters);
         return $this->successResponse([
@@ -39,6 +41,7 @@ class OfferController extends Controller
      */
     public function store(CreateOfferRequest $request): JsonResponse
     {
+        $this->authorize('create', Offer::class);
         $offer = $this->offerService->createOffer($request->all());
         return $this->successResponse([
             'offer' => new AdminOfferResource($offer->refresh())
@@ -51,6 +54,7 @@ class OfferController extends Controller
     public function show(int $id): JsonResponse
     {
         $offer = $this->offerService->getOfferById($id);
+        $this->authorize('view', $offer);
         return $this->successResponse([
             'offer' => new OfferResource($offer)
         ], __('message.success'));
@@ -61,6 +65,8 @@ class OfferController extends Controller
      */
     public function update(UpdateOfferRequest $request, int $id): JsonResponse
     {
+        $offer = $this->offerService->getOfferById($id);
+        $this->authorize('update', $offer);
         $offer = $this->offerService->updateOffer($id, $request->all());
         return $this->successResponse([
             'offer' => new OfferResource($offer->refresh())
@@ -72,6 +78,8 @@ class OfferController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $offer = $this->offerService->getOfferById($id);
+        $this->authorize('delete', $offer);
         $isDeleted = $this->offerService->deleteOffer($id);
         return $this->successResponse(null, __('message.success'));
     }
@@ -80,6 +88,8 @@ class OfferController extends Controller
      */
     public function toggleStatus(int $id): JsonResponse
     {
+        $offer = $this->offerService->getOfferById($id);
+        $this->authorize('update', $offer);
         $offer = $this->offerService->toggleStatus($id);
 
         return $this->successResponse([

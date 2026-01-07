@@ -4,16 +4,18 @@ namespace Modules\PosTerminal\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
-use GuzzleHttp\Psr7\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\PosTerminal\Http\Requests\CreatePosTerminalRequest;
 use Modules\PosTerminal\Http\Requests\UpdatePosTerminalRequest;
 use Modules\PosTerminal\Http\Resources\PosTerminalResource;
 use Modules\PosTerminal\Services\PosTerminalService;
+use Modules\PosTerminal\Models\PosTerminal;
 
 class PosTerminalController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected PosTerminalService $posTerminalService)
     {
@@ -24,8 +26,8 @@ class PosTerminalController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', PosTerminal::class);
         $terminals = $this->posTerminalService->getAllPosTerminals($request->all());
-        dd($terminals);
         return $this->successResponse([
             "terminals" => PosTerminalResource::collection($terminals)
         ], __('message.success'));
@@ -36,6 +38,7 @@ class PosTerminalController extends Controller
      */
     public function store(CreatePosTerminalRequest $request): JsonResponse
     {
+        $this->authorize('create', PosTerminal::class);
         $terminal = $this->posTerminalService->createPosTerminal($request->all());
         return $this->successResponse([
             'terminal' => new PosTerminalResource($terminal)
@@ -48,6 +51,7 @@ class PosTerminalController extends Controller
     public function show(int $id): JsonResponse
     {
         $terminal = $this->posTerminalService->getPosTerminalById($id);
+        $this->authorize('view', $terminal);
         return $this->successResponse([
             'terminal' => new PosTerminalResource($terminal)
         ], __('message.success'));
@@ -58,6 +62,8 @@ class PosTerminalController extends Controller
      */
     public function update(UpdatePosTerminalRequest $request, int $id): JsonResponse
     {
+        $terminal = $this->posTerminalService->getPosTerminalById($id);
+        $this->authorize('update', $terminal);
         $terminal = $this->posTerminalService->updatePosTerminal($id, $request->all());
         return $this->successResponse([
             'terminal' => new PosTerminalResource($terminal)
@@ -69,6 +75,8 @@ class PosTerminalController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $terminal = $this->posTerminalService->getPosTerminalById($id);
+        $this->authorize('delete', $terminal);
         $isDeleted = $this->posTerminalService->deletePosTerminal($id);
         return $this->successResponse(null, __('message.success'));
     }

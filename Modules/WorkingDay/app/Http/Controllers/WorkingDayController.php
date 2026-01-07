@@ -4,16 +4,18 @@ namespace Modules\WorkingDay\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Modules\WorkingDay\Http\Requests\CreateWorkingDayRequest;
 use Modules\WorkingDay\Http\Requests\UpdateWorkingDayRequest;
 use Modules\WorkingDay\Http\Resources\WorkingDayResource;
 use Modules\WorkingDay\Services\WorkingDayService;
+use Modules\WorkingDay\Models\WorkingDay;
 use Illuminate\Http\Request;
 
 class WorkingDayController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected WorkingDayService $workingDayService) {}
 
@@ -22,6 +24,7 @@ class WorkingDayController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', WorkingDay::class);
         $filters = $request->only('store_id');
         $workingDays = $this->workingDayService->getAllWorkingDays($filters);
         return $this->successResponse([
@@ -34,6 +37,7 @@ class WorkingDayController extends Controller
      */
     public function store(CreateWorkingDayRequest $request): JsonResponse
     {
+        $this->authorize('create', WorkingDay::class);
         $workingDay = $this->workingDayService->createWorkingDay($request->validated());
         return $this->successResponse([
             'working_day' => new WorkingDayResource($workingDay),
@@ -46,6 +50,7 @@ class WorkingDayController extends Controller
     public function show(int $id): JsonResponse
     {
         $workingDay = $this->workingDayService->getWorkingDayById($id);
+        $this->authorize('view', $workingDay);
         return $this->successResponse([
             'working_day' => new WorkingDayResource($workingDay),
         ], __('message.success'));
@@ -56,6 +61,8 @@ class WorkingDayController extends Controller
      */
     public function update(UpdateWorkingDayRequest $request, int $id): JsonResponse
     {
+        $workingDay = $this->workingDayService->getWorkingDayById($id);
+        $this->authorize('update', $workingDay);
         $workingDay = $this->workingDayService->updateWorkingDay($id, $request->validated());
         return $this->successResponse([
             'working_day' => new WorkingDayResource($workingDay),
@@ -67,6 +74,8 @@ class WorkingDayController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $workingDay = $this->workingDayService->getWorkingDayById($id);
+        $this->authorize('delete', $workingDay);
         $this->workingDayService->deleteWorkingDay($id);
         return $this->successResponse(null, __('message.success'));
     }

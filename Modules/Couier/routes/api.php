@@ -7,6 +7,7 @@ use Modules\Couier\Http\Controllers\CourierMapController;
 use Modules\Couier\Http\Controllers\CourierAuthController;
 use Modules\Couier\Http\Controllers\CourierShiftController;
 use Modules\Couier\Http\Controllers\CourierLocationController;
+use Modules\Couier\Http\Controllers\CourierDashboardController;
 use Modules\Couier\Http\Controllers\Admin\ShiftTemplateController;
 use Modules\Couier\Http\Controllers\Admin\OrderManagementController;
 use Modules\Couier\Http\Controllers\Admin\CourierShiftController as AdminCourierShiftController;
@@ -77,6 +78,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/stats', [CourierShiftController::class, 'stats']);
         });
 
+        // Dashboard
+        Route::get('/dashboard', [CourierDashboardController::class, 'index']);
+        Route::get('/earnings-details', [CourierDashboardController::class, 'earningsDetails']);
+
         // Order Management Routes
         Route::prefix('orders')->group(function () {
             // Map View & Location Updates
@@ -90,6 +95,7 @@ Route::prefix('v1')->group(function () {
 
             // Order Details
             Route::get('/assignments/{assignmentId}/details', [CourierMapController::class, 'orderDetails']);
+            Route::get('/assignments/{assignmentId}/comprehensive-details', [CourierMapController::class, 'comprehensiveOrderDetails']);
             Route::get('/assignments/{assignmentId}/full-details', [CourierMapController::class, 'fullOrderDetails'])->name('courier.full-order-details');
 
             // Receipt Upload & Management

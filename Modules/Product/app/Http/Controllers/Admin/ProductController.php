@@ -3,6 +3,7 @@
 namespace Modules\Product\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -12,10 +13,11 @@ use Modules\Product\Http\Resources\AdminProductResource;
 use Modules\Product\Http\Resources\ProductResource;
 use Modules\Product\Http\Requests\CreateProductRequest;
 use Modules\Product\Http\Requests\UpdateProductRequest;
+use Modules\Product\Models\Product;
 
 class ProductController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected ProductService $productService) {}
 
@@ -24,6 +26,7 @@ class ProductController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Product::class);
         $filters = $request->only('store_id', 'search', 'category_id');
         $products = $this->productService->getAllProducts($filters);
         return $this->successResponse([
@@ -37,6 +40,7 @@ class ProductController extends Controller
      */
     public function store(CreateProductRequest $request): JsonResponse
     {
+        $this->authorize('create', Product::class);
         $product = $this->productService->createProduct($request->validated());
         return $this->successResponse([
             "product" => new ProductResource($product),
@@ -49,6 +53,7 @@ class ProductController extends Controller
     public function show(int $id): JsonResponse
     {
         $product = $this->productService->getProductById($id);
+        $this->authorize('view', $product);
         return $this->successResponse([
             "product" => new AdminProductResource($product->load(['pharmacyInfo'])),
         ], __("message.success"));
@@ -59,6 +64,8 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, int $id): JsonResponse
     {
+        $product = $this->productService->getProductById($id);
+        $this->authorize('update', $product);
         $product = $this->productService->updateProduct($id, $request->all());
         return $this->successResponse([
             "product" => new ProductResource($product->load('images')->refresh()),
@@ -70,6 +77,8 @@ class ProductController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $product = $this->productService->getProductById($id);
+        $this->authorize('delete', $product);
         $deleted = $this->productService->deleteProduct($id);
         return $this->successResponse(null, __("message.success"));
     }

@@ -4,6 +4,7 @@ namespace Modules\ShippingPrice\Http\Controllers;
 
 use App\Helpers\CurrencyHelper;
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\ShippingPrice\Services\ShippingPriceService;
@@ -12,10 +13,11 @@ use Modules\ShippingPrice\Http\Resources\ShippingPriceCollectionResource;
 use App\Http\Resources\PaginationResource;
 use Modules\ShippingPrice\Http\Requests\CreateShippingPriceRequest;
 use Modules\ShippingPrice\Http\Requests\UpdateMultipleShippingPriceRequest;
+use Modules\ShippingPrice\Models\ShippingPrice;
 
 class ShippingPriceController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
         public function __construct(protected ShippingPriceService $ShippingPriceService)
     {
     }
@@ -25,6 +27,7 @@ class ShippingPriceController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', ShippingPrice::class);
         $zones = \Modules\Zone\Models\Zone::with('shippingPrices.vehicle')->whereHas('shippingPrices')->filter($request->query())->paginate($request->get('per_page', 5));
 
         $result = $zones->getCollection()->map(function ($zone) {
@@ -42,6 +45,7 @@ class ShippingPriceController extends Controller
      */
     public function store(CreateShippingPriceRequest $request)
     {
+        $this->authorize('create', ShippingPrice::class);
         $validated = $request->validated();
         $zoneId = $validated['zone_id'];
         $vehicles = $validated['vehicles'];
@@ -79,6 +83,7 @@ class ShippingPriceController extends Controller
     public function show($id)
     {
         $ShippingPrice = $this->ShippingPriceService->getShippingPriceById($id);
+        $this->authorize('view', $ShippingPrice);
         return $this->successResponse([
             'ShippingPrice' => new ShippingPriceResource($ShippingPrice)
         ], __('message.success'));
@@ -89,6 +94,7 @@ class ShippingPriceController extends Controller
      */
 public function update(UpdateMultipleShippingPriceRequest $request, $id = null)
 {
+    $this->authorize('update', ShippingPrice::class);
     $validated = $request->validated();
     $zoneId = $validated['zone_id'];
     $vehicles = $validated['vehicles'];
@@ -142,7 +148,7 @@ public function update(UpdateMultipleShippingPriceRequest $request, $id = null)
         'ShippingPrices' => ShippingPriceResource::collection($updatedShippingPrices)
     ], __('message.success'));
 }
-    
+
 
     /**
      * Get shipping statistics
@@ -180,6 +186,8 @@ public function update(UpdateMultipleShippingPriceRequest $request, $id = null)
      */
     public function destroy($id)
     {
+        $ShippingPrice = $this->ShippingPriceService->getShippingPriceById($id);
+        $this->authorize('delete', $ShippingPrice);
         $isDeleted = $this->ShippingPriceService->deleteShippingPrice($id);
         return $this->successResponse(null, __('message.success'));
     }

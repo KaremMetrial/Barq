@@ -574,4 +574,167 @@ class CourierMapController extends Controller
             default => $query->whereDate('completed_at', today()),
         };
     }
+
+    /**
+     * Get comprehensive order details for courier mobile app
+     */
+    public function comprehensiveOrderDetails($assignmentId): JsonResponse
+    {
+        $courierId = auth('sanctum')->id();
+
+        try {
+            $assignment = CourierOrderAssignment::where('id', $assignmentId)
+                ->where('courier_id', $courierId)
+                ->with([
+                    'order.user',
+                    'order.store',
+                    'order.deliveryAddress',
+                    'order.orderItems',
+                    'receipts',
+                ])
+                ->first();
+
+            if (!$assignment) {
+                return $this->errorResponse(__('Assignment not found or access denied'), 404);
+            }
+
+            $courier = auth('sanctum')->user();
+
+            return $this->successResponse([
+                'courier' => [
+                    'name' => $courier->first_name . ' ' . $courier->last_name,
+                    'avatar' => $courier->avatar,
+                    'status' => $this->getCourierStatus($assignment),
+                    'status_description' => $this->getCourierStatusDescription($assignment),
+                ],
+                'order' => [
+                    'order_number' => '#' . $assignment->order_id . ' - ' . $assignment->order->user->phone,
+                    'items_count' => $assignment->order->orderItems->count(),
+                    'delivery_address' => [
+                        'full_address' => $this->formatFullAddress($assignment->order->deliveryAddress),
+                        'street_address' => $assignment->order->deliveryAddress->street_address ?? '',
+                    ],
+                    'payments' => [
+                        'pay_to_seller' => $this->calculateAmountToSeller($assignment->order),
+                        'collect_from_customer' => $assignment->order->total_amount,
+                        'seller_payment_method' => 'كاش',
+                        'customer_payment_method' => 'كاش',
+                    ],
+                    'instructions' => [
+                        'pickup_receipt' => [
+                            'required' => true,
+                            'description' => 'التقط صورة للفاتورة مع الطلب',
+                            'instructions' => 'يرجى تصوير الفاتورة بجانب الطلب للتأكد من صحة العناصر ومراجعة التفاصيل قبل بدء التوصيل.',
+                            'uploaded' => $this->hasReceiptType($assignment, 'pickup_receipt'),
+                            'image_url' => $this->getReceiptImage($assignment, 'pickup_receipt'),
+                        ],
+                        'delivery_proof' => [
+                            'required' => true,
+                            'description' => 'التقط صورة لإثبات التسليم',
+                            'instructions' => 'يرجى تصوير الطلب عند تسليمه للعميل للتأكيد على إتمام العملية بنجاح وتوثيق حالة الطلب.',
+                            'uploaded' => $this->hasReceiptType($assignment, 'delivery_proof'),
+                            'image_url' => $this->getReceiptImage($assignment, 'delivery_proof'),
+                            'can_retake' => true,
+                        ],
+                    ],
+                ],
+                'progress' => [
+                    'steps' => $this->getProgressSteps($assignment),
+                ],
+            ], __('Order details retrieved successfully'));
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    private function getCourierStatus(CourierOrderAssignment $assignment): string
+    {
+        $now = now();
+
+        // Check if courier is late
+        if ($assignment->expected_completion_at && $now->isAfter($assignment->expected_completion_at)) {
+            $minutesLate = $now->diffInMinutes($assignment->expected_completion_at);
+            return "متأخر {$minutesLate} دقيقة";
+        }
+
+        // Return status based on assignment status
+        return match($assignment->status) {
+            'assigned' => 'تم تعيين الطلب',
+            'accepted' => 'في الطريق للمتجر',
+            'in_transit' => 'في الطريق للعميل',
+            'delivered' => 'تم التسليم',
+            'failed' => 'فشل التسليم',
+            default => 'قيد المعالجة',
+        };
+    }
+
+    private function getCourierStatusDescription(CourierOrderAssignment $assignment): string
+    {
+        return match($assignment->status) {
+            'assigned' => 'بانتظار قبول الطلب',
+            'accepted' => 'جاري استلام الطلب من المتجر',
+            'in_transit' => 'في الطريق لتسليم الطلب',
+            'delivered' => 'تم تسليم الطلب بنجاح',
+            'failed' => 'فشل في تسليم الطلب',
+            default => 'جاري معالجة الطلب',
+        };
+    }
+
+    private function formatFullAddress($address): string
+    {
+        if (!$address) return '';
+
+        $parts = [];
+        if ($address->country) $parts[] = $address->country->name;
+        if ($address->governorate) $parts[] = $address->governorate->name;
+        if ($address->city) $parts[] = $address->city->name;
+
+        return implode(', ', $parts);
+    }
+
+    private function calculateAmountToSeller($order): float
+    {
+        // Calculate amount to pay to seller (order total minus courier fee and other fees)
+        // This is a simplified calculation - adjust based on your business logic
+        $courierFee = 15.00; // Example courier fee
+        return max(0, $order->total_amount - $courierFee);
+    }
+
+    private function hasReceiptType(CourierOrderAssignment $assignment, string $type): bool
+    {
+        return $assignment->receipts->where('type', $type)->isNotEmpty();
+    }
+
+    private function getReceiptImage(CourierOrderAssignment $assignment, string $type)
+    {
+        $receipt = $assignment->receipts->where('type', $type)->first();
+        return $receipt ? $receipt->url : null;
+    }
+
+    private function getProgressSteps(CourierOrderAssignment $assignment): array
+    {
+        $steps = [
+            [
+                'id' => 'pickup',
+                'title' => 'التقط صورة للفاتورة',
+                'completed' => $this->hasReceiptType($assignment, 'pickup_receipt'),
+                'current' => $assignment->status === 'accepted' && !$this->hasReceiptType($assignment, 'pickup_receipt'),
+            ],
+            [
+                'id' => 'transit',
+                'title' => 'توصيل الطلب',
+                'completed' => in_array($assignment->status, ['in_transit', 'delivered', 'failed']),
+                'current' => $assignment->status === 'in_transit',
+            ],
+            [
+                'id' => 'proof',
+                'title' => 'إثبات التسليم',
+                'completed' => in_array($assignment->status, ['delivered', 'failed']),
+                'current' => $assignment->status === 'in_transit' && !$this->hasReceiptType($assignment, 'delivery_proof'),
+            ],
+        ];
+
+        return $steps;
+    }
 }

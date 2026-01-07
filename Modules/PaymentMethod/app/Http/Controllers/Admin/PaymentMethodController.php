@@ -3,6 +3,7 @@
 namespace Modules\PaymentMethod\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\PaymentMethod\Models\PaymentMethod;
@@ -13,7 +14,7 @@ use Modules\PaymentMethod\Http\Requests\UpdatePaymentMethodRequest;
 
 class PaymentMethodController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected PaymentMethodService $paymentMethodService) {}
 
@@ -22,6 +23,7 @@ class PaymentMethodController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', PaymentMethod::class);
         $paymentMethods = $this->paymentMethodService->getAll();
         return $this->successResponse( PaymentMethodResource::collection($paymentMethods));
     }
@@ -31,6 +33,7 @@ class PaymentMethodController extends Controller
      */
     public function getActive(Request $request)
     {
+        $this->authorize('viewAny', PaymentMethod::class);
         $paymentMethods = $this->paymentMethodService->getActiveOrdered();
 
         return $this->successResponse(new PaymentMethodResource($paymentMethods));
@@ -41,6 +44,7 @@ class PaymentMethodController extends Controller
      */
     public function store(CreatePaymentMethodRequest $request)
     {
+        $this->authorize('create', PaymentMethod::class);
         $paymentMethod = $this->paymentMethodService->create($request->validated());
 
         return $this->successResponse(
@@ -55,6 +59,7 @@ class PaymentMethodController extends Controller
      */
     public function show(PaymentMethod $paymentMethod)
     {
+        $this->authorize('view', $paymentMethod);
         return $this->successResponse(new PaymentMethodResource($paymentMethod));
     }
 
@@ -63,6 +68,7 @@ class PaymentMethodController extends Controller
      */
     public function update(UpdatePaymentMethodRequest $request, PaymentMethod $paymentMethod)
     {
+        $this->authorize('update', $paymentMethod);
         $updatedPaymentMethod = $this->paymentMethodService->update($paymentMethod, $request->validated());
 
         return $this->successResponse(
@@ -76,6 +82,7 @@ class PaymentMethodController extends Controller
      */
     public function destroy(PaymentMethod $paymentMethod)
     {
+        $this->authorize('delete', $paymentMethod);
         $this->paymentMethodService->delete($paymentMethod);
 
         return $this->successResponse(null, 'Payment method deleted successfully');

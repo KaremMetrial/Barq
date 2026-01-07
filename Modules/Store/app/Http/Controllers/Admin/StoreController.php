@@ -3,6 +3,7 @@
 namespace Modules\Store\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Modules\Store\Models\Store;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +20,7 @@ use Illuminate\Routing\Controllers\Middleware;
 
 class StoreController extends Controller implements HasMiddleware
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
     public static function middleware(): array
     {
         return [
@@ -35,6 +36,7 @@ class StoreController extends Controller implements HasMiddleware
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Store::class);
         $filters = $request->all();
         $Stores = $this->StoreService->getAdminAllStores($filters);
         return $this->successResponse([
@@ -48,6 +50,7 @@ class StoreController extends Controller implements HasMiddleware
      */
     public function store(CreateStoreRequest $request): JsonResponse
     {
+        $this->authorize('create', Store::class);
         $Store = $this->StoreService->createAdminStore($request->all());
         return $this->successResponse([
             'Store' => new StoreCollectionResource($Store->refresh())
@@ -60,6 +63,7 @@ class StoreController extends Controller implements HasMiddleware
     public function show(int $id): JsonResponse
     {
         $Store = $this->StoreService->getStoreById($id);
+        $this->authorize('view', $Store);
         return $this->successResponse([
             'Store' => new StoreResource($Store->load(['address', 'zoneToCover', 'workingDays', 'owner', 'storeSetting', 'parent']))
         ], __('message.success'));
@@ -70,6 +74,8 @@ class StoreController extends Controller implements HasMiddleware
      */
     public function update(UpdateStoreRequest $request, int $id): JsonResponse
     {
+        $Store = $this->StoreService->getStoreById($id);
+        $this->authorize('update', $Store);
         $Store = $this->StoreService->updateStore($id, $request->all());
         return $this->successResponse([
             'Store' => new StoreResource($Store)
@@ -81,6 +87,8 @@ class StoreController extends Controller implements HasMiddleware
      */
     public function destroy(int $id): JsonResponse
     {
+        $Store = $this->StoreService->getStoreById($id);
+        $this->authorize('delete', $Store);
         $isDeleted = $this->StoreService->deleteStore($id);
         return $this->successResponse(null, __('message.success'));
     }

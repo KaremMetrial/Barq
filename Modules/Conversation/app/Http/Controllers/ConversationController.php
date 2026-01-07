@@ -3,6 +3,7 @@
 namespace Modules\Conversation\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Pagination\Paginator;
@@ -14,10 +15,11 @@ use Modules\Conversation\Http\Resources\MessageResource;
 use Modules\Conversation\Http\Resources\ConversationResource;
 use Modules\Conversation\Http\Requests\CreateConversationRequest;
 use Modules\Conversation\Http\Requests\UpdateConversationRequest;
+use Modules\Conversation\Models\Conversation;
 
 class ConversationController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(private ConversationService $conversationService) {}
 
@@ -32,6 +34,7 @@ class ConversationController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Conversation::class);
         $guard = $this->getAuthenticatedGuard();
         $userId = auth($guard)->id();
         $perPage = $request->get('per_page', 15);

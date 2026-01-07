@@ -5,15 +5,17 @@ namespace Modules\Banner\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Modules\Banner\Http\Requests\CreateBannerRequest;
 use Modules\Banner\Http\Requests\UpdateBannerRequest;
 use Modules\Banner\Http\Resources\BannerResource;
 use Modules\Banner\Services\BannerService;
+use Modules\Banner\Models\Banner;
 use Illuminate\Http\JsonResponse;
 
 class BannerController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected BannerService $bannerService)
     {
@@ -24,6 +26,7 @@ class BannerController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorize('viewAny', Banner::class);
         $filters = request()->all();
         $banners = $this->bannerService->getAllBanners($filters);
         return $this->successResponse([
@@ -37,6 +40,7 @@ class BannerController extends Controller
      */
     public function store(CreateBannerRequest $request): JsonResponse
     {
+        $this->authorize('create', Banner::class);
         $banner = $this->bannerService->createBanner($request->all());
         return $this->successResponse([
             "banner" => new BannerResource($banner),
@@ -49,6 +53,7 @@ class BannerController extends Controller
     public function show(int $id): JsonResponse
     {
         $banner = $this->bannerService->getBannerById($id);
+        $this->authorize('view', $banner);
         return $this->successResponse([
             "banner" => new BannerResource($banner),
         ], __("message.success"));
@@ -59,6 +64,8 @@ class BannerController extends Controller
      */
     public function update(UpdateBannerRequest $request, int $id): JsonResponse
     {
+        $banner = $this->bannerService->getBannerById($id);
+        $this->authorize('update', $banner);
         $banner = $this->bannerService->updateBanner($id, $request->all());
         return $this->successResponse([
             "banner" => new BannerResource($banner),
@@ -70,6 +77,8 @@ class BannerController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $banner = $this->bannerService->getBannerById($id);
+        $this->authorize('delete', $banner);
         $deleted = $this->bannerService->deleteBanner($id);
         return $this->successResponse(null, __("message.success"));
     }

@@ -3,6 +3,7 @@
 namespace Modules\Vendor\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +21,7 @@ use Modules\Vendor\Http\Resources\Admin\VendorCollectionResource;
 
 class VendorController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     // Inject the VendorService to handle business logic
     public function __construct(protected VendorService $vendorService) {}
@@ -30,6 +31,7 @@ class VendorController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Vendor::class);
         $filters = $request->only('store_id', 'is_active', 'search', 'role_id');
         $vendors = $this->vendorService->getAllVendors($filters);
         return $this->successResponse([
@@ -43,6 +45,7 @@ class VendorController extends Controller
      */
     public function store(CreateVendorRequest $request): JsonResponse
     {
+        $this->authorize('create', Vendor::class);
         $vendor = $this->vendorService->createVendor($request->validated());
         return $this->successResponse([
             'vendor' => new VendorCollectionResource($vendor)
@@ -55,6 +58,7 @@ class VendorController extends Controller
     public function show(int $id): JsonResponse
     {
         $vendor = $this->vendorService->getVendorById($id);
+        $this->authorize('view', $vendor);
         return $this->successResponse([
             'vendor' => new VendorResource($vendor)
         ], __('message.success'));
@@ -65,6 +69,8 @@ class VendorController extends Controller
      */
     public function update(UpdateVendorRequest $request, int $id): JsonResponse
     {
+        $vendor = $this->vendorService->getVendorById($id);
+        $this->authorize('update', $vendor);
         $vendor = $this->vendorService->updateVendor($id, $request->validated());
         return $this->successResponse([
             'vendor' => new VendorResource($vendor)
@@ -76,6 +82,8 @@ class VendorController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $vendor = $this->vendorService->getVendorById($id);
+        $this->authorize('delete', $vendor);
         $isDeleted = $this->vendorService->deleteVendor($id);
         return $this->successResponse(null, __('message.success'));
     }

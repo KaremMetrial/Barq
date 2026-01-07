@@ -3,6 +3,7 @@
 namespace Modules\Section\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\Section\Models\Section;
@@ -15,7 +16,7 @@ use Modules\Section\Http\Requests\UpdateSectionRequest;
 
 class SectionController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
     public function __construct(protected SectionService $sectionService)
     {
     }
@@ -25,6 +26,7 @@ class SectionController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Section::class);
         $filter = $request->only('type');
         $sections = $this->sectionService->getAllSections($filter);
         return $this->successResponse([
@@ -37,6 +39,7 @@ class SectionController extends Controller
      */
     public function store(CreateSectionRequest $request): JsonResponse
     {
+        $this->authorize('create', Section::class);
         $section = $this->sectionService->createSection($request->validated());
         return $this->successResponse([
             'section' => new SectionResource($section)
@@ -49,6 +52,7 @@ class SectionController extends Controller
     public function show(int $id): JsonResponse
     {
         $section = $this->sectionService->getSectionById($id);
+        $this->authorize('view', $section);
         return $this->successResponse([
             'section' => new SectionResource($section->load('country')),
         ], __('message.success'));
@@ -59,6 +63,8 @@ class SectionController extends Controller
      */
     public function update(UpdateSectionRequest $request, int $id): JsonResponse
     {
+        $section = $this->sectionService->getSectionById($id);
+        $this->authorize('update', $section);
         $section = $this->sectionService->updateSection($id, $request->validated());
         return $this->successResponse([
             'section' => new SectionResource($section)
@@ -70,8 +76,9 @@ class SectionController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $section = $this->sectionService->getSectionById($id);
+        $this->authorize('delete', $section);
         $isDeleted = $this->sectionService->deleteSection($id);
         return $this->successResponse(null, __('message.success'));
     }
 }
-

@@ -3,6 +3,7 @@
 namespace Modules\User\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -11,10 +12,11 @@ use Modules\User\Services\UserService;
 use Modules\User\Http\Resources\UserResource;
 use Modules\User\Http\Requests\CreateUserRequest;
 use Modules\User\Http\Requests\UpdateUserRequest;
+use Modules\User\Models\User;
 
 class UserController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected UserService $userService) {}
 
@@ -23,6 +25,7 @@ class UserController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', User::class);
         $filters = $request->all();
         $users = $this->userService->getAllUsers($filters);
         return $this->successResponse([
@@ -36,6 +39,7 @@ class UserController extends Controller
      */
     public function store(CreateUserRequest $request): JsonResponse
     {
+        $this->authorize('create', User::class);
         $user = $this->userService->createUser($request->all());
         return $this->successResponse([
             "user" => new UserResource($user)
@@ -48,6 +52,7 @@ class UserController extends Controller
     public function show(int $id): JsonResponse
     {
         $user = $this->userService->getUserById($id);
+        $this->authorize('view', $user);
         return $this->successResponse([
             "user" => new UserResource($user)
         ], __("message.success"));
@@ -58,6 +63,8 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
+        $user = $this->userService->getUserById($id);
+        $this->authorize('update', $user);
         $user = $this->userService->updateUser($id, $request->all());
         return $this->successResponse([
             "user" => new UserResource($user)
@@ -69,6 +76,8 @@ class UserController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $user = $this->userService->getUserById($id);
+        $this->authorize('delete', $user);
         $deleted = $this->userService->deleteUser($id);
         return $this->successResponse(null, __("message.success"));
     }

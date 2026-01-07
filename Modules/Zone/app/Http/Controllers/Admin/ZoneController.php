@@ -3,6 +3,7 @@
 namespace Modules\Zone\Http\Controllers\Admin;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\Zone\Services\ZoneService;
@@ -10,10 +11,11 @@ use App\Http\Resources\PaginationResource;
 use Modules\Zone\Http\Resources\ZoneResource;
 use Modules\Zone\Http\Requests\CreateZoneRequest;
 use Modules\Zone\Http\Requests\UpdateZoneRequest;
+use Modules\Zone\Models\Zone;
 
 class ZoneController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     // Injecting ZoneService to manage business logic
     public function __construct(private ZoneService $zoneService) {}
@@ -23,6 +25,7 @@ class ZoneController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Zone::class);
         $zones = $this->zoneService->getAllZones(request()->all());
         return $this->successResponse([
             "zones" => ZoneResource::collection($zones),
@@ -34,6 +37,7 @@ class ZoneController extends Controller
      */
     public function store(CreateZoneRequest $request)
     {
+        $this->authorize('create', Zone::class);
         $zone = $this->zoneService->createZone($request->all());
         return $this->successResponse([
             "zone" => new ZoneResource($zone),
@@ -46,6 +50,7 @@ class ZoneController extends Controller
     public function show($id)
     {
         $zone = $this->zoneService->getZoneById($id);
+        $this->authorize('view', $zone);
         return $this->successResponse([
             "zone" => new ZoneResource($zone->load('city.governorate.country')),
         ], __("message.success"));
@@ -56,6 +61,8 @@ class ZoneController extends Controller
      */
     public function update(UpdateZoneRequest $request, $id)
     {
+        $zone = $this->zoneService->getZoneById($id);
+        $this->authorize('update', $zone);
         $zone = $this->zoneService->updateZone($id, $request->all());
         return $this->successResponse([
             "zone" => new ZoneResource($zone),
@@ -67,6 +74,8 @@ class ZoneController extends Controller
      */
     public function destroy($id)
     {
+        $zone = $this->zoneService->getZoneById($id);
+        $this->authorize('delete', $zone);
         $deleted = $this->zoneService->deleteZone($id);
         return $this->successResponse(null, __("message.success"));
     }

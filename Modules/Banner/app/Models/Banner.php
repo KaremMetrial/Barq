@@ -70,8 +70,10 @@
         if (!$country) {
             $country = $this->getCountryFromIp();
         }
-        if (!auth('admin')->check() && $country) {
-                return $query->whereRaw('1 = 0');
+
+        // FIX: Allow public access when country is detected, block only when no country
+        if (!auth('admin')->check() && !$country) {
+            return $query->whereRaw('1 = 0');
         }
 
         if (auth('admin')->check()) {

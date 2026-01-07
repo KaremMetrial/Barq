@@ -3,6 +3,7 @@
 namespace Modules\ContactUs\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
@@ -10,10 +11,11 @@ use Modules\ContactUs\Services\ContactUsService;
 use Modules\ContactUs\Http\Resources\ContactUsResource;
 use Modules\ContactUs\Http\Requests\CreateContactUsRequest;
 use Modules\ContactUs\Http\Requests\UpdateContactUsRequest;
+use Modules\ContactUs\Models\ContactUs;
 
 class ContactUsController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(private ContactUsService $contactUsService) {}
 
@@ -22,6 +24,7 @@ class ContactUsController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', ContactUs::class);
         $contactUsMessages = $this->contactUsService->getAllContactUss();
         return $this->successResponse([
             'contact_us' => ContactUsResource::collection($contactUsMessages),
@@ -34,6 +37,7 @@ class ContactUsController extends Controller
      */
     public function store(CreateContactUsRequest $request)
     {
+        // Contact form submissions are public - no authorization needed
         $contactUs = $this->contactUsService->createContactUs($request->validated());
         return $this->successResponse([
             'contact_us' => new ContactUsResource($contactUs),
@@ -46,6 +50,7 @@ class ContactUsController extends Controller
     public function show($id)
     {
         $contactUsMessage = $this->contactUsService->getContactUsById($id);
+        $this->authorize('view', $contactUsMessage);
         return $this->successResponse([
             'contact_us' => new ContactUsResource($contactUsMessage),
         ], __('message.success'));
@@ -56,6 +61,8 @@ class ContactUsController extends Controller
      */
     public function update(UpdateContactUsRequest $request, $id)
     {
+        $contactUsMessage = $this->contactUsService->getContactUsById($id);
+        $this->authorize('update', $contactUsMessage);
         $contactUsMessage = $this->contactUsService->updateContactUs($id, $request->validated());
         return $this->successResponse([
             'contact_us' => new ContactUsResource($contactUsMessage),
@@ -67,6 +74,8 @@ class ContactUsController extends Controller
      */
     public function destroy($id)
     {
+        $contactUsMessage = $this->contactUsService->getContactUsById($id);
+        $this->authorize('delete', $contactUsMessage);
         $this->contactUsService->deleteContactUs($id);
         return $this->successResponse(null, __('message.success'));
     }

@@ -3,6 +3,7 @@
 namespace Modules\Order\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Modules\Order\Services\OrderService;
@@ -12,10 +13,11 @@ use Modules\Order\Http\Resources\OrderResource;
 use Modules\Order\Http\Requests\CreateOrderRequest;
 use Modules\Order\Http\Requests\UpdateOrderRequest;
 use Modules\Order\Http\Resources\OrderCollectionResource;
+use Modules\Order\Models\Order;
 
 class AdminOrderController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected OrderService $orderService) {}
 
@@ -24,6 +26,7 @@ class AdminOrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Order::class);
         $filter = $request->only('search','status','from_date','to_date');
         $orders = $this->orderService->getAllOrders($filter);
 
@@ -38,6 +41,7 @@ class AdminOrderController extends Controller
      */
     public function store(CreateOrderRequest $request): JsonResponse
     {
+        $this->authorize('create', Order::class);
         $order = $this->orderService->createOrder($request->all());
         return $this->successResponse([
             'order' => new OrderResource($order)
@@ -50,6 +54,7 @@ class AdminOrderController extends Controller
     public function show(int $id): JsonResponse
     {
         $order = $this->orderService->getOrderById($id);
+        $this->authorize('view', $order);
         // $order->load('items.product', 'items.productOptionValue', 'items.addOns', 'store', 'user', 'courier', 'statusHistories');
 
         return $this->successResponse([
@@ -62,6 +67,8 @@ class AdminOrderController extends Controller
      */
     public function update(UpdateOrderRequest $request, int $id): JsonResponse
     {
+        $order = $this->orderService->getOrderById($id);
+        $this->authorize('update', $order);
         $order = $this->orderService->updateOrder($id, $request->all());
 
         return $this->successResponse([
@@ -73,6 +80,8 @@ class AdminOrderController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        $order = $this->orderService->getOrderById($id);
+        $this->authorize('delete', $order);
         $this->orderService->deleteOrder($id);
 
         return $this->successResponse(null, __('message.success'));

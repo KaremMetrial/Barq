@@ -5,6 +5,7 @@ namespace Modules\Review\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Modules\Review\Http\Requests\CreateReviewRequest;
 use Modules\Review\Http\Requests\UpdateReviewRequest;
 use Modules\Review\Http\Resources\ReviewResource;
@@ -16,7 +17,7 @@ use Modules\Review\Models\Review;
 
 class ReviewController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuthorizesRequests;
 
     public function __construct(protected ReviewService $reviewService) {}
 
@@ -25,6 +26,7 @@ class ReviewController extends Controller
      */
     public function index(int $orderId): JsonResponse
     {
+        $this->authorize('viewAny', Review::class);
         $reviews = $this->reviewService->getReviewsByOrderId($orderId);
 
         return $this->successResponse([
@@ -77,6 +79,7 @@ class ReviewController extends Controller
     {
         // Get review by ID
         $review = $this->reviewService->getReviewById($id);
+        $this->authorize('view', $review);
 
         return $this->successResponse([
             'review' => new ReviewResource($review)
@@ -89,6 +92,8 @@ class ReviewController extends Controller
     public function update(UpdateReviewRequest $request, int $id): JsonResponse
     {
         // Update the review by ID
+        $review = $this->reviewService->getReviewById($id);
+        $this->authorize('update', $review);
         $review = $this->reviewService->updateReview($id, $request->all());
 
         return $this->successResponse([
@@ -102,6 +107,8 @@ class ReviewController extends Controller
     public function destroy(int $id): JsonResponse
     {
         // Delete the review by ID
+        $review = $this->reviewService->getReviewById($id);
+        $this->authorize('delete', $review);
         $isDeleted = $this->reviewService->deleteReview($id);
 
         return $this->successResponse(null, __('message.success'));
