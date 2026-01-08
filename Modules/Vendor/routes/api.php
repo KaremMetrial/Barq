@@ -24,7 +24,7 @@ Route::prefix('v1')->group(function () {
         Route::get('reports', [VendorReportController::class, 'getVendorReports']);
     });
 
-    Route::prefix('admin')->name('admin')->group(function () {
+    Route::prefix('admin')->name('admin')->middleware(['auth:sanctum', 'ability:admin'])->group(function () {
         Route::apiResource('vendors', AdminVendorController::class)->names('vendor');
     });
 });

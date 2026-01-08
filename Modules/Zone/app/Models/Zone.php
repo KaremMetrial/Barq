@@ -110,7 +110,7 @@ class Zone extends Model implements TranslatableContract
     }
     public static function findZoneByCoordinates($lat, $lng): ?self
     {
-        $zones = self::with(['city.translations', 'city.governorate.translations', 'city.governorate.country.translations'])->where('is_active', true)->latest()->get();
+        $zones = self::where('is_active', true)->latest()->get();
         foreach ($zones as $zone) {
             if (self::pointInPolygon($lat, $lng, $zone->area)) {
                 return $zone;
@@ -131,9 +131,24 @@ class Zone extends Model implements TranslatableContract
     public function getFullAddressAttribute(): ?string
     {
         $parts = [];
-        if ($this->city && $this->city->name) $parts[] = $this->city->name;
-        if ($this->governorate && $this->governorate->name) $parts[] = $this->governorate->name;
-        if ($this->country && $this->country->name) $parts[] = $this->country->name;
+
+        // Use direct relationships that are already loaded
+        if ($this->relationLoaded('city') && $this->city && $this->city->name) {
+            $parts[] = $this->city->name;
+        }
+
+        // Access governorate through city relationship if available
+        if ($this->relationLoaded('city') && $this->city && $this->city->relationLoaded('governorate') && $this->city->governorate && $this->city->governorate->name) {
+            $parts[] = $this->city->governorate->name;
+        }
+
+        // Access country through governorate if available
+        if ($this->relationLoaded('city') && $this->city && $this->city->relationLoaded('governorate') &&
+            $this->city->governorate && $this->city->governorate->relationLoaded('country') &&
+            $this->city->governorate->country && $this->city->governorate->country->name) {
+            $parts[] = $this->city->governorate->country->name;
+        }
+
         return implode(', ', $parts) ?: null;
     }
     public function governorate(): BelongsTo

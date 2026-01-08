@@ -18,6 +18,11 @@ class OptionPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all options
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_option', 'admin')) {
             return true;
@@ -36,6 +41,11 @@ class OptionPolicy
      */
     public function view($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all options
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_option', 'admin')) {
             return true;
@@ -54,6 +64,11 @@ class OptionPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create options
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_option', 'admin')) {
             return true;
@@ -72,6 +87,11 @@ class OptionPolicy
      */
     public function update($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update all options
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_option', 'admin')) {
             return true;
@@ -90,6 +110,11 @@ class OptionPolicy
      */
     public function delete($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can delete any option
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_option', 'admin')) {
             return true;
@@ -108,6 +133,11 @@ class OptionPolicy
      */
     public function restore($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $option);
     }
@@ -117,6 +147,11 @@ class OptionPolicy
      */
     public function forceDelete($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $option);
     }
@@ -126,6 +161,11 @@ class OptionPolicy
      */
     public function manageValues($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $option);
     }
@@ -135,6 +175,11 @@ class OptionPolicy
      */
     public function viewValues($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view
         return $this->view($user, $option);
     }
@@ -144,6 +189,11 @@ class OptionPolicy
      */
     public function attachToProducts($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can attach options to any products
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_option', 'admin')) {
             return true;
@@ -162,6 +212,11 @@ class OptionPolicy
      */
     public function detachFromProducts($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can detach options from any products
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_option', 'admin')) {
             return true;
@@ -180,6 +235,11 @@ class OptionPolicy
      */
     public function configureSettings($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $option);
     }
@@ -189,6 +249,11 @@ class OptionPolicy
      */
     public function changeInputType($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (input type affects data structure)
         return $this->update($user, $option);
     }
@@ -198,6 +263,11 @@ class OptionPolicy
      */
     public function manageTranslations($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $option);
     }
@@ -207,6 +277,11 @@ class OptionPolicy
      */
     public function duplicate($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -216,6 +291,11 @@ class OptionPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export all option data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_option', 'admin')) {
             return true;
@@ -234,6 +314,11 @@ class OptionPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can import option data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_option', 'admin')) {
             return true;
@@ -247,6 +332,11 @@ class OptionPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update all options
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_option', 'admin')) {
             return true;
@@ -265,6 +355,11 @@ class OptionPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk delete any options
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_option', 'admin')) {
             return true;
@@ -283,6 +378,11 @@ class OptionPolicy
      */
     public function viewAnalytics($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all option analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -304,6 +404,11 @@ class OptionPolicy
      */
     public function viewUsage($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $option);
     }
@@ -313,6 +418,11 @@ class OptionPolicy
      */
     public function configureFoodOptions($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (food options may have special requirements)
         return $this->update($user, $option);
     }
@@ -322,6 +432,11 @@ class OptionPolicy
      */
     public function manageOrdering($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $option);
     }
@@ -331,6 +446,11 @@ class OptionPolicy
      */
     public function viewPerformance($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $option);
     }
@@ -340,6 +460,11 @@ class OptionPolicy
      */
     public function createTemplates($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create option templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_option', 'admin')) {
             return true;
@@ -358,6 +483,11 @@ class OptionPolicy
      */
     public function applyTemplates($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create (applying templates creates options)
         return $this->create($user);
     }
@@ -367,6 +497,11 @@ class OptionPolicy
      */
     public function viewValidationRules($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view
         return $this->view($user, $option);
     }
@@ -376,6 +511,11 @@ class OptionPolicy
      */
     public function configureValidationRules($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $option);
     }
@@ -385,6 +525,11 @@ class OptionPolicy
      */
     public function managePricing($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (option values may have pricing)
         return $this->update($user, $option);
     }
@@ -394,6 +539,11 @@ class OptionPolicy
      */
     public function viewPricing($user, Option $option): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view
         return $this->view($user, $option);
     }

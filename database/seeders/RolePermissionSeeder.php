@@ -77,6 +77,8 @@ class RolePermissionSeeder extends Seeder
             'withdrawal',
             'working_day',
             'zone',
+            'admin',
+            'delivery_company'
         ];
 
         // Generate CRUD permissions for each model
@@ -170,7 +172,7 @@ class RolePermissionSeeder extends Seeder
             'view_coupon', 'view_offer', 'view_banner', 'view_review', 'view_report',
             'view_transaction', 'view_subscription',
             // Reviews and ratings
-            'view_review_rating', 'view_rating_key',
+            'view_rating_key',
             // Rewards
             'view_reward',
             // Legacy permissions

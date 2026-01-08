@@ -18,6 +18,11 @@ class CityPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_city', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class CityPolicy
      */
     public function view($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can view all cities
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_city', 'admin')) {
             return true;
@@ -64,6 +74,11 @@ class CityPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can create cities (geographic management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_city', 'admin')) {
             return true;
@@ -77,6 +92,11 @@ class CityPolicy
      */
     public function update($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can update cities (geographic management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_city', 'admin')) {
             return true;
@@ -90,6 +110,11 @@ class CityPolicy
      */
     public function delete($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete cities (critical geographic data)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_city', 'admin')) {
             return true;
@@ -103,6 +128,11 @@ class CityPolicy
      */
     public function restore($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $city);
     }
@@ -112,6 +142,11 @@ class CityPolicy
      */
     public function forceDelete($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $city);
     }
@@ -121,6 +156,11 @@ class CityPolicy
      */
     public function manageZones($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (zone management is part of city management)
         return $this->update($user, $city);
     }
@@ -130,6 +170,11 @@ class CityPolicy
      */
     public function viewZones($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_city', 'admin')) {
             return true;
@@ -153,6 +198,11 @@ class CityPolicy
      */
     public function manageBanners($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (banner management is part of city management)
         return $this->update($user, $city);
     }
@@ -162,6 +212,11 @@ class CityPolicy
      */
     public function viewBanners($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view
         return $this->view($user, $city);
     }
@@ -171,6 +226,11 @@ class CityPolicy
      */
     public function viewAnalytics($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -184,6 +244,11 @@ class CityPolicy
      */
     public function manageSettings($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage city settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_city', 'admin')) {
             return true;
@@ -197,6 +262,11 @@ class CityPolicy
      */
     public function toggleActive($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $city);
     }
@@ -206,6 +276,11 @@ class CityPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk update cities
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_city', 'admin')) {
             return true;
@@ -219,6 +294,11 @@ class CityPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk delete cities
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_city', 'admin')) {
             return true;
@@ -232,6 +312,11 @@ class CityPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with view permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_city', 'admin')) {
             return true;
@@ -250,6 +335,11 @@ class CityPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import cities (geographic data management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_city', 'admin')) {
             return true;
@@ -263,6 +353,11 @@ class CityPolicy
      */
     public function duplicate($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -272,6 +367,11 @@ class CityPolicy
      */
     public function viewHierarchy($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with view permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_city', 'admin')) {
             return true;
@@ -295,6 +395,11 @@ class CityPolicy
      */
     public function manageGovernorate($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can change governorate relationships
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_city', 'admin')) {
             return true;
@@ -308,6 +413,11 @@ class CityPolicy
      */
     public function merge($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can merge cities (complex geographic operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_city', 'admin')) {
             return true;
@@ -321,6 +431,11 @@ class CityPolicy
      */
     public function split($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can split cities (complex geographic operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_city', 'admin')) {
             return true;
@@ -334,6 +449,11 @@ class CityPolicy
      */
     public function viewDeliveryCoverage($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_city', 'admin')) {
             return true;
@@ -352,6 +472,11 @@ class CityPolicy
      */
     public function manageDeliveryZones($user, City $city): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all delivery zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_city', 'admin')) {
             return true;

@@ -18,6 +18,11 @@ class PagePolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all pages (including inactive ones)
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_page', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class PagePolicy
      */
     public function view($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all pages
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_page', 'admin')) {
             return true;
@@ -64,6 +74,11 @@ class PagePolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can create pages (content management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_page', 'admin')) {
             return true;
@@ -77,6 +92,11 @@ class PagePolicy
      */
     public function update($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can update pages (content management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -90,6 +110,11 @@ class PagePolicy
      */
     public function delete($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete pages (content management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_page', 'admin')) {
             return true;
@@ -103,6 +128,11 @@ class PagePolicy
      */
     public function restore($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $page);
     }
@@ -112,6 +142,11 @@ class PagePolicy
      */
     public function forceDelete($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $page);
     }
@@ -121,6 +156,11 @@ class PagePolicy
      */
     public function toggleActive($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can publish/unpublish pages
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -134,6 +174,11 @@ class PagePolicy
      */
     public function manageTranslations($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage translations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -147,6 +192,11 @@ class PagePolicy
      */
     public function manageSeo($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage SEO settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -160,6 +210,11 @@ class PagePolicy
      */
     public function duplicate($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -169,6 +224,11 @@ class PagePolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export page data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_page', 'admin')) {
             return true;
@@ -182,6 +242,11 @@ class PagePolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import pages
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_page', 'admin')) {
             return true;
@@ -195,6 +260,11 @@ class PagePolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk update pages
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -208,6 +278,11 @@ class PagePolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk delete pages
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_page', 'admin')) {
             return true;
@@ -221,6 +296,11 @@ class PagePolicy
      */
     public function preview($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can preview any page
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_page', 'admin')) {
             return true;
@@ -234,6 +314,11 @@ class PagePolicy
      */
     public function viewAnalytics($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view page analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -247,6 +332,11 @@ class PagePolicy
      */
     public function manageRevisions($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage revisions
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -260,6 +350,11 @@ class PagePolicy
      */
     public function schedulePublication($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can schedule publication
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -273,6 +368,11 @@ class PagePolicy
      */
     public function manageTemplates($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage page templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_page', 'admin')) {
             return true;
@@ -286,6 +386,11 @@ class PagePolicy
      */
     public function viewPerformance($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $page);
     }
@@ -295,6 +400,11 @@ class PagePolicy
      */
     public function manageCategories($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage page categorization
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -308,6 +418,11 @@ class PagePolicy
      */
     public function setAsHomepage($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can set homepage
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -321,6 +436,11 @@ class PagePolicy
      */
     public function manageMenu($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage menu placement
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -334,6 +454,11 @@ class PagePolicy
      */
     public function manageRedirects($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage redirects
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -347,6 +472,11 @@ class PagePolicy
      */
     public function viewRevisions($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view revision history
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_page', 'admin')) {
             return true;
@@ -360,6 +490,11 @@ class PagePolicy
      */
     public function restoreRevision($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can restore revisions
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -373,6 +508,11 @@ class PagePolicy
      */
     public function manageComments($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage comments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_page', 'admin')) {
             return true;
@@ -386,6 +526,11 @@ class PagePolicy
      */
     public function exportPdf($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export pages as PDF
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_page', 'admin')) {
             return true;
@@ -399,6 +544,11 @@ class PagePolicy
      */
     public function cloneStructure($user, Page $page): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as duplicate
         return $this->duplicate($user, $page);
     }

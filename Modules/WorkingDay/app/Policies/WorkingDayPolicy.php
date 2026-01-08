@@ -18,6 +18,10 @@ class WorkingDayPolicy
      */
     public function viewAny($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all working days
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_working_day', 'admin')) {
             return true;
@@ -41,6 +45,10 @@ class WorkingDayPolicy
      */
     public function view($user, WorkingDay $workingDay): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all working days
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_working_day', 'admin')) {
             return true;
@@ -64,6 +72,10 @@ class WorkingDayPolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can create working days for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_working_day', 'admin')) {
             return true;
@@ -82,6 +94,10 @@ class WorkingDayPolicy
      */
     public function update($user, WorkingDay $workingDay): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can update any working day
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -100,6 +116,10 @@ class WorkingDayPolicy
      */
     public function delete($user, WorkingDay $workingDay): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can delete any working day
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_working_day', 'admin')) {
             return true;
@@ -145,6 +165,10 @@ class WorkingDayPolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export all working day data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_working_day', 'admin')) {
             return true;
@@ -163,6 +187,10 @@ class WorkingDayPolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can import working day data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_working_day', 'admin')) {
             return true;
@@ -181,6 +209,10 @@ class WorkingDayPolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can bulk update all working days
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -199,6 +231,10 @@ class WorkingDayPolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can bulk delete any working days
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_working_day', 'admin')) {
             return true;
@@ -217,6 +253,10 @@ class WorkingDayPolicy
      */
     public function manageTemplates($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage working day templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_working_day', 'admin')) {
             return true;
@@ -244,6 +284,10 @@ class WorkingDayPolicy
      */
     public function copyBetweenStores($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can copy working days between stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -257,6 +301,10 @@ class WorkingDayPolicy
      */
     public function manageHolidays($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage holidays for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -275,6 +323,10 @@ class WorkingDayPolicy
      */
     public function manageSpecialHours($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage special hours for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -293,6 +345,10 @@ class WorkingDayPolicy
      */
     public function manageBreaks($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage breaks for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -311,6 +367,10 @@ class WorkingDayPolicy
      */
     public function manageDeliveryHours($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage delivery hours for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -338,6 +398,10 @@ class WorkingDayPolicy
      */
     public function set247Operation($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can set any store as 24/7
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -356,6 +420,10 @@ class WorkingDayPolicy
      */
     public function manageSeasonalHours($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage seasonal hours for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -374,6 +442,10 @@ class WorkingDayPolicy
      */
     public function manageEmergencyHours($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage emergency hours for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -392,6 +464,10 @@ class WorkingDayPolicy
      */
     public function viewAnalytics($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all working day analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -410,6 +486,10 @@ class WorkingDayPolicy
      */
     public function generateReports($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can generate all working day reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -428,6 +508,10 @@ class WorkingDayPolicy
      */
     public function manageNotifications($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage notifications for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -446,6 +530,10 @@ class WorkingDayPolicy
      */
     public function overrideHours($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can override working hours (emergency situations)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -459,6 +547,10 @@ class WorkingDayPolicy
      */
     public function managePolicies($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage working day policies
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -472,6 +564,10 @@ class WorkingDayPolicy
      */
     public function auditChanges($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can audit all working day changes
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_working_day', 'admin')) {
             return true;
@@ -485,6 +581,10 @@ class WorkingDayPolicy
      */
     public function manageBackups($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage working day backups
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -498,6 +598,10 @@ class WorkingDayPolicy
      */
     public function restoreBackups($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can restore working day backups
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -511,6 +615,10 @@ class WorkingDayPolicy
      */
     public function manageTimezone($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage timezone for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;
@@ -529,6 +637,10 @@ class WorkingDayPolicy
      */
     public function manageDST($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage DST for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_working_day', 'admin')) {
             return true;

@@ -18,6 +18,11 @@ class OfferPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all offers
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_offer', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class OfferPolicy
      */
     public function view($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all offers
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_offer', 'admin')) {
             return true;
@@ -80,6 +90,11 @@ class OfferPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create offers
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_offer', 'admin')) {
             return true;
@@ -98,6 +113,11 @@ class OfferPolicy
      */
     public function update($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update all offers
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_offer', 'admin')) {
             return true;
@@ -127,6 +147,11 @@ class OfferPolicy
      */
     public function delete($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can delete any offer
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_offer', 'admin')) {
             return true;
@@ -149,6 +174,11 @@ class OfferPolicy
      */
     public function restore($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $offer);
     }
@@ -158,6 +188,11 @@ class OfferPolicy
      */
     public function forceDelete($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $offer);
     }
@@ -167,6 +202,11 @@ class OfferPolicy
      */
     public function apply($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can apply valid offers
         if ($user instanceof User && $offer->is_active && $offer->status === \App\Enums\OfferStatusEnum::ACTIVE) {
             // Check date range
@@ -191,6 +231,11 @@ class OfferPolicy
      */
     public function manageRelationships($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $offer);
     }
@@ -200,6 +245,11 @@ class OfferPolicy
      */
     public function configureDiscount($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (discount changes affect pricing)
         return $this->update($user, $offer);
     }
@@ -209,6 +259,11 @@ class OfferPolicy
      */
     public function manageSchedule($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $offer);
     }
@@ -218,6 +273,11 @@ class OfferPolicy
      */
     public function createFlashSale($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create flash sales
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_offer', 'admin')) {
             return true;
@@ -236,6 +296,11 @@ class OfferPolicy
      */
     public function manageStockLimits($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $offer);
     }
@@ -245,6 +310,11 @@ class OfferPolicy
      */
     public function viewAnalytics($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all offer analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -266,6 +336,11 @@ class OfferPolicy
      */
     public function toggleActive($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $offer);
     }
@@ -275,6 +350,11 @@ class OfferPolicy
      */
     public function duplicate($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -284,6 +364,11 @@ class OfferPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export all offer data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_offer', 'admin')) {
             return true;
@@ -302,6 +387,11 @@ class OfferPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can import offer data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_offer', 'admin')) {
             return true;
@@ -315,6 +405,11 @@ class OfferPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update all offers
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_offer', 'admin')) {
             return true;
@@ -333,6 +428,11 @@ class OfferPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk delete any offers
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_offer', 'admin')) {
             return true;
@@ -351,6 +451,11 @@ class OfferPolicy
      */
     public function viewPerformance($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $offer);
     }
@@ -360,6 +465,11 @@ class OfferPolicy
      */
     public function manageStatus($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $offer);
     }
@@ -369,6 +479,11 @@ class OfferPolicy
      */
     public function extendValidity($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $offer);
     }
@@ -378,6 +493,11 @@ class OfferPolicy
      */
     public function viewUsage($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $offer);
     }
@@ -387,6 +507,11 @@ class OfferPolicy
      */
     public function modifyDiscountAmount($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (affects pricing)
         return $this->update($user, $offer);
     }
@@ -396,6 +521,11 @@ class OfferPolicy
      */
     public function changeDiscountType($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (affects pricing calculations)
         return $this->update($user, $offer);
     }
@@ -405,6 +535,11 @@ class OfferPolicy
      */
     public function viewFinancialImpact($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view financial impact
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -426,6 +561,11 @@ class OfferPolicy
      */
     public function createCampaign($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create campaigns
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_offer', 'admin')) {
             return true;
@@ -444,6 +584,11 @@ class OfferPolicy
      */
     public function manageTargeting($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (targeting affects who sees the offer)
         return $this->update($user, $offer);
     }
@@ -453,6 +598,11 @@ class OfferPolicy
      */
     public function viewStatistics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view offer statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -466,6 +616,11 @@ class OfferPolicy
      */
     public function resetUsage($user, Offer $offer): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can reset usage counters
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_offer', 'admin')) {
             return true;

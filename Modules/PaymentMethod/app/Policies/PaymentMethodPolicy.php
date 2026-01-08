@@ -18,6 +18,11 @@ class PaymentMethodPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all payment methods
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_payment_method', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class PaymentMethodPolicy
      */
     public function view($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all payment methods
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_payment_method', 'admin')) {
             return true;
@@ -64,6 +74,11 @@ class PaymentMethodPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can create payment methods (financial infrastructure)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_payment_method', 'admin')) {
             return true;
@@ -77,6 +92,11 @@ class PaymentMethodPolicy
      */
     public function update($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can update payment methods (financial security)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -90,6 +110,11 @@ class PaymentMethodPolicy
      */
     public function delete($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete payment methods (critical financial operations)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_payment_method', 'admin')) {
             return true;
@@ -103,6 +128,11 @@ class PaymentMethodPolicy
      */
     public function restore($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $paymentMethod);
     }
@@ -112,6 +142,11 @@ class PaymentMethodPolicy
      */
     public function forceDelete($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $paymentMethod);
     }
@@ -121,6 +156,11 @@ class PaymentMethodPolicy
      */
     public function configure($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can configure payment settings (contains API keys, secrets)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -134,6 +174,11 @@ class PaymentMethodPolicy
      */
     public function toggleActive($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can activate/deactivate payment methods
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -147,6 +192,11 @@ class PaymentMethodPolicy
      */
     public function reorder($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can reorder payment methods (affects checkout UI)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -160,6 +210,11 @@ class PaymentMethodPolicy
      */
     public function testIntegration($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can test payment integrations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -173,6 +228,11 @@ class PaymentMethodPolicy
      */
     public function viewAnalytics($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view payment analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -186,6 +246,11 @@ class PaymentMethodPolicy
      */
     public function viewTransactions($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view payment transactions
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_payment_method', 'admin')) {
             return true;
@@ -199,6 +264,11 @@ class PaymentMethodPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export payment method data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_payment_method', 'admin')) {
             return true;
@@ -212,6 +282,11 @@ class PaymentMethodPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import payment methods
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_payment_method', 'admin')) {
             return true;
@@ -225,6 +300,11 @@ class PaymentMethodPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk update payment methods
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -238,6 +318,11 @@ class PaymentMethodPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk delete payment methods
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_payment_method', 'admin')) {
             return true;
@@ -251,6 +336,11 @@ class PaymentMethodPolicy
      */
     public function duplicate($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -260,6 +350,11 @@ class PaymentMethodPolicy
      */
     public function manageFees($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage payment fees
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -273,6 +368,11 @@ class PaymentMethodPolicy
      */
     public function manageCurrencies($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage payment currencies
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -286,6 +386,11 @@ class PaymentMethodPolicy
      */
     public function manageWebhooks($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage payment webhooks (security critical)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -299,6 +404,11 @@ class PaymentMethodPolicy
      */
     public function viewLogs($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view payment logs
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_payment_method', 'admin')) {
             return true;
@@ -312,6 +422,11 @@ class PaymentMethodPolicy
      */
     public function processRefunds($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can process refunds (financial operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -325,6 +440,11 @@ class PaymentMethodPolicy
      */
     public function viewPerformance($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $paymentMethod);
     }
@@ -334,6 +454,11 @@ class PaymentMethodPolicy
      */
     public function manageRegions($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage payment regions (affects availability)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -347,6 +472,11 @@ class PaymentMethodPolicy
      */
     public function manageLimits($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage payment limits (transaction controls)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -360,6 +490,11 @@ class PaymentMethodPolicy
      */
     public function viewSecurity($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view payment security settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_payment_method', 'admin')) {
             return true;
@@ -373,6 +508,11 @@ class PaymentMethodPolicy
      */
     public function manageSecurity($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage payment security (PCI compliance, etc.)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -386,6 +526,11 @@ class PaymentMethodPolicy
      */
     public function runComplianceChecks($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can run compliance checks
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_payment_method', 'admin')) {
             return true;
@@ -399,6 +544,11 @@ class PaymentMethodPolicy
      */
     public function manageNotifications($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage payment notifications
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;
@@ -412,6 +562,11 @@ class PaymentMethodPolicy
      */
     public function viewIntegrationDocs($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view integration documentation
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_payment_method', 'admin')) {
             return true;
@@ -425,6 +580,11 @@ class PaymentMethodPolicy
      */
     public function updateIntegration($user, PaymentMethod $paymentMethod): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can update payment integrations (API changes)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_payment_method', 'admin')) {
             return true;

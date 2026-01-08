@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Astrotomic\Translatable\Translatable;
+use Modules\Section\Models\Section;
 use Illuminate\Database\Eloquent\Model;
+use Astrotomic\Translatable\Translatable;
 
 class RatingKey extends Model
 {
@@ -12,6 +13,7 @@ class RatingKey extends Model
     protected $fillable = [
         'key',
         'is_active',
+        'section_id',
     ];
 
     public $translatedAttributes = ['label'];
@@ -24,5 +26,9 @@ class RatingKey extends Model
     public function reviewRatings()
     {
         return $this->hasMany(ReviewRating::class);
+    }
+        public function section()
+    {
+        return $this->belongsTo(Section::class);
     }
 }

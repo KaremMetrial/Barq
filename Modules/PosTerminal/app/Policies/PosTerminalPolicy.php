@@ -17,6 +17,11 @@ class PosTerminalPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all POS terminals
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_pos_terminal', 'admin')) {
             return true;
@@ -35,6 +40,11 @@ class PosTerminalPolicy
      */
     public function view($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all POS terminals
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_pos_terminal', 'admin')) {
             return true;
@@ -53,6 +63,11 @@ class PosTerminalPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create POS terminals for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_pos_terminal', 'admin')) {
             return true;
@@ -71,6 +86,11 @@ class PosTerminalPolicy
      */
     public function update($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update any POS terminal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -89,6 +109,11 @@ class PosTerminalPolicy
      */
     public function delete($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete POS terminals (infrastructure management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_pos_terminal', 'admin')) {
             return true;
@@ -102,6 +127,11 @@ class PosTerminalPolicy
      */
     public function restore($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $posTerminal);
     }
@@ -111,6 +141,11 @@ class PosTerminalPolicy
      */
     public function forceDelete($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $posTerminal);
     }
@@ -120,6 +155,11 @@ class PosTerminalPolicy
      */
     public function toggleActive($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can activate/deactivate any POS terminal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -138,6 +178,11 @@ class PosTerminalPolicy
      */
     public function assignToStore($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can assign terminals between stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -151,6 +196,11 @@ class PosTerminalPolicy
      */
     public function viewAnalytics($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all POS terminal analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -172,6 +222,11 @@ class PosTerminalPolicy
      */
     public function viewPerformance($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $posTerminal);
     }
@@ -181,6 +236,11 @@ class PosTerminalPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export all POS terminal data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_pos_terminal', 'admin')) {
             return true;
@@ -199,6 +259,11 @@ class PosTerminalPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import POS terminals
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_pos_terminal', 'admin')) {
             return true;
@@ -212,6 +277,11 @@ class PosTerminalPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update all POS terminals
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -230,6 +300,11 @@ class PosTerminalPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk delete POS terminals
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_pos_terminal', 'admin')) {
             return true;
@@ -243,6 +318,11 @@ class PosTerminalPolicy
      */
     public function sync($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can sync any POS terminal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -261,6 +341,11 @@ class PosTerminalPolicy
      */
     public function configure($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can configure any POS terminal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -279,6 +364,11 @@ class PosTerminalPolicy
      */
     public function viewLogs($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all POS terminal logs
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_pos_terminal', 'admin')) {
             return true;
@@ -297,6 +387,11 @@ class PosTerminalPolicy
      */
     public function remoteControl($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can remotely control POS terminals (security)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -310,6 +405,11 @@ class PosTerminalPolicy
      */
     public function updateSoftware($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update software on any POS terminal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -328,6 +428,11 @@ class PosTerminalPolicy
      */
     public function reboot($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can reboot any POS terminal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -346,6 +451,11 @@ class PosTerminalPolicy
      */
     public function monitorStatus($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can monitor all POS terminals
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_pos_terminal', 'admin')) {
             return true;
@@ -364,6 +474,11 @@ class PosTerminalPolicy
      */
     public function troubleshoot($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can troubleshoot any POS terminal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -382,6 +497,11 @@ class PosTerminalPolicy
      */
     public function viewMaintenanceHistory($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all maintenance history
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_pos_terminal', 'admin')) {
             return true;
@@ -400,6 +520,11 @@ class PosTerminalPolicy
      */
     public function scheduleMaintenance($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can schedule maintenance for any terminal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -418,6 +543,11 @@ class PosTerminalPolicy
      */
     public function duplicate($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -427,6 +557,11 @@ class PosTerminalPolicy
      */
     public function transfer($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can transfer terminals between stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -440,6 +575,11 @@ class PosTerminalPolicy
      */
     public function decommission($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can decommission terminals (asset management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_pos_terminal', 'admin')) {
             return true;
@@ -453,6 +593,11 @@ class PosTerminalPolicy
      */
     public function generateReports($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can generate all POS terminal reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -471,6 +616,11 @@ class PosTerminalPolicy
      */
     public function manageSecurity($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage POS terminal security (PCI compliance)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_pos_terminal', 'admin')) {
             return true;
@@ -484,6 +634,11 @@ class PosTerminalPolicy
      */
     public function auditUsage($user, PosTerminal $posTerminal): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can audit all POS terminal usage
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_pos_terminal', 'admin')) {
             return true;

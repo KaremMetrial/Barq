@@ -18,6 +18,11 @@ class GovernoratePolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all governorates
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_governorate', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class GovernoratePolicy
      */
     public function view($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all governorates
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_governorate', 'admin')) {
             return true;
@@ -64,6 +74,11 @@ class GovernoratePolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can create governorates (geographic management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_governorate', 'admin')) {
             return true;
@@ -77,6 +92,11 @@ class GovernoratePolicy
      */
     public function update($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can update governorates (critical geographic data)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -90,6 +110,11 @@ class GovernoratePolicy
      */
     public function delete($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete governorates (extremely sensitive operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_governorate', 'admin')) {
             return true;
@@ -103,6 +128,11 @@ class GovernoratePolicy
      */
     public function restore($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $governorate);
     }
@@ -112,6 +142,11 @@ class GovernoratePolicy
      */
     public function forceDelete($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $governorate);
     }
@@ -121,6 +156,11 @@ class GovernoratePolicy
      */
     public function manageCities($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (city management is part of governorate management)
         return $this->update($user, $governorate);
     }
@@ -130,6 +170,11 @@ class GovernoratePolicy
      */
     public function viewCities($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all cities
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_governorate', 'admin')) {
             return true;
@@ -153,6 +198,11 @@ class GovernoratePolicy
      */
     public function manageCountry($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can change country relationships
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -166,6 +216,11 @@ class GovernoratePolicy
      */
     public function viewAnalytics($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view governorate analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -179,6 +234,11 @@ class GovernoratePolicy
      */
     public function manageSettings($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage governorate settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -192,6 +252,11 @@ class GovernoratePolicy
      */
     public function toggleActive($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can activate/deactivate governorates
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -205,6 +270,11 @@ class GovernoratePolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export governorate data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_governorate', 'admin')) {
             return true;
@@ -218,6 +288,11 @@ class GovernoratePolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import governorates (geographic data management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_governorate', 'admin')) {
             return true;
@@ -231,6 +306,11 @@ class GovernoratePolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk update governorates
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -244,6 +324,11 @@ class GovernoratePolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk delete governorates
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_governorate', 'admin')) {
             return true;
@@ -257,6 +342,11 @@ class GovernoratePolicy
      */
     public function duplicate($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -266,6 +356,11 @@ class GovernoratePolicy
      */
     public function merge($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can merge governorates (complex geographic operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_governorate', 'admin')) {
             return true;
@@ -279,6 +374,11 @@ class GovernoratePolicy
      */
     public function split($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can split governorates (complex geographic operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -292,6 +392,11 @@ class GovernoratePolicy
      */
     public function viewHierarchy($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view geographic hierarchy
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_governorate', 'admin')) {
             return true;
@@ -315,6 +420,11 @@ class GovernoratePolicy
      */
     public function manageTranslations($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage translations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -328,6 +438,11 @@ class GovernoratePolicy
      */
     public function viewStatistics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view governorate statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -341,6 +456,11 @@ class GovernoratePolicy
      */
     public function configureFeatures($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can configure governorate features
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -354,6 +474,11 @@ class GovernoratePolicy
      */
     public function viewDeliveryCoverage($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all delivery coverage
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_governorate', 'admin')) {
             return true;
@@ -372,6 +497,11 @@ class GovernoratePolicy
      */
     public function manageDeliveryZones($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all delivery zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;
@@ -385,6 +515,11 @@ class GovernoratePolicy
      */
     public function viewDemographics($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view demographic data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -398,6 +533,11 @@ class GovernoratePolicy
      */
     public function manageBoundaries($user, Governorate $governorate): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage geographic boundaries
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_governorate', 'admin')) {
             return true;

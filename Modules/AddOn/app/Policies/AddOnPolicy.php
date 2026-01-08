@@ -18,6 +18,10 @@ class AddOnPolicy
      */
     public function viewAny($user): bool
     {
+        // Super Admin - use PermissionHelper for consistent guard handling
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_addon', 'admin')) {
             return true;
@@ -41,6 +45,11 @@ class AddOnPolicy
      */
     public function view($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can view all
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_addon', 'admin')) {
             return true;
@@ -64,6 +73,10 @@ class AddOnPolicy
      */
     public function create($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_addon', 'admin')) {
             return true;
@@ -82,6 +95,10 @@ class AddOnPolicy
      */
     public function update($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins with permission can update all
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_addon', 'admin')) {
             return true;
@@ -100,6 +117,10 @@ class AddOnPolicy
      */
     public function delete($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins with permission can delete all
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_addon', 'admin')) {
             return true;
@@ -118,6 +139,10 @@ class AddOnPolicy
      */
     public function restore($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as update
         return $this->update($user, $addOn);
     }
@@ -127,6 +152,10 @@ class AddOnPolicy
      */
     public function forceDelete($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as delete
         return $this->delete($user, $addOn);
     }
@@ -136,6 +165,10 @@ class AddOnPolicy
      */
     public function attachProducts($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as update
         return $this->update($user, $addOn);
     }
@@ -145,6 +178,10 @@ class AddOnPolicy
      */
     public function detachProducts($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as update
         return $this->update($user, $addOn);
     }
@@ -154,6 +191,10 @@ class AddOnPolicy
      */
     public function viewAnalytics($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins with report permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -172,6 +213,10 @@ class AddOnPolicy
      */
     public function manageSettings($user, AddOn $addOn): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage global settings
         if ($user instanceof Admin) {
             return PermissionHelper::hasPermission('update_addon', 'admin');
@@ -185,6 +230,10 @@ class AddOnPolicy
      */
     public function bulkUpdate($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins with update permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_addon', 'admin')) {
             return true;
@@ -203,6 +252,10 @@ class AddOnPolicy
      */
     public function export($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins with view permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_addon', 'admin')) {
             return true;
@@ -221,6 +274,10 @@ class AddOnPolicy
      */
     public function import($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import (for security)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_addon', 'admin')) {
             return true;

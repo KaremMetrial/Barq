@@ -16,6 +16,10 @@ class VendorPolicy
      */
     public function viewAny($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can view vendor lists
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vendor', 'admin')) {
             return true;
@@ -29,6 +33,10 @@ class VendorPolicy
      */
     public function view($user, Vendor $vendor): bool
     {
+                // Super Admin - use PermissionHelper for consistent guard handling
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view any vendor
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vendor', 'admin')) {
             return true;
@@ -47,6 +55,10 @@ class VendorPolicy
      */
     public function create($user): bool
     {
+                // Super Admin - use PermissionHelper for consistent guard handling
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can create vendor accounts
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_vendor', 'admin')) {
             return true;
@@ -60,7 +72,10 @@ class VendorPolicy
      */
     public function update($user, Vendor $vendor): bool
     {
-        // Admins can update any vendor
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can update any vendor
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -78,7 +93,10 @@ class VendorPolicy
      */
     public function delete($user, Vendor $vendor): bool
     {
-        // Only admins can delete vendor accounts
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can delete vendor accounts
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_vendor', 'admin')) {
             return true;
         }
@@ -91,7 +109,10 @@ class VendorPolicy
      */
     public function restore($user, Vendor $vendor): bool
     {
-        // Same logic as update
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Same logic as update
         return $this->update($user, $vendor);
     }
 
@@ -100,7 +121,10 @@ class VendorPolicy
      */
     public function forceDelete($user, Vendor $vendor): bool
     {
-        // Same logic as delete
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Same logic as delete
         return $this->delete($user, $vendor);
     }
 
@@ -109,7 +133,10 @@ class VendorPolicy
      */
     public function manageStatus($user, Vendor $vendor): bool
     {
-        // Only admins can manage vendor status
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can manage vendor status
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -122,7 +149,10 @@ class VendorPolicy
      */
     public function manageRoles($user, Vendor $vendor): bool
     {
-        // Only admins can manage vendor roles
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can manage vendor roles
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -135,7 +165,10 @@ class VendorPolicy
      */
     public function assignRoles($user, Vendor $vendor): bool
     {
-        // Same logic as manageRoles
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Same logic as manageRoles
         return $this->manageRoles($user, $vendor);
     }
 
@@ -144,7 +177,10 @@ class VendorPolicy
      */
     public function removeRoles($user, Vendor $vendor): bool
     {
-        // Same logic as manageRoles
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Same logic as manageRoles
         return $this->manageRoles($user, $vendor);
     }
 
@@ -153,7 +189,10 @@ class VendorPolicy
      */
     public function managePermissions($user, Vendor $vendor): bool
     {
-        // Only admins can manage vendor permissions
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can manage vendor permissions
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -166,7 +205,10 @@ class VendorPolicy
      */
     public function manageStoreAssignment($user, Vendor $vendor): bool
     {
-        // Only admins can manage store assignments
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can manage store assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -179,7 +221,10 @@ class VendorPolicy
      */
     public function managePosShifts($user, Vendor $vendor): bool
     {
-        // Admins can manage any vendor's POS shifts
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can manage any vendor's POS shifts
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -197,7 +242,10 @@ class VendorPolicy
      */
     public function viewAnalytics($user, Vendor $vendor): bool
     {
-        // Admins can view any vendor analytics
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can view any vendor analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
         }
@@ -215,7 +263,10 @@ class VendorPolicy
      */
     public function export($user, Vendor $vendor): bool
     {
-        // Admins can export any vendor data
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can export any vendor data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vendor', 'admin')) {
             return true;
         }
@@ -233,7 +284,10 @@ class VendorPolicy
      */
     public function import($user): bool
     {
-        // Only admins can import vendor data
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can import vendor data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_vendor', 'admin')) {
             return true;
         }
@@ -246,7 +300,10 @@ class VendorPolicy
      */
     public function bulkUpdate($user): bool
     {
-        // Only admins can bulk update vendors
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can bulk update vendors
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -259,7 +316,10 @@ class VendorPolicy
      */
     public function bulkDelete($user): bool
     {
-        // Only admins can bulk delete vendors
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can bulk delete vendors
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_vendor', 'admin')) {
             return true;
         }
@@ -272,7 +332,10 @@ class VendorPolicy
      */
     public function resetPassword($user, Vendor $vendor): bool
     {
-        // Admins can reset any vendor password
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can reset any vendor password
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -285,7 +348,10 @@ class VendorPolicy
      */
     public function manageNotifications($user, Vendor $vendor): bool
     {
-        // Admins can manage any vendor notifications
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can manage any vendor notifications
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -298,7 +364,10 @@ class VendorPolicy
      */
     public function duplicate($user, Vendor $vendor): bool
     {
-        // Only admins can duplicate vendors
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can duplicate vendors
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_vendor', 'admin')) {
             return true;
         }
@@ -311,7 +380,10 @@ class VendorPolicy
      */
     public function manageSessions($user, Vendor $vendor): bool
     {
-        // Admins can manage any vendor sessions
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can manage any vendor sessions
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -324,7 +396,10 @@ class VendorPolicy
      */
     public function viewAuditLogs($user, Vendor $vendor): bool
     {
-        // Admins can view any vendor audit logs
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can view any vendor audit logs
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vendor', 'admin')) {
             return true;
         }
@@ -337,7 +412,10 @@ class VendorPolicy
      */
     public function manageCommissions($user, Vendor $vendor): bool
     {
-        // Only admins can manage vendor commissions (financial impact)
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can manage vendor commissions (financial impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -350,7 +428,10 @@ class VendorPolicy
      */
     public function viewCommissionReports($user, Vendor $vendor): bool
     {
-        // Admins can view any vendor commission reports
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can view any vendor commission reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
         }
@@ -368,7 +449,10 @@ class VendorPolicy
      */
     public function managePayouts($user, Vendor $vendor): bool
     {
-        // Admins can manage any vendor payouts
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can manage any vendor payouts
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -386,7 +470,10 @@ class VendorPolicy
      */
     public function viewPerformance($user, Vendor $vendor): bool
     {
-        // Same logic as viewAnalytics
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $vendor);
     }
 
@@ -395,7 +482,10 @@ class VendorPolicy
      */
     public function manageContracts($user, Vendor $vendor): bool
     {
-        // Only admins can manage vendor contracts
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can manage vendor contracts
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -408,7 +498,10 @@ class VendorPolicy
      */
     public function approveApplication($user, Vendor $vendor): bool
     {
-        // Only admins can approve vendor applications
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can approve vendor applications
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -421,7 +514,10 @@ class VendorPolicy
      */
     public function suspend($user, Vendor $vendor): bool
     {
-        // Only admins can suspend vendor accounts
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can suspend vendor accounts
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -434,7 +530,10 @@ class VendorPolicy
      */
     public function reactivate($user, Vendor $vendor): bool
     {
-        // Same logic as suspend
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Same logic as suspend
         return $this->suspend($user, $vendor);
     }
 
@@ -443,7 +542,10 @@ class VendorPolicy
      */
     public function transferStore($user, Vendor $vendor): bool
     {
-        // Only admins can transfer vendors between stores
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can transfer vendors between stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -456,7 +558,10 @@ class VendorPolicy
      */
     public function manageWorkingHours($user, Vendor $vendor): bool
     {
-        // Admins can manage any vendor's working hours
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can manage any vendor's working hours
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -474,7 +579,10 @@ class VendorPolicy
      */
     public function manageHolidays($user, Vendor $vendor): bool
     {
-        // Same logic as manageWorkingHours
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Same logic as manageWorkingHours
         return $this->manageWorkingHours($user, $vendor);
     }
 
@@ -483,7 +591,10 @@ class VendorPolicy
      */
     public function manageTargets($user, Vendor $vendor): bool
     {
-        // Only admins can manage vendor performance targets
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can manage vendor performance targets
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -496,7 +607,10 @@ class VendorPolicy
      */
     public function viewTargetReports($user, Vendor $vendor): bool
     {
-        // Admins can view any vendor target reports
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can view any vendor target reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
         }
@@ -514,7 +628,10 @@ class VendorPolicy
      */
     public function manageIncentives($user, Vendor $vendor): bool
     {
-        // Only admins can manage vendor incentives
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Only admins can manage vendor incentives
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -527,7 +644,10 @@ class VendorPolicy
      */
     public function manageTraining($user, Vendor $vendor): bool
     {
-        // Admins can manage any vendor training
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can manage any vendor training
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vendor', 'admin')) {
             return true;
         }
@@ -540,7 +660,10 @@ class VendorPolicy
      */
     public function viewTrainingRecords($user, Vendor $vendor): bool
     {
-        // Admins can view any vendor training records
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }        // Admins can view any vendor training records
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vendor', 'admin')) {
             return true;
         }

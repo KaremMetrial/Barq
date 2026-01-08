@@ -17,6 +17,7 @@ class Vehicle extends Model implements TranslatableContract
     public $translatedAttributes = ['name', 'description'];
 
     protected $fillable = ['slug', 'is_active','icon'];
+    protected $with = ['translations'];
     protected $casts = [
         'is_active' => 'boolean',
     ];

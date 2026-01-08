@@ -19,6 +19,11 @@ class OrderPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all orders
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_order', 'admin')) {
             return true;
@@ -47,6 +52,11 @@ class OrderPolicy
      */
     public function view($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all orders
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_order', 'admin')) {
             return true;
@@ -75,6 +85,11 @@ class OrderPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Any authenticated user can create orders
         if ($user instanceof User || $user instanceof Vendor || $user instanceof Admin) {
             return true;
@@ -88,6 +103,11 @@ class OrderPolicy
      */
     public function update($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update any order
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -117,6 +137,11 @@ class OrderPolicy
      */
     public function delete($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete orders (extremely sensitive operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_order', 'admin')) {
             return true;
@@ -130,6 +155,11 @@ class OrderPolicy
      */
     public function restore($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $order);
     }
@@ -139,6 +169,11 @@ class OrderPolicy
      */
     public function forceDelete($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $order);
     }
@@ -148,6 +183,11 @@ class OrderPolicy
      */
     public function cancel($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can cancel any order
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -172,6 +212,11 @@ class OrderPolicy
      */
     public function changeStatus($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can change any order status
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -195,6 +240,11 @@ class OrderPolicy
      */
     public function assignCourier($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can assign any courier to any order
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -213,6 +263,11 @@ class OrderPolicy
      */
     public function viewItems($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view order
         return $this->view($user, $order);
     }
@@ -222,6 +277,11 @@ class OrderPolicy
      */
     public function updateItems($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update any order items
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -241,6 +301,11 @@ class OrderPolicy
      */
     public function viewProofs($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view order
         return $this->view($user, $order);
     }
@@ -250,6 +315,11 @@ class OrderPolicy
      */
     public function manageProofs($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all proofs
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -273,6 +343,11 @@ class OrderPolicy
      */
     public function viewReviews($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Everyone can view reviews (public)
         return true;
     }
@@ -282,6 +357,11 @@ class OrderPolicy
      */
     public function createReview($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can review their own delivered orders
         if ($user instanceof User && $order->user_id === $user->id) {
             return $order->status->value === 'delivered';
@@ -295,6 +375,11 @@ class OrderPolicy
      */
     public function viewAnalytics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view order analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -313,6 +398,11 @@ class OrderPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export all order data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_order', 'admin')) {
             return true;
@@ -331,6 +421,11 @@ class OrderPolicy
      */
     public function processRefund($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can process refunds (financial operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -344,6 +439,11 @@ class OrderPolicy
      */
     public function viewPayment($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all payment information
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_order', 'admin')) {
             return true;
@@ -367,6 +467,11 @@ class OrderPolicy
      */
     public function updatePaymentStatus($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update any payment status
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -380,6 +485,11 @@ class OrderPolicy
      */
     public function viewDelivery($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view order
         return $this->view($user, $order);
     }
@@ -389,6 +499,11 @@ class OrderPolicy
      */
     public function updateDelivery($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update any delivery information
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -407,6 +522,11 @@ class OrderPolicy
      */
     public function useOtp($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can use OTP for their orders
         if ($user instanceof User && $order->user_id === $user->id && $order->requires_otp) {
             return true;
@@ -425,6 +545,11 @@ class OrderPolicy
      */
     public function markAsRead($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can mark any order as read
         if ($user instanceof Admin) {
             return true;
@@ -443,6 +568,11 @@ class OrderPolicy
      */
     public function viewHistory($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view order
         return $this->view($user, $order);
     }
@@ -452,6 +582,11 @@ class OrderPolicy
      */
     public function manageNotes($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage any order notes
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -470,6 +605,11 @@ class OrderPolicy
      */
     public function duplicate($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can duplicate any order for testing
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_order', 'admin')) {
             return true;
@@ -483,6 +623,11 @@ class OrderPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update orders
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -501,6 +646,11 @@ class OrderPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk delete orders
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_order', 'admin')) {
             return true;
@@ -514,6 +664,11 @@ class OrderPolicy
      */
     public function viewPerformance($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all order performance
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -535,6 +690,11 @@ class OrderPolicy
      */
     public function reassignCourier($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can reassign any order
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -553,6 +713,11 @@ class OrderPolicy
      */
     public function viewFinancialSummary($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all financial summaries
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_order', 'admin')) {
             return true;
@@ -576,6 +741,11 @@ class OrderPolicy
      */
     public function applyDiscount($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can apply discounts to any order
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;
@@ -595,6 +765,11 @@ class OrderPolicy
      */
     public function modifyTotal($user, Order $order): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can modify order totals (financial integrity)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;

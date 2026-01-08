@@ -18,6 +18,11 @@ class CountryPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all countries
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_country', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class CountryPolicy
      */
     public function view($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all countries
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_country', 'admin')) {
             return true;
@@ -64,6 +74,11 @@ class CountryPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can create countries (geographic management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_country', 'admin')) {
             return true;
@@ -77,6 +92,11 @@ class CountryPolicy
      */
     public function update($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can update countries (critical geographic data)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -90,6 +110,11 @@ class CountryPolicy
      */
     public function delete($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete countries (extremely sensitive operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_country', 'admin')) {
             return true;
@@ -103,6 +128,11 @@ class CountryPolicy
      */
     public function restore($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $country);
     }
@@ -112,6 +142,11 @@ class CountryPolicy
      */
     public function forceDelete($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $country);
     }
@@ -121,6 +156,11 @@ class CountryPolicy
      */
     public function manageGovernorates($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (governorate management is part of country management)
         return $this->update($user, $country);
     }
@@ -130,6 +170,11 @@ class CountryPolicy
      */
     public function viewGovernorates($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all governorates
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_country', 'admin')) {
             return true;
@@ -153,6 +198,11 @@ class CountryPolicy
      */
     public function manageCities($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $country);
     }
@@ -162,6 +212,11 @@ class CountryPolicy
      */
     public function viewCities($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view governorates
         return $this->viewGovernorates($user, $country);
     }
@@ -171,6 +226,11 @@ class CountryPolicy
      */
     public function manageSections($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage country sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -184,6 +244,11 @@ class CountryPolicy
      */
     public function viewSections($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view
         return $this->view($user, $country);
     }
@@ -193,6 +258,11 @@ class CountryPolicy
      */
     public function manageLoyaltySettings($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage loyalty settings per country
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -206,6 +276,11 @@ class CountryPolicy
      */
     public function viewLoyaltySettings($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view loyalty settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_country', 'admin')) {
             return true;
@@ -219,6 +294,11 @@ class CountryPolicy
      */
     public function manageRewards($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage rewards per country
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -232,6 +312,11 @@ class CountryPolicy
      */
     public function viewRewards($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_country', 'admin')) {
             return true;
@@ -250,6 +335,11 @@ class CountryPolicy
      */
     public function manageCurrency($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage currency settings (critical financial data)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -263,6 +353,11 @@ class CountryPolicy
      */
     public function viewCurrency($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Everyone can view currency information (public data)
         return true;
     }
@@ -272,6 +367,11 @@ class CountryPolicy
      */
     public function toggleActive($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can activate/deactivate countries
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -285,6 +385,11 @@ class CountryPolicy
      */
     public function viewAnalytics($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view country analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -298,6 +403,11 @@ class CountryPolicy
      */
     public function manageSettings($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage country settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -311,6 +421,11 @@ class CountryPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export country data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_country', 'admin')) {
             return true;
@@ -324,6 +439,11 @@ class CountryPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import countries (geographic data management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_country', 'admin')) {
             return true;
@@ -337,6 +457,11 @@ class CountryPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk update countries
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -350,6 +475,11 @@ class CountryPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk delete countries
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_country', 'admin')) {
             return true;
@@ -363,6 +493,11 @@ class CountryPolicy
      */
     public function duplicate($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -372,6 +507,11 @@ class CountryPolicy
      */
     public function merge($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can merge countries (complex geographic operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_country', 'admin')) {
             return true;
@@ -385,6 +525,11 @@ class CountryPolicy
      */
     public function split($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can split countries (complex geographic operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -398,6 +543,11 @@ class CountryPolicy
      */
     public function viewHierarchy($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view geographic hierarchy
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_country', 'admin')) {
             return true;
@@ -421,6 +571,11 @@ class CountryPolicy
      */
     public function manageTranslations($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage translations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;
@@ -434,6 +589,11 @@ class CountryPolicy
      */
     public function viewStatistics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view country statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -447,6 +607,11 @@ class CountryPolicy
      */
     public function configureFeatures($user, Country $country): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can configure country features
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_country', 'admin')) {
             return true;

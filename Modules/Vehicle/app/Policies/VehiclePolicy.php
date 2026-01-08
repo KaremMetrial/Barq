@@ -18,6 +18,10 @@ class VehiclePolicy
      */
     public function viewAny($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all vehicles
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -41,6 +45,10 @@ class VehiclePolicy
      */
     public function view($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all vehicles
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -64,6 +72,10 @@ class VehiclePolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can create vehicles (fleet management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_vehicle', 'admin')) {
             return true;
@@ -77,6 +89,10 @@ class VehiclePolicy
      */
     public function update($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can update vehicles (fleet management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -90,6 +106,10 @@ class VehiclePolicy
      */
     public function delete($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can delete vehicles (fleet management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_vehicle', 'admin')) {
             return true;
@@ -121,6 +141,10 @@ class VehiclePolicy
      */
     public function toggleActive($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can activate/deactivate vehicles
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -134,6 +158,10 @@ class VehiclePolicy
      */
     public function manageCourierAssignments($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any courier assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -152,6 +180,10 @@ class VehiclePolicy
      */
     public function manageShippingPrices($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage vehicle shipping prices (pricing impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -165,6 +197,10 @@ class VehiclePolicy
      */
     public function viewAnalytics($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all vehicle analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -187,6 +223,10 @@ class VehiclePolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export all vehicle data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -200,6 +240,10 @@ class VehiclePolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import vehicles
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_vehicle', 'admin')) {
             return true;
@@ -213,6 +257,10 @@ class VehiclePolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk update vehicles
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -226,6 +274,10 @@ class VehiclePolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk delete vehicles
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_vehicle', 'admin')) {
             return true;
@@ -248,6 +300,10 @@ class VehiclePolicy
      */
     public function manageTranslations($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage translations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -261,6 +317,10 @@ class VehiclePolicy
      */
     public function manageIcons($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage vehicle icons
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -274,6 +334,10 @@ class VehiclePolicy
      */
     public function viewMaintenance($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all vehicle maintenance
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -287,6 +351,10 @@ class VehiclePolicy
      */
     public function manageMaintenance($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage vehicle maintenance
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -300,6 +368,10 @@ class VehiclePolicy
      */
     public function viewUsageStats($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all vehicle usage statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -313,6 +385,10 @@ class VehiclePolicy
      */
     public function optimizeAssignments($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can optimize vehicle assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -326,6 +402,10 @@ class VehiclePolicy
      */
     public function manageCategories($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage vehicle categories
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -339,6 +419,10 @@ class VehiclePolicy
      */
     public function decommission($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can decommission vehicles
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -361,6 +445,10 @@ class VehiclePolicy
      */
     public function viewFuelConsumption($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all vehicle fuel data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -374,6 +462,10 @@ class VehiclePolicy
      */
     public function manageFuelLogs($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage fuel logs
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -387,6 +479,10 @@ class VehiclePolicy
      */
     public function viewInsurance($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all vehicle insurance
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -400,6 +496,10 @@ class VehiclePolicy
      */
     public function manageInsurance($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage vehicle insurance
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -413,6 +513,10 @@ class VehiclePolicy
      */
     public function viewRegistration($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all vehicle registrations
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -426,6 +530,10 @@ class VehiclePolicy
      */
     public function manageRegistration($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage vehicle registration
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -439,6 +547,10 @@ class VehiclePolicy
      */
     public function trackGPS($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can track any vehicle GPS
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -452,6 +564,10 @@ class VehiclePolicy
      */
     public function manageGPS($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage GPS settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -465,6 +581,10 @@ class VehiclePolicy
      */
     public function assignToRoutes($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can assign any vehicle to routes
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -483,6 +603,10 @@ class VehiclePolicy
      */
     public function viewRouteHistory($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all route history
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_vehicle', 'admin')) {
             return true;
@@ -496,6 +620,10 @@ class VehiclePolicy
      */
     public function manageCapacity($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage vehicle capacity
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -509,6 +637,10 @@ class VehiclePolicy
      */
     public function viewLoadFactors($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all load factors
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -522,6 +654,10 @@ class VehiclePolicy
      */
     public function generateReports($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can generate vehicle reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -535,6 +671,10 @@ class VehiclePolicy
      */
     public function manageCompliance($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage vehicle compliance (regulatory)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;
@@ -548,6 +688,10 @@ class VehiclePolicy
      */
     public function scheduleInspections($user, Vehicle $vehicle): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can schedule vehicle inspections
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_vehicle', 'admin')) {
             return true;

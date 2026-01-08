@@ -18,6 +18,10 @@ class ZonePolicy
      */
     public function viewAny($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_zone', 'admin')) {
             return true;
@@ -41,6 +45,10 @@ class ZonePolicy
      */
     public function view($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_zone', 'admin')) {
             return true;
@@ -64,6 +72,10 @@ class ZonePolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can create zones (geographic infrastructure)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_zone', 'admin')) {
             return true;
@@ -77,6 +89,10 @@ class ZonePolicy
      */
     public function update($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can update zones (geographic boundaries)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -90,6 +106,10 @@ class ZonePolicy
      */
     public function delete($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can delete zones (significant geographic impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_zone', 'admin')) {
             return true;
@@ -121,6 +141,10 @@ class ZonePolicy
      */
     public function manageBoundaries($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage geographic boundaries
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -134,6 +158,10 @@ class ZonePolicy
      */
     public function manageCities($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage city assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -147,6 +175,10 @@ class ZonePolicy
      */
     public function manageStores($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any zone's store assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -165,6 +197,10 @@ class ZonePolicy
      */
     public function manageCouriers($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any zone's courier assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -178,6 +214,10 @@ class ZonePolicy
      */
     public function manageShippingPrices($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any zone's shipping prices
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -196,6 +236,10 @@ class ZonePolicy
      */
     public function toggleActive($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can activate/deactivate zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -218,6 +262,10 @@ class ZonePolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export all zone data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_zone', 'admin')) {
             return true;
@@ -231,6 +279,10 @@ class ZonePolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import zone data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_zone', 'admin')) {
             return true;
@@ -244,6 +296,10 @@ class ZonePolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk update zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -257,6 +313,10 @@ class ZonePolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk delete zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_zone', 'admin')) {
             return true;
@@ -270,6 +330,10 @@ class ZonePolicy
      */
     public function manageTranslations($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage translations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -283,6 +347,10 @@ class ZonePolicy
      */
     public function viewAnalytics($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all zone analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -318,6 +386,10 @@ class ZonePolicy
      */
     public function manageAddresses($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any zone's addresses
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -331,6 +403,10 @@ class ZonePolicy
      */
     public function merge($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can merge zones (geographic restructuring)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -344,6 +420,10 @@ class ZonePolicy
      */
     public function split($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can split zones (geographic restructuring)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -357,6 +437,10 @@ class ZonePolicy
      */
     public function manageCoverage($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage geographic coverage
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -370,6 +454,10 @@ class ZonePolicy
      */
     public function manageOverlapping($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage zone overlapping issues
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -383,6 +471,10 @@ class ZonePolicy
      */
     public function managePriorities($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage zone priorities
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -396,6 +488,10 @@ class ZonePolicy
      */
     public function generateReports($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can generate zone reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -409,6 +505,10 @@ class ZonePolicy
      */
     public function manageTemplates($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage zone templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_zone', 'admin')) {
             return true;
@@ -431,6 +531,10 @@ class ZonePolicy
      */
     public function manageBackups($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage zone backups
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -444,6 +548,10 @@ class ZonePolicy
      */
     public function restoreBackups($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can restore zone backups
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -457,6 +565,10 @@ class ZonePolicy
      */
     public function auditChanges($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can audit all zone changes
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_zone', 'admin')) {
             return true;
@@ -470,6 +582,10 @@ class ZonePolicy
      */
     public function manageValidation($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can validate zone configurations
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_zone', 'admin')) {
             return true;
@@ -483,6 +599,10 @@ class ZonePolicy
      */
     public function manageNotifications($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage zone-related notifications
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -496,6 +616,10 @@ class ZonePolicy
      */
     public function manageIntegrations($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage geographic integrations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -509,6 +633,10 @@ class ZonePolicy
      */
     public function manageApis($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage zone APIs
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -522,6 +650,10 @@ class ZonePolicy
      */
     public function manageCaching($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage zone caching
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -535,6 +667,10 @@ class ZonePolicy
      */
     public function managePerformance($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage zone performance settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -548,6 +684,10 @@ class ZonePolicy
      */
     public function manageMonitoring($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage zone monitoring
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_zone', 'admin')) {
             return true;
@@ -561,6 +701,10 @@ class ZonePolicy
      */
     public function manageAlerts($user, Zone $zone): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage zone alerts
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;
@@ -574,6 +718,10 @@ class ZonePolicy
      */
     public function managePolicies($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage zone policies
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_zone', 'admin')) {
             return true;

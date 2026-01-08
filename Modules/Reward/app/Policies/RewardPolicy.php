@@ -18,6 +18,10 @@ class RewardPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_reward', 'admin')) {
             return true;
@@ -41,6 +45,10 @@ class RewardPolicy
      */
     public function view($user, Reward $reward): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_reward', 'admin')) {
             return true;
@@ -64,6 +72,10 @@ class RewardPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can create rewards (loyalty program management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_reward', 'admin')) {
             return true;
@@ -77,6 +89,10 @@ class RewardPolicy
      */
     public function update($user, Reward $reward): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can update rewards (loyalty program management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -90,6 +106,10 @@ class RewardPolicy
      */
     public function delete($user, Reward $reward): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can delete rewards (loyalty program management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_reward', 'admin')) {
             return true;
@@ -134,6 +154,10 @@ class RewardPolicy
      */
     public function toggleActive($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can activate/deactivate rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -147,6 +171,10 @@ class RewardPolicy
      */
     public function manageRedemptions($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage all redemptions
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -160,6 +188,10 @@ class RewardPolicy
      */
     public function viewRedemptions($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all redemptions
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_reward', 'admin')) {
             return true;
@@ -178,6 +210,10 @@ class RewardPolicy
      */
     public function manageCoupons($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage reward coupons
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -191,6 +227,10 @@ class RewardPolicy
      */
     public function manageCountries($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage reward country restrictions
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -213,6 +253,10 @@ class RewardPolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export all reward data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_reward', 'admin')) {
             return true;
@@ -226,6 +270,10 @@ class RewardPolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_reward', 'admin')) {
             return true;
@@ -239,6 +287,10 @@ class RewardPolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk update rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -252,6 +304,10 @@ class RewardPolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk delete rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_reward', 'admin')) {
             return true;
@@ -265,6 +321,10 @@ class RewardPolicy
      */
     public function viewAnalytics($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all reward analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -287,6 +347,10 @@ class RewardPolicy
      */
     public function resetUsage($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can reset usage counters
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -300,6 +364,10 @@ class RewardPolicy
      */
     public function extendValidity($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can extend reward validity
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -313,6 +381,10 @@ class RewardPolicy
      */
     public function modifyPointsCost($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can modify points cost (loyalty economics)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -326,6 +398,10 @@ class RewardPolicy
      */
     public function modifyValueAmount($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can modify value amounts (financial impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -339,6 +415,10 @@ class RewardPolicy
      */
     public function manageType($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can change reward types
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -352,6 +432,10 @@ class RewardPolicy
      */
     public function manageLimits($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage redemption limits
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -365,6 +449,10 @@ class RewardPolicy
      */
     public function viewFinancialImpact($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view financial impact
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -378,6 +466,10 @@ class RewardPolicy
      */
     public function archive($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can archive rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -400,6 +492,10 @@ class RewardPolicy
      */
     public function toggleFeatured($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can feature/unfeature rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -413,6 +509,10 @@ class RewardPolicy
      */
     public function manageImages($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage reward images
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -426,6 +526,10 @@ class RewardPolicy
      */
     public function manageTranslations($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage translations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -439,6 +543,10 @@ class RewardPolicy
      */
     public function createTemplates($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can create reward templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_reward', 'admin')) {
             return true;
@@ -461,6 +569,10 @@ class RewardPolicy
      */
     public function viewStatistics($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view reward statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -474,6 +586,10 @@ class RewardPolicy
      */
     public function manageCampaigns($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage reward campaigns
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_reward', 'admin')) {
             return true;
@@ -487,6 +603,10 @@ class RewardPolicy
      */
     public function configureAutoRewards($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can configure auto-reward systems
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;
@@ -500,6 +620,10 @@ class RewardPolicy
      */
     public function manageExpiration($user, Reward $reward): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage reward expiration
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_reward', 'admin')) {
             return true;

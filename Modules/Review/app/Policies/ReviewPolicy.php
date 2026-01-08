@@ -49,6 +49,11 @@ class ReviewPolicy
      */
     public function update($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can update their own reviews
         if ($user instanceof User && $review->user && $review->user->id === $user->id) {
             return true;
@@ -174,6 +179,11 @@ class ReviewPolicy
      */
     public function flag($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can flag reviews (report inappropriate content)
         if ($user instanceof User) {
             return true;
@@ -187,6 +197,11 @@ class ReviewPolicy
      */
     public function respond($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can respond to any review
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_review', 'admin')) {
             return true;
@@ -216,6 +231,11 @@ class ReviewPolicy
      */
     public function viewAnalytics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view review analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -234,6 +254,11 @@ class ReviewPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export all review data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_review', 'admin')) {
             return true;
@@ -252,6 +277,11 @@ class ReviewPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update reviews
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_review', 'admin')) {
             return true;
@@ -265,6 +295,11 @@ class ReviewPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk delete reviews
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_review', 'admin')) {
             return true;
@@ -278,6 +313,11 @@ class ReviewPolicy
      */
     public function viewRatings($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Everyone can view review ratings (public content)
         return true;
     }
@@ -287,6 +327,11 @@ class ReviewPolicy
      */
     public function manageRatings($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can manage ratings for their own reviews
         if ($user instanceof User && $review->user && $review->user->id === $user->id) {
             return true;
@@ -305,6 +350,11 @@ class ReviewPolicy
      */
     public function viewImages($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Everyone can view review images (public content)
         return true;
     }
@@ -314,6 +364,11 @@ class ReviewPolicy
      */
     public function manageImages($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can manage images for their own reviews
         if ($user instanceof User && $review->user && $review->user->id === $user->id) {
             return true;
@@ -327,6 +382,11 @@ class ReviewPolicy
      */
     public function like($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can like/dislike reviews (except their own)
         if ($user instanceof User && (!$review->user || $review->user->id !== $user->id)) {
             return true;
@@ -340,6 +400,11 @@ class ReviewPolicy
      */
     public function report($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can report reviews (except their own)
         if ($user instanceof User && (!$review->user || $review->user->id !== $user->id)) {
             return true;
@@ -353,6 +418,11 @@ class ReviewPolicy
      */
     public function viewReports($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all review reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_review', 'admin')) {
             return true;
@@ -366,6 +436,11 @@ class ReviewPolicy
      */
     public function manageReports($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage review reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_review', 'admin')) {
             return true;
@@ -379,6 +454,11 @@ class ReviewPolicy
      */
     public function pin($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can pin/unpin any review
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_review', 'admin')) {
             return true;
@@ -417,6 +497,11 @@ class ReviewPolicy
      */
     public function viewPerformance($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all review performance
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -443,6 +528,11 @@ class ReviewPolicy
      */
     public function translate($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can translate any review
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_review', 'admin')) {
             return true;
@@ -456,6 +546,11 @@ class ReviewPolicy
      */
     public function archive($user, Review $review): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can archive any review
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_review', 'admin')) {
             return true;

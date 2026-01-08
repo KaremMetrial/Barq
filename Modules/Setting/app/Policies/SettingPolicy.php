@@ -18,6 +18,10 @@ class SettingPolicy
      */
     public function viewAny($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can view system settings (security critical)
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_setting', 'admin')) {
             return true;
@@ -31,6 +35,10 @@ class SettingPolicy
      */
     public function view($user, Setting $setting): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can view individual settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_setting', 'admin')) {
             return true;
@@ -44,6 +52,10 @@ class SettingPolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can create settings (system configuration)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_setting', 'admin')) {
             return true;
@@ -57,6 +69,10 @@ class SettingPolicy
      */
     public function update($user, Setting $setting): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can update settings (system configuration changes)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -70,6 +86,10 @@ class SettingPolicy
      */
     public function delete($user, Setting $setting): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can delete settings (extremely sensitive operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_setting', 'admin')) {
             return true;
@@ -83,6 +103,10 @@ class SettingPolicy
      */
     public function restore($user, Setting $setting): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as update
         return $this->update($user, $setting);
     }
@@ -92,6 +116,10 @@ class SettingPolicy
      */
     public function forceDelete($user, Setting $setting): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as delete
         return $this->delete($user, $setting);
     }
@@ -101,6 +129,10 @@ class SettingPolicy
      */
     public function manageSystem($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage system-level settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -114,6 +146,10 @@ class SettingPolicy
      */
     public function manageApplication($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage application settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -127,6 +163,10 @@ class SettingPolicy
      */
     public function manageUser($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage user-related settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -140,6 +180,10 @@ class SettingPolicy
      */
     public function manageSecurity($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage security settings (critical)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -153,6 +197,10 @@ class SettingPolicy
      */
     public function managePayment($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage payment settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -166,6 +214,10 @@ class SettingPolicy
      */
     public function manageNotification($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage notification settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -179,6 +231,10 @@ class SettingPolicy
      */
     public function manageApi($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage API settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -192,6 +248,10 @@ class SettingPolicy
      */
     public function manageEmail($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage email settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -205,6 +265,10 @@ class SettingPolicy
      */
     public function manageSms($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage SMS settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -218,6 +282,10 @@ class SettingPolicy
      */
     public function manageSocial($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage social media settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -231,6 +299,10 @@ class SettingPolicy
      */
     public function manageMaintenance($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage maintenance mode settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -244,6 +316,10 @@ class SettingPolicy
      */
     public function managePerformance($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage performance settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -257,6 +333,10 @@ class SettingPolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export settings for backup
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_setting', 'admin')) {
             return true;
@@ -270,6 +350,10 @@ class SettingPolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import settings (dangerous operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_setting', 'admin')) {
             return true;
@@ -283,6 +367,10 @@ class SettingPolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk update settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -296,6 +384,10 @@ class SettingPolicy
      */
     public function resetToDefaults($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can reset settings to defaults (destructive)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -309,6 +401,10 @@ class SettingPolicy
      */
     public function duplicate($user, Setting $setting): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as create
         return $this->create($user);
     }
@@ -318,6 +414,10 @@ class SettingPolicy
      */
     public function validateValue($user, Setting $setting): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can validate setting values
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_setting', 'admin')) {
             return true;
@@ -331,6 +431,10 @@ class SettingPolicy
      */
     public function auditChanges($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can audit setting changes
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_setting', 'admin')) {
             return true;
@@ -344,6 +448,10 @@ class SettingPolicy
      */
     public function manageBackups($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage setting backups
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -357,6 +465,10 @@ class SettingPolicy
      */
     public function restoreFromBackup($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can restore from backup (dangerous operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -370,6 +482,10 @@ class SettingPolicy
      */
     public function manageCategories($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage setting categories
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -383,6 +499,10 @@ class SettingPolicy
      */
     public function viewDocumentation($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view setting documentation
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_setting', 'admin')) {
             return true;
@@ -396,6 +516,10 @@ class SettingPolicy
      */
     public function managePermissions($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage setting permissions
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -409,6 +533,10 @@ class SettingPolicy
      */
     public function toggleMaintenanceMode($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can toggle maintenance mode
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -422,6 +550,10 @@ class SettingPolicy
      */
     public function manageRateLimiting($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage rate limiting
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -435,6 +567,10 @@ class SettingPolicy
      */
     public function manageCache($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage cache settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -448,6 +584,10 @@ class SettingPolicy
      */
     public function manageLogging($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage logging settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -461,6 +601,10 @@ class SettingPolicy
      */
     public function manageBackupSettings($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage backup settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -474,6 +618,10 @@ class SettingPolicy
      */
     public function manageIntegrations($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage third-party integrations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -487,6 +635,10 @@ class SettingPolicy
      */
     public function manageFeatureFlags($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage feature flags
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -500,6 +652,10 @@ class SettingPolicy
      */
     public function manageLocalization($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage localization settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -513,6 +669,10 @@ class SettingPolicy
      */
     public function manageTimezone($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage timezone settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -526,6 +686,10 @@ class SettingPolicy
      */
     public function manageCurrency($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage currency settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;
@@ -539,6 +703,10 @@ class SettingPolicy
      */
     public function manageTax($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage tax settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_setting', 'admin')) {
             return true;

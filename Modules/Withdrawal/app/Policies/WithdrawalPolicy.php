@@ -19,6 +19,10 @@ class WithdrawalPolicy
      */
     public function viewAny($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all withdrawals
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_withdrawal', 'admin')) {
             return true;
@@ -47,6 +51,10 @@ class WithdrawalPolicy
      */
     public function view($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all withdrawals
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_withdrawal', 'admin')) {
             return true;
@@ -65,6 +73,10 @@ class WithdrawalPolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Vendors can create withdrawals for their stores
         if ($user instanceof Vendor && PermissionHelper::hasPermission('create_withdrawal', 'vendor')) {
             return true;
@@ -88,6 +100,10 @@ class WithdrawalPolicy
      */
     public function update($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can update withdrawal details (for corrections)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -106,6 +122,10 @@ class WithdrawalPolicy
      */
     public function delete($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can delete withdrawals (exceptional cases)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_withdrawal', 'admin')) {
             return true;
@@ -124,6 +144,10 @@ class WithdrawalPolicy
      */
     public function restore($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can restore withdrawals
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -137,6 +161,10 @@ class WithdrawalPolicy
      */
     public function forceDelete($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can permanently delete withdrawals
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_withdrawal', 'admin')) {
             return true;
@@ -150,6 +178,10 @@ class WithdrawalPolicy
      */
     public function approve($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can approve withdrawals (financial authority)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -172,6 +204,10 @@ class WithdrawalPolicy
      */
     public function process($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can process withdrawals (actual payment execution)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -185,6 +221,10 @@ class WithdrawalPolicy
      */
     public function cancel($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can cancel any withdrawal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -203,6 +243,10 @@ class WithdrawalPolicy
      */
     public function viewAnalytics($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all withdrawal analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -216,6 +260,10 @@ class WithdrawalPolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export all withdrawal data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_withdrawal', 'admin')) {
             return true;
@@ -234,6 +282,10 @@ class WithdrawalPolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import withdrawal data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_withdrawal', 'admin')) {
             return true;
@@ -247,6 +299,10 @@ class WithdrawalPolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk update withdrawals
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -260,6 +316,10 @@ class WithdrawalPolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk delete withdrawals
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_withdrawal', 'admin')) {
             return true;
@@ -273,6 +333,10 @@ class WithdrawalPolicy
      */
     public function viewAuditLogs($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all withdrawal audit logs
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_withdrawal', 'admin')) {
             return true;
@@ -286,6 +350,10 @@ class WithdrawalPolicy
      */
     public function manageFees($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal fees
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -299,6 +367,10 @@ class WithdrawalPolicy
      */
     public function manageLimits($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal limits
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -312,6 +384,10 @@ class WithdrawalPolicy
      */
     public function manageMethods($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal methods
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -325,6 +401,10 @@ class WithdrawalPolicy
      */
     public function viewPerformance($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all withdrawal performance
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -338,6 +418,10 @@ class WithdrawalPolicy
      */
     public function managePolicies($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal policies
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -351,6 +435,10 @@ class WithdrawalPolicy
      */
     public function overrideLimits($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can override withdrawal limits (exceptional cases)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -364,6 +452,10 @@ class WithdrawalPolicy
      */
     public function manageCurrencies($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal currencies
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -377,6 +469,10 @@ class WithdrawalPolicy
      */
     public function duplicate($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can duplicate withdrawals (for testing)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_withdrawal', 'admin')) {
             return true;
@@ -390,6 +486,10 @@ class WithdrawalPolicy
      */
     public function manageNotifications($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any withdrawal notifications
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -408,6 +508,10 @@ class WithdrawalPolicy
      */
     public function generateReports($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can generate all withdrawal reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -421,6 +525,10 @@ class WithdrawalPolicy
      */
     public function manageCompliance($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal compliance (regulatory)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -434,6 +542,10 @@ class WithdrawalPolicy
      */
     public function manageSecurity($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal security
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -447,6 +559,10 @@ class WithdrawalPolicy
      */
     public function viewTransactionDetails($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all transaction details
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_withdrawal', 'admin')) {
             return true;
@@ -465,6 +581,10 @@ class WithdrawalPolicy
      */
     public function managePriorities($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal priorities
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -478,6 +598,10 @@ class WithdrawalPolicy
      */
     public function reschedule($user, Withdrawal $withdrawal): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can reschedule any withdrawal
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;
@@ -496,6 +620,10 @@ class WithdrawalPolicy
      */
     public function viewSchedules($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all withdrawal schedules
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_withdrawal', 'admin')) {
             return true;
@@ -509,6 +637,10 @@ class WithdrawalPolicy
      */
     public function manageSchedules($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage withdrawal schedules
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_withdrawal', 'admin')) {
             return true;

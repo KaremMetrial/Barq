@@ -27,6 +27,10 @@ class StorePolicy
      */
     public function view($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_store', 'admin')) {
             return true;
@@ -50,6 +54,10 @@ class StorePolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can create stores for any vendor
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_store', 'admin')) {
             return true;
@@ -68,6 +76,10 @@ class StorePolicy
      */
     public function update($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can update any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -86,6 +98,10 @@ class StorePolicy
      */
     public function delete($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can delete stores (significant business impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_store', 'admin')) {
             return true;
@@ -117,6 +133,10 @@ class StorePolicy
      */
     public function manageProducts($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store's products
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -144,6 +164,10 @@ class StorePolicy
      */
     public function manageOrders($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store's orders
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_order', 'admin')) {
             return true;
@@ -162,6 +186,10 @@ class StorePolicy
      */
     public function manageSettings($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store's settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -189,6 +217,10 @@ class StorePolicy
      */
     public function manageDeliveryZones($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store's delivery zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -207,6 +239,10 @@ class StorePolicy
      */
     public function manageVendors($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store's vendors
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -234,6 +270,10 @@ class StorePolicy
      */
     public function manageBranches($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store's branches
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -252,6 +292,10 @@ class StorePolicy
      */
     public function toggleActive($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can activate/deactivate any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -270,6 +314,10 @@ class StorePolicy
      */
     public function toggleFeatured($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can feature/unfeature stores (platform-level decision)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -283,6 +331,10 @@ class StorePolicy
      */
     public function approve($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can approve/reject store applications
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -296,6 +348,10 @@ class StorePolicy
      */
     public function manageCommissions($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage store commissions (financial impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -309,6 +365,10 @@ class StorePolicy
      */
     public function manageBalances($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store's balances
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -327,6 +387,10 @@ class StorePolicy
      */
     public function manageWithdrawals($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store's withdrawals
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -354,6 +418,10 @@ class StorePolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export all store data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_store', 'admin')) {
             return true;
@@ -372,6 +440,10 @@ class StorePolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import store data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_store', 'admin')) {
             return true;
@@ -385,6 +457,10 @@ class StorePolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can bulk update all stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -398,6 +474,10 @@ class StorePolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk delete stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_store', 'admin')) {
             return true;
@@ -411,6 +491,10 @@ class StorePolicy
      */
     public function viewAnalytics($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all store analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -441,6 +525,10 @@ class StorePolicy
      */
     public function moderateReviews($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can moderate any store reviews
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -522,6 +610,10 @@ class StorePolicy
      */
     public function manageCurrencies($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage store currencies (financial impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -544,6 +636,10 @@ class StorePolicy
      */
     public function toggleClosed($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can close/open any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -575,6 +671,10 @@ class StorePolicy
      */
     public function viewReports($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all store reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_store', 'admin')) {
             return true;
@@ -593,6 +693,10 @@ class StorePolicy
      */
     public function manageReports($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage any store reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -606,6 +710,10 @@ class StorePolicy
      */
     public function transferOwnership($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can transfer store ownership
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;
@@ -619,6 +727,10 @@ class StorePolicy
      */
     public function merge($user, Store $store): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can merge stores (significant business impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_store', 'admin')) {
             return true;

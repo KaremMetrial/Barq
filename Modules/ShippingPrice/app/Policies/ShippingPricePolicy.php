@@ -18,6 +18,10 @@ class ShippingPricePolicy
      */
     public function viewAny($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all shipping prices
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_shipping_price', 'admin')) {
             return true;
@@ -41,6 +45,10 @@ class ShippingPricePolicy
      */
     public function view($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all shipping prices
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_shipping_price', 'admin')) {
             return true;
@@ -64,6 +72,10 @@ class ShippingPricePolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can create shipping prices for any zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_shipping_price', 'admin')) {
             return true;
@@ -82,6 +94,10 @@ class ShippingPricePolicy
      */
     public function update($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can update any shipping price
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -100,6 +116,10 @@ class ShippingPricePolicy
      */
     public function delete($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can delete any shipping price
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_shipping_price', 'admin')) {
             return true;
@@ -136,6 +156,10 @@ class ShippingPricePolicy
      */
     public function manageZones($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage zone assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -154,6 +178,10 @@ class ShippingPricePolicy
      */
     public function manageVehicles($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage vehicle assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -172,6 +200,10 @@ class ShippingPricePolicy
      */
     public function manageCod($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage COD settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -190,6 +222,10 @@ class ShippingPricePolicy
      */
     public function configurePricing($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can configure all pricing rules
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -208,6 +244,10 @@ class ShippingPricePolicy
      */
     public function toggleActive($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can activate/deactivate any shipping price
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -235,6 +275,10 @@ class ShippingPricePolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export all shipping price data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_shipping_price', 'admin')) {
             return true;
@@ -253,6 +297,10 @@ class ShippingPricePolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can import shipping price data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_shipping_price', 'admin')) {
             return true;
@@ -271,6 +319,10 @@ class ShippingPricePolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can bulk update all shipping prices
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -289,6 +341,10 @@ class ShippingPricePolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can bulk delete any shipping prices
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_shipping_price', 'admin')) {
             return true;
@@ -307,6 +363,10 @@ class ShippingPricePolicy
      */
     public function viewAnalytics($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all shipping price analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -350,6 +410,10 @@ class ShippingPricePolicy
      */
     public function manageDistancePricing($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage distance-based pricing
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -368,6 +432,10 @@ class ShippingPricePolicy
      */
     public function manageWeightPricing($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage weight-based pricing
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -386,6 +454,10 @@ class ShippingPricePolicy
      */
     public function manageTimePricing($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage time-based pricing
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -404,6 +476,10 @@ class ShippingPricePolicy
      */
     public function manageSurgePricing($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage surge pricing
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -422,6 +498,10 @@ class ShippingPricePolicy
      */
     public function setMinimumOrder($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can set minimum order values
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -440,6 +520,10 @@ class ShippingPricePolicy
      */
     public function manageFreeShipping($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage free shipping thresholds
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -458,6 +542,10 @@ class ShippingPricePolicy
      */
     public function manageDiscounts($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage shipping discounts
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -476,6 +564,10 @@ class ShippingPricePolicy
      */
     public function viewStatistics($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view shipping price statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -494,6 +586,10 @@ class ShippingPricePolicy
      */
     public function createTemplates($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can create shipping price templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_shipping_price', 'admin')) {
             return true;
@@ -521,6 +617,10 @@ class ShippingPricePolicy
      */
     public function manageRules($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage shipping price rules
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -539,6 +639,10 @@ class ShippingPricePolicy
      */
     public function manageTranslations($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage translations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -557,6 +661,10 @@ class ShippingPricePolicy
      */
     public function optimizePricing($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can optimize shipping prices
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_shipping_price', 'admin')) {
             return true;
@@ -575,6 +683,10 @@ class ShippingPricePolicy
      */
     public function testCalculations($user, ShippingPrice $shippingPrice): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can test shipping price calculations
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_shipping_price', 'admin')) {
             return true;

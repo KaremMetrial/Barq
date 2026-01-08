@@ -18,6 +18,11 @@ class LoyaltySettingPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can view loyalty settings (financial/business data)
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_loyalty_setting', 'admin')) {
             return true;
@@ -31,6 +36,11 @@ class LoyaltySettingPolicy
      */
     public function view($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can view loyalty settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_loyalty_setting', 'admin')) {
             return true;
@@ -44,6 +54,11 @@ class LoyaltySettingPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can create loyalty settings (affects business revenue)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_loyalty_setting', 'admin')) {
             return true;
@@ -57,6 +72,11 @@ class LoyaltySettingPolicy
      */
     public function update($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can update loyalty settings (critical financial impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -70,6 +90,11 @@ class LoyaltySettingPolicy
      */
     public function delete($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete loyalty settings (extremely sensitive operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_loyalty_setting', 'admin')) {
             return true;
@@ -83,6 +108,11 @@ class LoyaltySettingPolicy
      */
     public function restore($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $loyaltySetting);
     }
@@ -92,6 +122,11 @@ class LoyaltySettingPolicy
      */
     public function forceDelete($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $loyaltySetting);
     }
@@ -101,6 +136,11 @@ class LoyaltySettingPolicy
      */
     public function manageCountry($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can change country relationships
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -114,6 +154,11 @@ class LoyaltySettingPolicy
      */
     public function viewAnalytics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view loyalty analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -127,6 +172,11 @@ class LoyaltySettingPolicy
      */
     public function viewTransactions($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view loyalty transactions
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_loyalty_transaction', 'admin')) {
             return true;
@@ -140,6 +190,11 @@ class LoyaltySettingPolicy
      */
     public function manageSettings($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage loyalty settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -153,6 +208,11 @@ class LoyaltySettingPolicy
      */
     public function configureEarnRate($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can configure earn rates (direct revenue impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -166,6 +226,11 @@ class LoyaltySettingPolicy
      */
     public function configureReferralPoints($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (affects referral program economics)
         return $this->update($user, $loyaltySetting);
     }
@@ -175,6 +240,11 @@ class LoyaltySettingPolicy
      */
     public function configureRatingPoints($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $loyaltySetting);
     }
@@ -184,6 +254,11 @@ class LoyaltySettingPolicy
      */
     public function toggleProgram($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can enable/disable loyalty programs
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -197,6 +272,11 @@ class LoyaltySettingPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export loyalty data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_loyalty_setting', 'admin')) {
             return true;
@@ -210,6 +290,11 @@ class LoyaltySettingPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import loyalty settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_loyalty_setting', 'admin')) {
             return true;
@@ -223,6 +308,11 @@ class LoyaltySettingPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk update loyalty settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -236,6 +326,11 @@ class LoyaltySettingPolicy
      */
     public function duplicate($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -245,6 +340,11 @@ class LoyaltySettingPolicy
      */
     public function resetProgram($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can reset loyalty programs (destructive operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_loyalty_setting', 'admin')) {
             return true;
@@ -258,6 +358,11 @@ class LoyaltySettingPolicy
      */
     public function viewPerformance($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view performance metrics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -271,6 +376,11 @@ class LoyaltySettingPolicy
      */
     public function manageRewards($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage loyalty rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -284,6 +394,11 @@ class LoyaltySettingPolicy
      */
     public function viewCustomerData($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view customer loyalty data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_loyalty_transaction', 'admin')) {
             return true;
@@ -297,6 +412,11 @@ class LoyaltySettingPolicy
      */
     public function adjustCustomerPoints($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manually adjust customer points
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_transaction', 'admin')) {
             return true;
@@ -310,6 +430,11 @@ class LoyaltySettingPolicy
      */
     public function configureTiers($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can configure loyalty tiers
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -323,6 +448,11 @@ class LoyaltySettingPolicy
      */
     public function manageCampaigns($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage loyalty campaigns
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_loyalty_setting', 'admin')) {
             return true;
@@ -336,6 +466,11 @@ class LoyaltySettingPolicy
      */
     public function viewFinancialImpact($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view financial impact
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -349,6 +484,11 @@ class LoyaltySettingPolicy
      */
     public function configureAutoPoints($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can configure auto-points
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -362,6 +502,11 @@ class LoyaltySettingPolicy
      */
     public function manageExpiration($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage point expiration
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;
@@ -375,6 +520,11 @@ class LoyaltySettingPolicy
      */
     public function viewStatistics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view loyalty statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -388,6 +538,11 @@ class LoyaltySettingPolicy
      */
     public function configureCountrySpecific($user, LoyaltySetting $loyaltySetting): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can configure country-specific settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_loyalty_setting', 'admin')) {
             return true;

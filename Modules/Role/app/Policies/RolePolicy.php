@@ -16,6 +16,10 @@ class RolePolicy
      */
     public function viewAny($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can view roles (system security)
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_role', 'admin')) {
             return true;
@@ -29,6 +33,10 @@ class RolePolicy
      */
     public function view($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can view roles
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_role', 'admin')) {
             return true;
@@ -42,6 +50,10 @@ class RolePolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can create roles (system security impact)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_role', 'admin')) {
             return true;
@@ -55,6 +67,10 @@ class RolePolicy
      */
     public function update($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can update roles (security implications)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             // Prevent modification of super admin roles
@@ -72,6 +88,10 @@ class RolePolicy
      */
     public function delete($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can delete roles (critical system operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_role', 'admin')) {
             // Prevent deletion of essential roles
@@ -89,6 +109,10 @@ class RolePolicy
      */
     public function restore($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as update
         return $this->update($user, $role);
     }
@@ -98,6 +122,10 @@ class RolePolicy
      */
     public function forceDelete($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as delete
         return $this->delete($user, $role);
     }
@@ -107,6 +135,10 @@ class RolePolicy
      */
     public function assignPermissions($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can assign permissions (security critical)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             // Prevent permission changes to super admin roles
@@ -124,6 +156,10 @@ class RolePolicy
      */
     public function revokePermissions($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as assign permissions
         return $this->assignPermissions($user, $role);
     }
@@ -133,6 +169,10 @@ class RolePolicy
      */
     public function viewPermissions($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view role permissions
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_role', 'admin')) {
             return true;
@@ -146,6 +186,10 @@ class RolePolicy
      */
     public function assignUsers($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can assign users to roles
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             return true;
@@ -159,6 +203,10 @@ class RolePolicy
      */
     public function removeUsers($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as assign users
         return $this->assignUsers($user, $role);
     }
@@ -168,6 +216,10 @@ class RolePolicy
      */
     public function viewUsers($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view role users
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_role', 'admin')) {
             return true;
@@ -181,6 +233,10 @@ class RolePolicy
      */
     public function duplicate($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as create
         return $this->create($user);
     }
@@ -190,6 +246,10 @@ class RolePolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export role data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_role', 'admin')) {
             return true;
@@ -203,6 +263,10 @@ class RolePolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import roles
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_role', 'admin')) {
             return true;
@@ -216,6 +280,10 @@ class RolePolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk update roles
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             return true;
@@ -229,6 +297,10 @@ class RolePolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk delete roles
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_role', 'admin')) {
             return true;
@@ -242,6 +314,10 @@ class RolePolicy
      */
     public function manageGuards($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage role guards (system security)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             return true;
@@ -255,6 +331,10 @@ class RolePolicy
      */
     public function viewAnalytics($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view role analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -268,6 +348,10 @@ class RolePolicy
      */
     public function clonePermissions($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as create
         return $this->create($user);
     }
@@ -277,6 +361,10 @@ class RolePolicy
      */
     public function manageHierarchy($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage role hierarchy (organizational structure)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             return true;
@@ -290,6 +378,10 @@ class RolePolicy
      */
     public function archive($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can archive roles
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             // Cannot archive essential roles
@@ -307,6 +399,10 @@ class RolePolicy
      */
     public function unarchive($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as archive
         return $this->archive($user, $role);
     }
@@ -316,6 +412,10 @@ class RolePolicy
      */
     public function viewAuditLogs($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view role audit logs
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_role', 'admin')) {
             return true;
@@ -329,6 +429,10 @@ class RolePolicy
      */
     public function manageTemplates($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage role templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_role', 'admin')) {
             return true;
@@ -342,6 +446,10 @@ class RolePolicy
      */
     public function applyTemplates($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as create
         return $this->create($user);
     }
@@ -351,6 +459,10 @@ class RolePolicy
      */
     public function validateConfiguration($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can validate role configurations
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_role', 'admin')) {
             return true;
@@ -364,6 +476,10 @@ class RolePolicy
      */
     public function manageDependencies($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage role dependencies
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             return true;
@@ -377,6 +493,10 @@ class RolePolicy
      */
     public function viewStatistics($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view role statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -390,6 +510,10 @@ class RolePolicy
      */
     public function manageNotifications($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage role notifications
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             return true;
@@ -403,6 +527,10 @@ class RolePolicy
      */
     public function exportPermissions($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export role permissions
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_role', 'admin')) {
             return true;
@@ -416,6 +544,10 @@ class RolePolicy
      */
     public function importPermissions($user, Role $role): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import role permissions
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_role', 'admin')) {
             return true;

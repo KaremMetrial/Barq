@@ -17,6 +17,7 @@ class UpdateLoyaltySettingRequest extends FormRequest
             'min_order_for_earn' => 'nullable|numeric',
             'referral_points' => 'nullable|numeric',
             'rating_points' => 'nullable|numeric',
+            'currency_factor' => 'nullable|numeric'
         ];
     }
 

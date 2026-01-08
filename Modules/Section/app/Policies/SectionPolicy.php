@@ -18,6 +18,10 @@ class SectionPolicy
      */
     public function viewAny($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_section', 'admin')) {
             return true;
@@ -41,6 +45,10 @@ class SectionPolicy
      */
     public function view($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view all sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_section', 'admin')) {
             return true;
@@ -64,6 +72,10 @@ class SectionPolicy
      */
     public function create($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can create sections (platform content management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_section', 'admin')) {
             return true;
@@ -77,6 +89,10 @@ class SectionPolicy
      */
     public function update($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can update sections (content management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -90,6 +106,10 @@ class SectionPolicy
      */
     public function delete($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can delete sections (platform content management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_section', 'admin')) {
             return true;
@@ -103,6 +123,10 @@ class SectionPolicy
      */
     public function restore($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as update
         return $this->update($user, $section);
     }
@@ -112,6 +136,10 @@ class SectionPolicy
      */
     public function forceDelete($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as delete
         return $this->delete($user, $section);
     }
@@ -121,6 +149,10 @@ class SectionPolicy
      */
     public function manageCategories($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage section categories
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -134,6 +166,10 @@ class SectionPolicy
      */
     public function viewCategories($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Everyone can view section categories (public content)
         return true;
     }
@@ -143,6 +179,10 @@ class SectionPolicy
      */
     public function manageCountries($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage section countries (geographic availability)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -156,6 +196,10 @@ class SectionPolicy
      */
     public function viewCountries($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view section countries
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_section', 'admin')) {
             return true;
@@ -169,6 +213,10 @@ class SectionPolicy
      */
     public function toggleActive($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can activate/deactivate sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -182,6 +230,10 @@ class SectionPolicy
      */
     public function toggleHomeVisibility($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can control home page visibility
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -195,6 +247,10 @@ class SectionPolicy
      */
     public function manageType($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can change section types
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -208,6 +264,10 @@ class SectionPolicy
      */
     public function duplicate($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as create
         return $this->create($user);
     }
@@ -217,6 +277,10 @@ class SectionPolicy
      */
     public function export($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can export section data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_section', 'admin')) {
             return true;
@@ -230,6 +294,10 @@ class SectionPolicy
      */
     public function import($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can import sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_section', 'admin')) {
             return true;
@@ -243,6 +311,10 @@ class SectionPolicy
      */
     public function bulkUpdate($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk update sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -256,6 +328,10 @@ class SectionPolicy
      */
     public function bulkDelete($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can bulk delete sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_section', 'admin')) {
             return true;
@@ -269,6 +345,10 @@ class SectionPolicy
      */
     public function manageTranslations($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage translations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -282,6 +362,10 @@ class SectionPolicy
      */
     public function viewAnalytics($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view section analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -295,6 +379,10 @@ class SectionPolicy
      */
     public function viewPerformance($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $section);
     }
@@ -304,6 +392,10 @@ class SectionPolicy
      */
     public function manageOrdering($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can manage section ordering (affects UI)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -317,6 +409,10 @@ class SectionPolicy
      */
     public function archive($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can archive sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -330,6 +426,10 @@ class SectionPolicy
      */
     public function unarchive($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as archive
         return $this->archive($user, $section);
     }
@@ -339,6 +439,10 @@ class SectionPolicy
      */
     public function manageIcons($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage section icons
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -352,6 +456,10 @@ class SectionPolicy
      */
     public function manageRestaurantSettings($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage restaurant-specific settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -365,6 +473,10 @@ class SectionPolicy
      */
     public function viewStatistics($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view section statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -378,6 +490,10 @@ class SectionPolicy
      */
     public function createTemplates($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can create section templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_section', 'admin')) {
             return true;
@@ -391,6 +507,10 @@ class SectionPolicy
      */
     public function applyTemplates($user): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as create
         return $this->create($user);
     }
@@ -400,6 +520,10 @@ class SectionPolicy
      */
     public function manageSeo($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage SEO settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -413,6 +537,10 @@ class SectionPolicy
      */
     public function cloneStructure($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as duplicate
         return $this->duplicate($user, $section);
     }
@@ -422,6 +550,10 @@ class SectionPolicy
      */
     public function manageContent($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as update
         return $this->update($user, $section);
     }
@@ -431,6 +563,10 @@ class SectionPolicy
      */
     public function preview($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can preview sections
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_section', 'admin')) {
             return true;
@@ -444,6 +580,10 @@ class SectionPolicy
      */
     public function publish($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as toggleActive
         return $this->toggleActive($user, $section);
     }
@@ -453,6 +593,10 @@ class SectionPolicy
      */
     public function unpublish($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Same logic as toggleActive
         return $this->toggleActive($user, $section);
     }
@@ -462,6 +606,10 @@ class SectionPolicy
      */
     public function manageVisibility($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage visibility settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;
@@ -475,6 +623,10 @@ class SectionPolicy
      */
     public function viewEngagement($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Admins can view engagement metrics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -488,6 +640,10 @@ class SectionPolicy
      */
     public function manageTargeting($user, Section $section): bool
     {
+                        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
         // Only admins can manage geographic targeting
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_section', 'admin')) {
             return true;

@@ -19,6 +19,11 @@ class ConversationPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all conversations
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_conversation', 'admin')) {
             return true;
@@ -47,6 +52,11 @@ class ConversationPolicy
      */
     public function view($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all conversations
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_conversation', 'admin')) {
             return true;
@@ -77,6 +87,11 @@ class ConversationPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Any authenticated user can start conversations
         if ($user instanceof User || $user instanceof Vendor || $user instanceof Couier || $user instanceof Admin) {
             return true;
@@ -90,6 +105,11 @@ class ConversationPolicy
      */
     public function update($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update any conversation
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -108,6 +128,11 @@ class ConversationPolicy
      */
     public function delete($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete conversations
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_conversation', 'admin')) {
             return true;
@@ -121,6 +146,11 @@ class ConversationPolicy
      */
     public function restore($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $conversation);
     }
@@ -130,6 +160,11 @@ class ConversationPolicy
      */
     public function forceDelete($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $conversation);
     }
@@ -139,6 +174,11 @@ class ConversationPolicy
      */
     public function sendMessage($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can send messages if they have permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_message', 'admin')) {
             return true;
@@ -153,6 +193,11 @@ class ConversationPolicy
      */
     public function viewMessages($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view conversation
         return $this->view($user, $conversation);
     }
@@ -162,6 +207,11 @@ class ConversationPolicy
      */
     public function moderate($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can moderate conversations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -175,6 +225,11 @@ class ConversationPolicy
      */
     public function endConversation($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can end any conversation
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -189,6 +244,11 @@ class ConversationPolicy
      */
     public function assign($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can assign conversations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -202,6 +262,11 @@ class ConversationPolicy
      */
     public function transfer($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can transfer conversations
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -215,6 +280,11 @@ class ConversationPolicy
      */
     public function viewAnalytics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission can view conversation analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -228,6 +298,11 @@ class ConversationPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export conversation data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_conversation', 'admin')) {
             return true;
@@ -241,6 +316,11 @@ class ConversationPolicy
      */
     public function archive($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can archive any conversation
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -254,6 +334,11 @@ class ConversationPolicy
      */
     public function unarchive($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as archive
         return $this->archive($user, $conversation);
     }
@@ -263,6 +348,11 @@ class ConversationPolicy
      */
     public function viewHistory($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view
         return $this->view($user, $conversation);
     }
@@ -272,6 +362,11 @@ class ConversationPolicy
      */
     public function markAsRead($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Participants can mark conversations as read
         return $this->isParticipant($user, $conversation);
     }
@@ -281,6 +376,11 @@ class ConversationPolicy
      */
     public function addParticipant($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can add participants to any conversation
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -294,6 +394,11 @@ class ConversationPolicy
      */
     public function removeParticipant($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can remove participants from any conversation
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -307,6 +412,11 @@ class ConversationPolicy
      */
     public function viewStatistics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission can view conversation statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -320,6 +430,11 @@ class ConversationPolicy
      */
     public function manageTemplates($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage conversation templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_conversation', 'admin')) {
             return true;
@@ -333,6 +448,11 @@ class ConversationPolicy
      */
     public function configureAutoReply($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can configure auto-reply settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -346,6 +466,11 @@ class ConversationPolicy
      */
     public function viewPerformance($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission can view performance metrics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -359,6 +484,11 @@ class ConversationPolicy
      */
     public function escalate($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can escalate any conversation
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_conversation', 'admin')) {
             return true;
@@ -373,6 +503,11 @@ class ConversationPolicy
      */
     public function merge($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can merge conversations
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_conversation', 'admin')) {
             return true;
@@ -386,6 +521,11 @@ class ConversationPolicy
      */
     private function isParticipant($user, Conversation $conversation): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         if ($user instanceof User && $conversation->user_id === $user->id) {
             return true;
         }

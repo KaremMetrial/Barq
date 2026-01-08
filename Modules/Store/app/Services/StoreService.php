@@ -157,11 +157,11 @@ class StoreService
     public function getHomeStores(array $filters = []): array
     {
         $relation = [
-            'section.categories.translations',
+            'section.categories',
             'storeSetting',
             'address',
             'translations',
-            'section.translations',
+            'section',
             'currentUserFavourite',
             'offers',
         ];

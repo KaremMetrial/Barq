@@ -17,8 +17,6 @@ class LoyaltySetting extends Model
 
     protected $casts = [
         'country_id' => 'integer',
-        'earn_rate' => 'decimal:2',
-        'min_order_for_earn' => 'decimal:2',
         'referral_points' => 'integer',
         'rating_points' => 'integer',
     ];

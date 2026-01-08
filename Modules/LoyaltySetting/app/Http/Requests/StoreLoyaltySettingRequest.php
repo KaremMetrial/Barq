@@ -17,6 +17,7 @@ class StoreLoyaltySettingRequest extends FormRequest
             'min_order_for_earn' => 'required|numeric',
             'referral_points' => 'required|numeric',
             'rating_points' => 'required|numeric',
+            'currency_factor' => 'required|numeric'
         ];
     }
 

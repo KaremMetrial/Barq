@@ -18,6 +18,11 @@ class BannerPolicy
      */
     public function viewAny($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_banner', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class BannerPolicy
      */
     public function view($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can view all banners
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_banner', 'admin')) {
             return true;
@@ -73,6 +83,11 @@ class BannerPolicy
      */
     public function create($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_banner', 'admin')) {
             return true;
@@ -91,6 +106,11 @@ class BannerPolicy
      */
     public function update($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can update all banners
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_banner', 'admin')) {
             return true;
@@ -113,6 +133,11 @@ class BannerPolicy
      */
     public function delete($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can delete all banners
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_banner', 'admin')) {
             return true;
@@ -134,6 +159,11 @@ class BannerPolicy
      */
     public function restore($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $banner);
     }
@@ -143,6 +173,11 @@ class BannerPolicy
      */
     public function forceDelete($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $banner);
     }
@@ -152,6 +187,11 @@ class BannerPolicy
      */
     public function attachToEntity($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $banner);
     }
@@ -161,6 +201,11 @@ class BannerPolicy
      */
     public function detachFromEntity($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $banner);
     }
@@ -170,6 +215,11 @@ class BannerPolicy
      */
     public function viewAnalytics($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -189,6 +239,11 @@ class BannerPolicy
      */
     public function manageSettings($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage global banner settings
         if ($user instanceof Admin) {
             return PermissionHelper::hasPermission('update_banner', 'admin');
@@ -202,6 +257,11 @@ class BannerPolicy
      */
     public function bulkUpdate($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with update permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_banner', 'admin')) {
             return true;
@@ -220,6 +280,11 @@ class BannerPolicy
      */
     public function bulkDelete($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with delete permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_banner', 'admin')) {
             return true;
@@ -238,6 +303,11 @@ class BannerPolicy
      */
     public function export($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with view permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_banner', 'admin')) {
             return true;
@@ -256,6 +326,11 @@ class BannerPolicy
      */
     public function import($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import (for security and consistency)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_banner', 'admin')) {
             return true;
@@ -269,6 +344,11 @@ class BannerPolicy
      */
     public function schedule($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (scheduling is part of banner management)
         return $this->update($user, $banner);
     }
@@ -278,6 +358,11 @@ class BannerPolicy
      */
     public function toggleActive($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $banner);
     }
@@ -287,6 +372,11 @@ class BannerPolicy
      */
     public function duplicate($user, Banner $banner): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create (duplicating requires create permission)
         return $this->create($user);
     }
@@ -296,6 +386,11 @@ class BannerPolicy
      */
     public function reorder($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with update permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_banner', 'admin')) {
             return true;

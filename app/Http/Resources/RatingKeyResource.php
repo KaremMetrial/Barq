@@ -19,6 +19,7 @@ class RatingKeyResource extends JsonResource
             'key' => $this->key,
             'label' => $this->label,
             'is_active' => (bool) $this->is_active,
+            'section_id' => $this->section_id
         ];
     }
 }

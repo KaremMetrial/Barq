@@ -18,6 +18,11 @@ class ContactUsPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can view all contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_contact_us', 'admin')) {
             return true;
@@ -31,6 +36,11 @@ class ContactUsPolicy
      */
     public function view($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can view all contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_contact_us', 'admin')) {
             return true;
@@ -44,6 +54,11 @@ class ContactUsPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Any authenticated user can submit contact requests
         if ($user instanceof User || $user instanceof Vendor || $user instanceof Admin) {
             return true;
@@ -57,6 +72,11 @@ class ContactUsPolicy
      */
     public function update($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can update contact messages (for response management)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_contact_us', 'admin')) {
             return true;
@@ -70,6 +90,11 @@ class ContactUsPolicy
      */
     public function delete($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_contact_us', 'admin')) {
             return true;
@@ -83,6 +108,11 @@ class ContactUsPolicy
      */
     public function restore($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $contactUs);
     }
@@ -92,6 +122,11 @@ class ContactUsPolicy
      */
     public function forceDelete($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $contactUs);
     }
@@ -101,6 +136,11 @@ class ContactUsPolicy
      */
     public function respond($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can respond to contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_contact_us', 'admin')) {
             return true;
@@ -114,6 +154,11 @@ class ContactUsPolicy
      */
     public function markAsRead($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can mark messages as read
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_contact_us', 'admin')) {
             return true;
@@ -127,6 +172,11 @@ class ContactUsPolicy
      */
     public function markAsResolved($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can mark messages as resolved
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_contact_us', 'admin')) {
             return true;
@@ -140,6 +190,11 @@ class ContactUsPolicy
      */
     public function assign($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can assign contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_contact_us', 'admin')) {
             return true;
@@ -153,6 +208,11 @@ class ContactUsPolicy
      */
     public function viewAnalytics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission can view contact analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -166,6 +226,11 @@ class ContactUsPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with view permission can export contact data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_contact_us', 'admin')) {
             return true;
@@ -179,6 +244,11 @@ class ContactUsPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_contact_us', 'admin')) {
             return true;
@@ -192,6 +262,11 @@ class ContactUsPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk delete contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_contact_us', 'admin')) {
             return true;
@@ -205,6 +280,11 @@ class ContactUsPolicy
      */
     public function categorize($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can categorize contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_contact_us', 'admin')) {
             return true;
@@ -218,6 +298,11 @@ class ContactUsPolicy
      */
     public function prioritize($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can prioritize contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_contact_us', 'admin')) {
             return true;
@@ -231,6 +316,11 @@ class ContactUsPolicy
      */
     public function viewHistory($user, ContactUs $contactUs): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view contact message history
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_contact_us', 'admin')) {
             return true;
@@ -244,6 +334,11 @@ class ContactUsPolicy
      */
     public function merge($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can merge duplicate contact messages
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_contact_us', 'admin')) {
             return true;
@@ -257,6 +352,11 @@ class ContactUsPolicy
      */
     public function manageTemplates($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage response templates
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_contact_us', 'admin')) {
             return true;
@@ -270,6 +370,11 @@ class ContactUsPolicy
      */
     public function viewStatistics($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission can view contact statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -283,6 +388,11 @@ class ContactUsPolicy
      */
     public function configureAutoResponse($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can configure auto-response settings
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_contact_us', 'admin')) {
             return true;
@@ -296,6 +406,11 @@ class ContactUsPolicy
      */
     public function manageCategories($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage contact categories
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_contact_us', 'admin')) {
             return true;
@@ -309,6 +424,11 @@ class ContactUsPolicy
      */
     public function viewPerformance($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission can view performance metrics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;

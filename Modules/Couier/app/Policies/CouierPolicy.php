@@ -17,6 +17,11 @@ class CouierPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all couriers
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_couier', 'admin')) {
             return true;
@@ -35,6 +40,11 @@ class CouierPolicy
      */
     public function view($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all couriers
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_couier', 'admin')) {
             return true;
@@ -58,6 +68,11 @@ class CouierPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create couriers
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_couier', 'admin')) {
             return true;
@@ -76,6 +91,11 @@ class CouierPolicy
      */
     public function update($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update all couriers
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -99,6 +119,11 @@ class CouierPolicy
      */
     public function delete($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete couriers (sensitive operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_couier', 'admin')) {
             return true;
@@ -112,6 +137,11 @@ class CouierPolicy
      */
     public function restore($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $couier);
     }
@@ -121,6 +151,11 @@ class CouierPolicy
      */
     public function forceDelete($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $couier);
     }
@@ -130,6 +165,11 @@ class CouierPolicy
      */
     public function manageShifts($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all courier shifts
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -148,6 +188,11 @@ class CouierPolicy
      */
     public function viewShifts($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view courier
         return $this->view($user, $couier);
     }
@@ -157,6 +202,11 @@ class CouierPolicy
      */
     public function manageVehicles($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all courier vehicles
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -180,6 +230,11 @@ class CouierPolicy
      */
     public function viewOrders($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all courier orders
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_order', 'admin')) {
             return true;
@@ -203,6 +258,11 @@ class CouierPolicy
      */
     public function manageAssignments($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all assignments
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -221,6 +281,11 @@ class CouierPolicy
      */
     public function viewLocation($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all courier locations
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_couier', 'admin')) {
             return true;
@@ -244,6 +309,11 @@ class CouierPolicy
      */
     public function updateLocation($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Couriers can update their own location
         if ($couier instanceof Couier && $couier->id === $user->id) {
             return true;
@@ -262,6 +332,11 @@ class CouierPolicy
      */
     public function viewAnalytics($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all courier analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -285,6 +360,11 @@ class CouierPolicy
      */
     public function manageZones($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all courier zones
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -303,6 +383,11 @@ class CouierPolicy
      */
     public function viewBalance($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all courier balances
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_couier', 'admin')) {
             return true;
@@ -326,6 +411,11 @@ class CouierPolicy
      */
     public function manageBalance($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all courier balances
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -344,6 +434,11 @@ class CouierPolicy
      */
     public function viewDocuments($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all courier documents
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_couier', 'admin')) {
             return true;
@@ -367,6 +462,11 @@ class CouierPolicy
      */
     public function manageDocuments($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all courier documents
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -390,6 +490,11 @@ class CouierPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export courier data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_couier', 'admin')) {
             return true;
@@ -408,6 +513,11 @@ class CouierPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update couriers
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -426,6 +536,11 @@ class CouierPolicy
      */
     public function rateCourier($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Any authenticated user can rate couriers (after receiving service)
         if ($user) {
             return true;
@@ -439,6 +554,11 @@ class CouierPolicy
      */
     public function viewRatings($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Everyone can view courier ratings (public info)
         return true;
     }
@@ -448,6 +568,11 @@ class CouierPolicy
      */
     public function manageStatus($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all courier statuses
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -466,6 +591,11 @@ class CouierPolicy
      */
     public function manageAvailability($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all courier availability
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_couier', 'admin')) {
             return true;
@@ -489,6 +619,11 @@ class CouierPolicy
      */
     public function assignOrders($user, Couier $couier): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can assign orders to any courier
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_order', 'admin')) {
             return true;

@@ -28,8 +28,13 @@ class AdminPolicy
      */
     public function view($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view any admin
-        if ($user instanceof Admin && PermissionHelper::hasPermission('view_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('view_admin', 'admin')) {
             return true;
         }
 
@@ -41,8 +46,13 @@ class AdminPolicy
      */
     public function create($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can create admin accounts
-        if ($user instanceof Admin && PermissionHelper::hasPermission('create_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('create_admin', 'admin')) {
             return true;
         }
 
@@ -54,8 +64,13 @@ class AdminPolicy
      */
     public function update($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update any admin
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -67,8 +82,13 @@ class AdminPolicy
      */
     public function delete($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can delete admin accounts
-        if ($user instanceof Admin && PermissionHelper::hasPermission('delete_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('delete_admin', 'admin')) {
             return true;
         }
 
@@ -80,6 +100,11 @@ class AdminPolicy
      */
     public function restore($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $admin);
     }
@@ -89,6 +114,11 @@ class AdminPolicy
      */
     public function forceDelete($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $admin);
     }
@@ -98,8 +128,13 @@ class AdminPolicy
      */
     public function manageRoles($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage admin roles
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -111,8 +146,13 @@ class AdminPolicy
      */
     public function managePermissions($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage admin permissions
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -124,8 +164,13 @@ class AdminPolicy
      */
     public function resetPassword($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can reset any admin password
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -137,8 +182,13 @@ class AdminPolicy
      */
     public function export($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export admin data
-        if ($user instanceof Admin && PermissionHelper::hasPermission('view_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('view_admin', 'admin')) {
             return true;
         }
 
@@ -150,8 +200,13 @@ class AdminPolicy
      */
     public function import($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import admin data
-        if ($user instanceof Admin && PermissionHelper::hasPermission('create_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('create_admin', 'admin')) {
             return true;
         }
 
@@ -163,8 +218,13 @@ class AdminPolicy
      */
     public function bulkUpdate($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk update admin accounts
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -176,8 +236,13 @@ class AdminPolicy
      */
     public function bulkDelete($user): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can bulk delete admin accounts
-        if ($user instanceof Admin && PermissionHelper::hasPermission('delete_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('delete_admin', 'admin')) {
             return true;
         }
 
@@ -189,8 +254,13 @@ class AdminPolicy
      */
     public function manageSessions($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage any admin sessions
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -202,8 +272,13 @@ class AdminPolicy
      */
     public function viewAuditLogs($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view admin audit logs
-        if ($user instanceof Admin && PermissionHelper::hasPermission('view_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('view_admin', 'admin')) {
             return true;
         }
 
@@ -215,8 +290,13 @@ class AdminPolicy
      */
     public function manageNotifications($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage admin notifications
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -228,8 +308,13 @@ class AdminPolicy
      */
     public function duplicate($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can duplicate admin accounts
-        if ($user instanceof Admin && PermissionHelper::hasPermission('create_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('create_admin', 'admin')) {
             return true;
         }
 
@@ -241,8 +326,13 @@ class AdminPolicy
      */
     public function impersonate($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can impersonate other admins (security risk)
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -254,8 +344,13 @@ class AdminPolicy
      */
     public function suspend($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can suspend admin accounts
-        if ($user instanceof Admin && PermissionHelper::hasPermission('update_user', 'admin')) {
+        if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }
 
@@ -267,6 +362,11 @@ class AdminPolicy
      */
     public function reactivate($user, Admin $admin): bool
     {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as suspend
         return $this->suspend($user, $admin);
     }

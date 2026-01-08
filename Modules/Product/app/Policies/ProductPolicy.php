@@ -18,6 +18,11 @@ class ProductPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all products
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_product', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class ProductPolicy
      */
     public function view($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all products
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_product', 'admin')) {
             return true;
@@ -64,6 +74,11 @@ class ProductPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create products for any store
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_product', 'admin')) {
             return true;
@@ -82,6 +97,11 @@ class ProductPolicy
      */
     public function update($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update any product
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_product', 'admin')) {
             return true;
@@ -100,6 +120,11 @@ class ProductPolicy
      */
     public function delete($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can delete any product
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_product', 'admin')) {
             return true;
@@ -118,6 +143,11 @@ class ProductPolicy
      */
     public function restore($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -127,6 +157,11 @@ class ProductPolicy
      */
     public function forceDelete($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $product);
     }
@@ -136,6 +171,11 @@ class ProductPolicy
      */
     public function manageImages($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -145,6 +185,11 @@ class ProductPolicy
      */
     public function managePricing($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage any product pricing
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_product', 'admin')) {
             return true;
@@ -163,6 +208,11 @@ class ProductPolicy
      */
     public function manageAvailability($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -172,6 +222,11 @@ class ProductPolicy
      */
     public function manageCategories($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -181,6 +236,11 @@ class ProductPolicy
      */
     public function manageTags($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -190,6 +250,11 @@ class ProductPolicy
      */
     public function manageAddOns($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -199,6 +264,11 @@ class ProductPolicy
      */
     public function manageOptions($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -208,6 +278,11 @@ class ProductPolicy
      */
     public function manageNutrition($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -217,6 +292,11 @@ class ProductPolicy
      */
     public function manageAllergens($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -226,6 +306,11 @@ class ProductPolicy
      */
     public function managePharmacyInfo($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -235,6 +320,11 @@ class ProductPolicy
      */
     public function manageWatermarks($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -244,6 +334,11 @@ class ProductPolicy
      */
     public function toggleActive($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can activate/deactivate any product
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_product', 'admin')) {
             return true;
@@ -262,6 +357,11 @@ class ProductPolicy
      */
     public function toggleFeatured($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can feature/unfeature any product
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_product', 'admin')) {
             return true;
@@ -280,6 +380,11 @@ class ProductPolicy
      */
     public function duplicate($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -289,6 +394,11 @@ class ProductPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export all product data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_product', 'admin')) {
             return true;
@@ -307,6 +417,11 @@ class ProductPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can import product data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_product', 'admin')) {
             return true;
@@ -325,6 +440,11 @@ class ProductPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update all products
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_product', 'admin')) {
             return true;
@@ -343,6 +463,11 @@ class ProductPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk delete any products
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_product', 'admin')) {
             return true;
@@ -361,6 +486,11 @@ class ProductPolicy
      */
     public function viewAnalytics($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all product analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -382,6 +512,11 @@ class ProductPolicy
      */
     public function viewReviews($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Everyone can view product reviews
         return true;
     }
@@ -391,6 +526,11 @@ class ProductPolicy
      */
     public function moderateReviews($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can moderate any product reviews
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_product', 'admin')) {
             return true;
@@ -409,6 +549,11 @@ class ProductPolicy
      */
     public function viewReports($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all product reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_product', 'admin')) {
             return true;
@@ -427,6 +572,11 @@ class ProductPolicy
      */
     public function manageReports($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage any product reports
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_product', 'admin')) {
             return true;
@@ -440,6 +590,11 @@ class ProductPolicy
      */
     public function viewOrderItems($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all order items
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_order', 'admin')) {
             return true;
@@ -458,6 +613,11 @@ class ProductPolicy
      */
     public function manageFavourites($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can manage their own favourites
         if ($user instanceof User) {
             return true;
@@ -471,6 +631,11 @@ class ProductPolicy
      */
     public function viewPerformance($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $product);
     }
@@ -480,6 +645,11 @@ class ProductPolicy
      */
     public function transferStore($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can transfer products between stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_product', 'admin')) {
             return true;
@@ -493,6 +663,11 @@ class ProductPolicy
      */
     public function cloneStructure($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as duplicate
         return $this->duplicate($user, $product);
     }
@@ -502,6 +677,11 @@ class ProductPolicy
      */
     public function manageTranslations($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -511,6 +691,11 @@ class ProductPolicy
      */
     public function viewRelatedProducts($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as view
         return $this->view($user, $product);
     }
@@ -520,6 +705,11 @@ class ProductPolicy
      */
     public function manageBarcode($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -529,6 +719,11 @@ class ProductPolicy
      */
     public function manageWeight($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -538,6 +733,11 @@ class ProductPolicy
      */
     public function managePreparationTime($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -547,6 +747,11 @@ class ProductPolicy
      */
     public function manageStatus($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -556,6 +761,11 @@ class ProductPolicy
      */
     public function manageVegetarianFlag($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -565,6 +775,11 @@ class ProductPolicy
      */
     public function manageMaxCartQuantity($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }
@@ -574,6 +789,11 @@ class ProductPolicy
      */
     public function manageUnits($user, Product $product): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $product);
     }

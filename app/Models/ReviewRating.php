@@ -11,7 +11,6 @@ class ReviewRating extends Model
         'review_id',
         'rating_key_id',
         'rating',
-        'section_id',
         'description',
     ];
 

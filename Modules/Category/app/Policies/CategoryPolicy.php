@@ -18,6 +18,11 @@ class CategoryPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_category', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class CategoryPolicy
      */
     public function view($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can view all categories
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_category', 'admin')) {
             return true;
@@ -64,6 +74,11 @@ class CategoryPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_category', 'admin')) {
             return true;
@@ -82,6 +97,11 @@ class CategoryPolicy
      */
     public function update($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can update all categories
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_category', 'admin')) {
             return true;
@@ -100,6 +120,11 @@ class CategoryPolicy
      */
     public function delete($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with permission can delete all categories
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_category', 'admin')) {
             return true;
@@ -118,6 +143,11 @@ class CategoryPolicy
      */
     public function restore($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $category);
     }
@@ -127,6 +157,11 @@ class CategoryPolicy
      */
     public function forceDelete($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $category);
     }
@@ -136,6 +171,11 @@ class CategoryPolicy
      */
     public function manageHierarchy($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (hierarchy management is part of category management)
         return $this->update($user, $category);
     }
@@ -145,6 +185,11 @@ class CategoryPolicy
      */
     public function reorder($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with update permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_category', 'admin')) {
             return true;
@@ -163,6 +208,11 @@ class CategoryPolicy
      */
     public function attachSections($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $category);
     }
@@ -172,6 +222,11 @@ class CategoryPolicy
      */
     public function detachSections($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $category);
     }
@@ -181,6 +236,11 @@ class CategoryPolicy
      */
     public function attachCoupons($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $category);
     }
@@ -190,6 +250,11 @@ class CategoryPolicy
      */
     public function detachCoupons($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $category);
     }
@@ -199,6 +264,11 @@ class CategoryPolicy
      */
     public function viewAnalytics($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with report permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -217,6 +287,11 @@ class CategoryPolicy
      */
     public function manageSettings($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can manage global category settings
         if ($user instanceof Admin) {
             return PermissionHelper::hasPermission('update_category', 'admin');
@@ -230,6 +305,11 @@ class CategoryPolicy
      */
     public function toggleFeatured($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $category);
     }
@@ -239,6 +319,11 @@ class CategoryPolicy
      */
     public function toggleActive($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $category);
     }
@@ -248,6 +333,11 @@ class CategoryPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with update permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_category', 'admin')) {
             return true;
@@ -266,6 +356,11 @@ class CategoryPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with delete permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_category', 'admin')) {
             return true;
@@ -284,6 +379,11 @@ class CategoryPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with view permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_category', 'admin')) {
             return true;
@@ -302,6 +402,11 @@ class CategoryPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can import (for security and data consistency)
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_category', 'admin')) {
             return true;
@@ -315,6 +420,11 @@ class CategoryPolicy
      */
     public function duplicate($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create (duplicating requires create permission)
         return $this->create($user);
     }
@@ -324,6 +434,11 @@ class CategoryPolicy
      */
     public function manageProducts($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (product management is part of category management)
         return $this->update($user, $category);
     }
@@ -333,6 +448,11 @@ class CategoryPolicy
      */
     public function viewHierarchy($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins with view permission
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_category', 'admin')) {
             return true;
@@ -356,6 +476,11 @@ class CategoryPolicy
      */
     public function merge($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can merge categories (complex operation)
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_category', 'admin')) {
             return true;
@@ -369,6 +494,11 @@ class CategoryPolicy
      */
     public function moveBetweenStores($user, Category $category): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Only admins can move categories between stores
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_category', 'admin')) {
             return true;

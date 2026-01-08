@@ -18,6 +18,11 @@ class CouponPolicy
      */
     public function viewAny($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all coupons
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_coupon', 'admin')) {
             return true;
@@ -41,6 +46,11 @@ class CouponPolicy
      */
     public function view($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all coupons
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_coupon', 'admin')) {
             return true;
@@ -72,6 +82,11 @@ class CouponPolicy
      */
     public function create($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can create coupons
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_coupon', 'admin')) {
             return true;
@@ -90,6 +105,11 @@ class CouponPolicy
      */
     public function update($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can update all coupons
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_coupon', 'admin')) {
             return true;
@@ -116,6 +136,11 @@ class CouponPolicy
      */
     public function delete($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can delete any coupon
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_coupon', 'admin')) {
             return true;
@@ -138,6 +163,11 @@ class CouponPolicy
      */
     public function restore($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $coupon);
     }
@@ -147,6 +177,11 @@ class CouponPolicy
      */
     public function forceDelete($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as delete
         return $this->delete($user, $coupon);
     }
@@ -156,6 +191,11 @@ class CouponPolicy
      */
     public function apply($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Users can apply valid coupons
         if ($user instanceof User && $coupon->isValid()) {
             // Check usage limits
@@ -179,6 +219,11 @@ class CouponPolicy
      */
     public function manageCategories($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $coupon);
     }
@@ -188,6 +233,11 @@ class CouponPolicy
      */
     public function manageProducts($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $coupon);
     }
@@ -197,6 +247,11 @@ class CouponPolicy
      */
     public function manageStores($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage all store relationships
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_coupon', 'admin')) {
             return true;
@@ -215,6 +270,11 @@ class CouponPolicy
      */
     public function viewUsage($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all usage statistics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_coupon', 'admin')) {
             return true;
@@ -236,6 +296,11 @@ class CouponPolicy
      */
     public function viewAnalytics($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view all coupon analytics
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
@@ -257,6 +322,11 @@ class CouponPolicy
      */
     public function toggleActive($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $coupon);
     }
@@ -266,6 +336,11 @@ class CouponPolicy
      */
     public function duplicate($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as create
         return $this->create($user);
     }
@@ -275,6 +350,11 @@ class CouponPolicy
      */
     public function export($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can export all coupon data
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_coupon', 'admin')) {
             return true;
@@ -293,6 +373,11 @@ class CouponPolicy
      */
     public function import($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can import coupon data
         if ($user instanceof Admin && PermissionHelper::hasPermission('create_coupon', 'admin')) {
             return true;
@@ -306,6 +391,11 @@ class CouponPolicy
      */
     public function bulkUpdate($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk update all coupons
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_coupon', 'admin')) {
             return true;
@@ -324,6 +414,11 @@ class CouponPolicy
      */
     public function bulkDelete($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can bulk delete any coupons
         if ($user instanceof Admin && PermissionHelper::hasPermission('delete_coupon', 'admin')) {
             return true;
@@ -342,6 +437,11 @@ class CouponPolicy
      */
     public function viewPerformance($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as viewAnalytics
         return $this->viewAnalytics($user, $coupon);
     }
@@ -351,6 +451,11 @@ class CouponPolicy
      */
     public function manageRewards($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can manage coupon rewards
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_coupon', 'admin')) {
             return true;
@@ -364,6 +469,11 @@ class CouponPolicy
      */
     public function validateCode($user): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Any authenticated user can validate coupon codes
         if ($user) {
             return true;
@@ -377,6 +487,11 @@ class CouponPolicy
      */
     public function resetUsage($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can reset usage counters
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_coupon', 'admin')) {
             return true;
@@ -390,6 +505,11 @@ class CouponPolicy
      */
     public function extendValidity($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update
         return $this->update($user, $coupon);
     }
@@ -399,6 +519,11 @@ class CouponPolicy
      */
     public function modifyDiscount($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Same logic as update (discount changes are sensitive)
         return $this->update($user, $coupon);
     }
@@ -408,6 +533,11 @@ class CouponPolicy
      */
     public function viewFinancialImpact($user, Coupon $coupon): bool
     {
+                // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
         // Admins can view financial impact
         if ($user instanceof Admin && PermissionHelper::hasPermission('view_report', 'admin')) {
             return true;
