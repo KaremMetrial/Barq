@@ -62,15 +62,15 @@ class Couier extends Authenticatable
     {
         return $this->morphOne(NationalIdentity::class, 'identityable');
     }
-public function attachments(): MorphMany
-{
-    return $this->morphMany(
-        Attachment::class,
-        'attachmentable',
-        '_type',
-        '_id'
-    );
-}
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(
+            Attachment::class,
+            'attachmentable',
+            '_type',
+            '_id'
+        );
+    }
 
     public function vehicle(): HasOne
     {

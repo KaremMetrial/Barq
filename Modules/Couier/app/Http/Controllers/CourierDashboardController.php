@@ -53,6 +53,7 @@ class CourierDashboardController extends Controller
             return $this->successResponse([
                 'current_balance' => $balance,
                 'currency_factor' => $currencyInfo['currency_factor'],
+                'currency_code' => $currencyInfo['currency_code'],
                 'period' => $period,
                 'stats' => $stats,
                 'transaction_history' => $transactionHistory,
@@ -140,7 +141,7 @@ class CourierDashboardController extends Controller
                 'change_percentage' => $calculateChange($current['cancelled_orders'], $previous['cancelled_orders']),
             ],
             'total_earnings' => [
-                'amount' => $current['total_earnings'],
+                'amount' => (int) $current['total_earnings'],
                 'change_percentage' => $calculateChange($current['total_earnings'], $previous['total_earnings']),
             ],
         ];
@@ -159,13 +160,13 @@ class CourierDashboardController extends Controller
                 return $assignment->completed_at->format('Y-m-d');
             });
 
-        $history = [];
+        // $history = [];
         foreach ($transactions as $date => $dayTransactions) {
             $dateLabel = $this->getDateLabel($date);
 
             $transactionList = $dayTransactions->map(function ($assignment) {
                 $type = $assignment->status === 'delivered' ? 'collection' : 'payment';
-                $amount = $assignment->actual_earning;
+                $amount = (int) $assignment->actual_earning;
                 $description = $assignment->status === 'delivered'
                     ? "تحصيل - طلب #" . $assignment->order->id
                     : "مدفوعات مطعم - طلب #" . $assignment->order->id;
@@ -179,7 +180,7 @@ class CourierDashboardController extends Controller
                 ];
             });
 
-            $history[] = [
+            $history = [
                 'date' => $date,
                 'date_label' => $dateLabel,
                 'transactions' => $transactionList,
@@ -237,6 +238,8 @@ class CourierDashboardController extends Controller
                 'period' => $period,
                 'period_summary' => $periodSummary,
                 'daily_breakdown' => $dailyBreakdown,
+                'currency_factor' => auth('sanctum')->user()->store->getCurrencyFactor(),
+                'currency_code' => auth('sanctum')->user()->store->getCurrencyCode()
             ], __('Earnings details retrieved successfully'));
 
         } catch (\Exception $e) {
@@ -295,7 +298,7 @@ class CourierDashboardController extends Controller
             $transactions = $dayAssignments->map(function ($assignment) {
                 return [
                     'type' => 'collection',
-                    'amount' => $assignment->actual_earning,
+                    'amount' => (int) $assignment->actual_earning,
                     'description' => "تحصيل - طلب #" . $assignment->order->id,
                     'time' => $assignment->completed_at->format('H:i'),
                     'order_id' => $assignment->order->id,

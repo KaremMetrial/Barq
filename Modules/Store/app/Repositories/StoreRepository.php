@@ -90,34 +90,43 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
                 $filters['section_id'] = $firstSection->id;
             }
         }
-
-        $featured = $this->model
+        $store = $this->model
             ->with($relations)
             ->filter($filters)
-            ->whereIsFeatured(true)
-            ->whereHas('products')
-            ->latest()
-            ->limit(5)
-            ->get();
+            ->whereHas('products', function ($q) {
+                $q->where('is_active', true);
+            });
 
-        $topReviews = $this->model
-            ->with($relations)
-            ->filter($filters)
-            ->whereHas('products')
-            ->withCount('reviews')
-            ->withAvg('reviews', 'rating')
-            ->orderByDesc('reviews_count')
-            ->orderByDesc('reviews_avg_rating')
-            ->limit(10)
-            ->get();
+        // $featured = $this->model
+        //     ->with($relations)
+        //     ->filter($filters)
+        //     ->whereIsFeatured(true)
+        //     ->whereHas('products')
+        //     ->latest()
+        //     ->limit(5)
+        //     ->get();
+        $featured = clone $store->whereIsFeatured(true)->latest()->limit(5)->get();
 
-        $newStore = $this->model
-            ->with($relations)
-            ->filter($filters)
-            ->whereHas('products')
-            ->where('created_at', '>=', now()->subDays(3))
-            ->limit(5)
-            ->get();
+        // $topReviews = $this->model
+        //     ->with($relations)
+        //     ->filter($filters)
+        //     ->whereHas('products')
+        //     ->withCount('reviews')
+        //     ->withAvg('reviews', 'rating')
+        //     ->orderByDesc('reviews_count')
+        //     ->orderByDesc('reviews_avg_rating')
+        //     ->limit(10)
+        //     ->get();
+        $topReviews = clone $store->withCount('reviews')->withAvg('reviews', 'rating')->orderByDesc('reviews_count')->orderByDesc('reviews_avg_rating')->limit(10)->get();
+
+        // $newStore = $this->model
+        //     ->with($relations)
+        //     ->filter($filters)
+        //     ->whereHas('products')
+        //     ->where('created_at', '>=', now()->subDays(3))
+        //     ->limit(5)
+        //     ->get();
+        $newStore = clone $store->where('created_at', '>=', now()->subDays(3))->limit(5)->get();
 
         $sectionType = null;
         $sectionLabel = null;

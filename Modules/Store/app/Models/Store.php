@@ -570,4 +570,17 @@ class Store extends Model implements TranslatableContract
     {
         return $this->morphMany(\Modules\Withdrawal\Models\Withdrawal::class, 'withdrawable');
     }
+    public function getCategoriesString()
+    {
+        if (!$this->relationLoaded('categories')) {
+            return '';
+        }
+
+        return $this->categories
+            ->pluck('name')
+            ->filter()
+            ->unique()
+            ->implode(', ');
+
+    }
 }

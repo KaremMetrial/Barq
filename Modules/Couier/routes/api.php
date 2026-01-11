@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function () {
         Route::post('register', [CourierAuthController::class, 'register'])->name('courier.register');
         Route::post('login', [CourierAuthController::class, 'login'])->name('courier.login');
         Route::post('logout', [CourierAuthController::class, 'logout'])->middleware('auth:sanctum')->name('courier.logout');
+        Route::get('profile', [CourierAuthController::class, 'profile'])->middleware('auth:sanctum')->name('courier.profile');
         Route::put('profile', [CourierAuthController::class, 'updateProfile'])->middleware('auth:sanctum')->name('courier.profile.update');
         Route::delete('delete-account', [CourierAuthController::class, 'deleteAccount'])->middleware('auth:sanctum')->name('courier.delete-account');
     });

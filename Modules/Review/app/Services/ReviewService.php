@@ -88,4 +88,7 @@ class ReviewService
     {
         return $this->reviewRepository->getReviewStatsForStore($storeId, $filters);
     }
+    public function getAll(){
+        return $this->reviewRepository->paginate();
+    }
 }

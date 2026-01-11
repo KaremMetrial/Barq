@@ -2,16 +2,27 @@
 
 namespace Modules\Couier\Http\Resources;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Enums\UserStatusEnum;
 use Modules\Address\Models\Address;
 use App\Enums\CouierAvaliableStatusEnum;
+use Stevebauman\Location\Facades\Location;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Address\Http\Resources\AddressResource;
 use Modules\Vehicle\Http\Resources\VehicleResource;
+use Modules\Couier\Services\CourierShiftService;
 
 class CourierResource extends JsonResource
 {
+    protected $courierShiftService;
+
+    public function __construct($resource, ?CourierShiftService $courierShiftService = null)
+    {
+        parent::__construct($resource);
+        $this->courierShiftService = $courierShiftService ?? app(CourierShiftService::class);
+    }
+
     /**
      * Transform the resource into an array.
      *
@@ -155,6 +166,8 @@ class CourierResource extends JsonResource
             }),
             'commission_type' => $this->commission_type->value,
             'commission_amount' => $this->commission_amount,
+            'currency_factor' => $this->store->getCurrencyFactor(),
+            'currency_code' => $this->store->getCurrencyCode(),
             'national_identity' => $this->whenLoaded('nationalIdentity', function () {
                 $identity = $this->nationalIdentity;
                 if (!$identity) return null;
@@ -167,6 +180,78 @@ class CourierResource extends JsonResource
                 ];
             }),
             'iban' => $this->iban,
+
+            'shift' => $this->getNextShiftData(),
+        ];
+    }
+
+    /**
+     * Generate structured data for next shift display
+     *
+     * @return array
+     */
+    private function getNextShiftData(): array
+    {
+        // Get next shift data using the courier shift service
+        $nextShift = $this->courierShiftService->getNextShift($this->id);
+
+        // Initialize default values
+        $day = null;
+        $duration = null;
+
+        // Format shift data if next shift exists
+        if ($nextShift && isset($nextShift['scheduled_date'])) {
+            // Format day in Arabic: "الخميس، 06 أغسطس 2025"
+            $shiftDate = Carbon::parse($nextShift['scheduled_date']);
+            $day = $shiftDate->locale('ar')->isoFormat('dddd, D MMMM YYYY');
+
+            // Format duration: "(8h) 08:00 - 16:00"
+            if (isset($nextShift['scheduled_start_time']) && isset($nextShift['scheduled_end_time'])) {
+                $startTime = Carbon::parse($nextShift['scheduled_start_time'])->format('H:i');
+                $endTime = Carbon::parse($nextShift['scheduled_end_time'])->format('H:i');
+
+                // Calculate duration in minutes first, then convert to hours
+                $startCarbon = Carbon::parse($nextShift['scheduled_start_time']);
+                $endCarbon = Carbon::parse($nextShift['scheduled_end_time']);
+                $durationMinutes = abs($endCarbon->diffInMinutes($startCarbon)); // Use abs() to prevent negative
+
+                // Only show duration if it's reasonable (at least 1 minute)
+                if ($durationMinutes >= 1) {
+                    $durationHours = round($durationMinutes / 60); // Round to whole hours
+                    $duration = "({$durationHours}h) {$startTime} - {$endTime}";
+                } else {
+                    $duration = null; // Don't show duration for invalid shifts
+                }
+            }
+        }
+
+        // Handle location data
+        $lat = request()->header('lat');
+        $long = request()->header('long');
+        $location = null;
+
+        if ($lat && $long) {
+            try {
+                $zone = app(\Modules\Address\Services\AddressService::class)->getAddressByLatLong($lat, $long);
+                $location = $zone?->getFullAddressAttribute();
+            } catch (\Exception $e) {
+                // Fallback to IP-based location if zone lookup fails
+            }
+        }
+
+        if (!$location) {
+            try {
+                $position = Location::get(request()->ip());
+                $location = $position ? $position->cityName . ', ' . $position->countryName . ', ' . $position->regionName : null;
+            } catch (\Exception $e) {
+                $location = null;
+            }
+        }
+
+        return [
+            'day' => $day,
+            'duration' => $duration,
+            'location' => $location,
         ];
     }
 

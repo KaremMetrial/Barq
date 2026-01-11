@@ -111,4 +111,11 @@ class CourierAuthController extends Controller
 
         return $this->successResponse(null, __('message.success'));
     }
+    public function profile(): JsonResponse
+    {
+        $courier = auth('courier')->user();
+        return $this->successResponse([
+            'courier' => new CourierResource($courier->load('store.address'))
+        ], __('message.success'));
+    }
 }

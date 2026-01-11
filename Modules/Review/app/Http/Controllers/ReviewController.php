@@ -24,13 +24,17 @@ class ReviewController extends Controller
     /**
      * Display a listing of the reviews for an order.
      */
-    public function index(int $orderId): JsonResponse
+    public function index($orderId = null): JsonResponse
     {
-        $this->authorize('viewAny', Review::class);
-        $reviews = $this->reviewService->getReviewsByOrderId($orderId);
-
+        if(auth('admin')->check())
+        {
+            $this->authorize('viewAny', Review::class);
+            $reviews = $this->reviewService->getAll();
+        }else {
+            $reviews = $this->reviewService->getReviewsByOrderId($orderId);
+        }
         return $this->successResponse([
-            "reviews" => ReviewResource::collection($reviews),
+            "reviews" => ReviewResource::collection($reviews->load('order')),
             'pagination' => new PaginationResource($reviews)
         ], __('message.success'));
     }

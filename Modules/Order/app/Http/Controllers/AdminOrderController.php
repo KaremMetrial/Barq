@@ -27,7 +27,7 @@ class AdminOrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Order::class);
-        $filter = $request->only('search','status','from_date','to_date');
+        $filter = $request->only('search','status','from_date','to_date', 'courier_id', 'store_id', 'user_id');
         $orders = $this->orderService->getAllOrders($filter);
 
         return $this->successResponse([

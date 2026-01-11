@@ -54,4 +54,8 @@ class Review extends Model
             'user_id'       // Local key on orders table
         );
     }
+    public function scopeFilter($query, $filters)
+    {
+       return $query;
+    }
 }
