@@ -56,7 +56,7 @@ class CouponController extends Controller
         $coupon = $this->couponService->getCouponById($id);
         $this->authorize('view', $coupon);
         return $this->successResponse([
-            "coupon" => new CouponResource($coupon),
+            "coupon" => new CouponResource($coupon->load('categories', 'products', 'stores')),
         ], __("message.success"));
     }
 

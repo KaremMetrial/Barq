@@ -56,7 +56,7 @@ class OfferController extends Controller
         $offer = $this->offerService->getOfferById($id);
         $this->authorize('view', $offer);
         return $this->successResponse([
-            'offer' => new OfferResource($offer)
+            'offer' => auth('admin')->check() ? new AdminOfferResource($offer->load('offerable')) : new OfferResource($offer->load('offerable'))
         ], __('message.success'));
     }
 

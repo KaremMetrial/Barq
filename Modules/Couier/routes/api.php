@@ -61,6 +61,8 @@ Route::prefix('v1')->group(function () {
 
     // Courier Routes
     Route::prefix('courier')->middleware(['auth:sanctum', 'ability:courier'])->name('courier.')->group(function () {
+
+        Route::get('home', [CouierController::class, 'home']);
         // Shift Templates (view available)
         Route::get('shift-templates', [CourierShiftController::class, 'templates']);
 

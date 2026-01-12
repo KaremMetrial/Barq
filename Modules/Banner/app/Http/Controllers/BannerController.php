@@ -55,7 +55,7 @@ class BannerController extends Controller
         $banner = $this->bannerService->getBannerById($id);
         $this->authorize('view', $banner);
         return $this->successResponse([
-            "banner" => new BannerResource($banner),
+            "banner" => new BannerResource($banner->load('city')),
         ], __("message.success"));
     }
 

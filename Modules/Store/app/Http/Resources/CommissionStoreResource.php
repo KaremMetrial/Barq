@@ -29,6 +29,7 @@ class CommissionStoreResource extends JsonResource
             'logo' => $this->logo ? asset("storage/" . $this->logo) : null,
             'section' => $this->section ? $this->section->name : null,
             'owner' => $this->owner ? $this->owner->name : null,
+            'is_active' => (bool) $this->is_active
         ];
     }
 }

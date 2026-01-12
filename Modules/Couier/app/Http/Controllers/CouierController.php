@@ -3,17 +3,18 @@
 namespace Modules\Couier\Http\Controllers;
 
 use App\Traits\ApiResponse;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Modules\Couier\Models\Couier;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
 use Modules\Couier\Services\CouierService;
+use Modules\Couier\Services\CourierShiftService;
 use Modules\Couier\Http\Resources\CouierResource;
 use Modules\Couier\Http\Resources\CourierResource;
 use Modules\Couier\Http\Requests\CreateCouierRequest;
 use Modules\Couier\Http\Requests\UpdateCouierRequest;
-use Modules\Couier\Models\Couier;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CouierController extends Controller
 {
@@ -89,6 +90,13 @@ class CouierController extends Controller
         $stats = $this->couierService->stats();
         return $this->successResponse(
         $stats
+        , __('message.success'));
+    }
+    public function home()
+    {
+        $data = $this->couierService->getHome();
+        return $this->successResponse(
+        $data
         , __('message.success'));
     }
 }

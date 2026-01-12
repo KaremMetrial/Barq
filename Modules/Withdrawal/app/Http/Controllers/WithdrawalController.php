@@ -30,7 +30,7 @@ class WithdrawalController extends Controller
         $this->authorize('viewAny', Withdrawal::class);
         $Withdrawals = $this->WithdrawalService->getAllWithdrawals();
         return $this->successResponse([
-            "Withdrawals" => WithdrawalResource::collection($Withdrawals),
+            "Withdrawals" => WithdrawalResource::collection($Withdrawals->load('withdrawable')),
             "pagination" => new PaginationResource($Withdrawals)
         ], __("message.success"));
     }

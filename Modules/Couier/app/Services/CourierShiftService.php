@@ -58,7 +58,6 @@ class CourierShiftService
             'expected_end_time' => $expectedEndTime,
             'is_open' => true,
         ]);
-
         return $shift->load('shiftTemplate');
     }
 
@@ -220,7 +219,6 @@ class CourierShiftService
         if ($templates->isEmpty()) {
             return null;
         }
-
         $nextShift = null;
         $earliestTime = Carbon::tomorrow()->endOfDay(); // Set to far future as default
 

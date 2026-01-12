@@ -160,7 +160,6 @@ class CourierDashboardController extends Controller
                 return $assignment->completed_at->format('Y-m-d');
             });
 
-        // $history = [];
         foreach ($transactions as $date => $dayTransactions) {
             $dateLabel = $this->getDateLabel($date);
 
@@ -187,7 +186,7 @@ class CourierDashboardController extends Controller
             ];
         }
 
-        return $history;
+        return $history ?? null;
     }
 
     private function getDateLabel(string $date): string

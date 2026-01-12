@@ -114,4 +114,19 @@ class CouierShift extends Model
     {
         return $query->where('is_open', false);
     }
+    public function getDayNameAttribute(): string
+    {
+        $days = [
+            0 => 'الأحد',
+            1 => 'الاثنين',
+            2 => 'الثلاثاء',
+            3 => 'الأربعاء',
+            4 => 'الخميس',
+            5 => 'الجمعة',
+            6 => 'السبت'
+        ];
+
+        return $days[$this->day_of_week] ?? '';
+    }
+
 }

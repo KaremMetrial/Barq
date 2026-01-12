@@ -6,7 +6,11 @@ use App\Enums\SaleTypeEnum;
 use Illuminate\Http\Request;
 use App\Enums\CouponTypeEnum;
 use App\Enums\ObjectTypeEnum;
+use Modules\Category\Models\Category;
+use Modules\Store\Http\Resources\StoreResource;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Product\Http\Resources\ProductResource;
+use Modules\Category\Http\Resources\CategoryResource;
 use Modules\Governorate\Http\Resources\GovernorateResource;
 
 class CouponResource extends JsonResource
@@ -40,6 +44,16 @@ class CouponResource extends JsonResource
             'symbol_currency' => $this->getCurrencySymbol(),
             'used_count' => (int) $this->usageCount(),
             'currency_factor' => $this->getCurrencyFactor(),
+            'categories' => $this->whenLoaded('categories',function() {
+                return CategoryResource::collection($this->categories);
+            }),
+            'products' => $this->whenLoaded('products',function() {
+                return ProductResource::collection($this->products);
+            }),
+            'stores' => $this->whenLoaded('stores',function() {
+                return StoreResource::collection($this->stores);
+            }),
+
         ];
     }
 }

@@ -82,7 +82,7 @@ class Couier extends Authenticatable
     }
     public function activeShifts()
     {
-        return $this->shifts()->where('is_active', true);
+        return $this->shifts()->where('is_open', true);
     }
     public function address(): MorphOne
     {

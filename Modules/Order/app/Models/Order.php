@@ -20,6 +20,7 @@ use Modules\Order\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Conversation\Models\Conversation;
 use Modules\PaymentMethod\Models\PaymentMethod;
+use Modules\Couier\Models\CourierOrderAssignment;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
@@ -348,5 +349,8 @@ class Order extends Model
             ->where('is_read', false)
             ->count();
     }
-
+    public function courierOrderAssignment()
+    {
+        return $this->hasMany(CourierOrderAssignment::class);
+    }
 }

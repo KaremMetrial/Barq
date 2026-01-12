@@ -3,6 +3,8 @@
 namespace Modules\Banner\Http\Resources;
 
 use App\Enums\BannerTypeEnum;
+use Modules\Store\Http\Resources\StoreResource;
+use Modules\Product\Http\Resources\ProductResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -31,6 +33,11 @@ class BannerResource extends JsonResource
             }),
             "bannerable_type"=> $this->bannerable_type,
             "bannerable_id"=> $this->bannerable_id,
+            'bannerable' => match ($this->bannerable_type) {
+                'store' => new StoreResource($this->bannerable),
+                'product' => new ProductResource($this->bannerable),
+                default => null
+            }
         ];
     }
 }
