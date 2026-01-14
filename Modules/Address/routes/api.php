@@ -13,3 +13,7 @@ Route::prefix('v1')->group(function () {
 Route::middleware(['auth:vendor'])->prefix('vendor')->group(function () {
     Route::apiResource('addresses', AddressController::class)->names('address');
 });
+
+Route::middleware(['auth:admin'])->prefix('v1/admin')->group(function () {
+    Route::apiResource('addresses', AddressController::class)->names('address');
+});

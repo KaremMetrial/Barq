@@ -72,6 +72,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/schedule', [CourierShiftController::class, 'schedule']);
             Route::get('/schedule-shifts', [CourierShiftController::class, 'scheduleShifts']);
             Route::get('/calendar', [CourierShiftController::class, 'calendarSchedule']);
+            Route::get('/calendar-data', [CourierShiftController::class, 'calendar']);
             Route::post('/start', [CourierShiftController::class, 'start']);
             Route::get('/current', [CourierShiftController::class, 'current']);
             Route::get('/next', [CourierShiftController::class, 'next']);

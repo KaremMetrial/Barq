@@ -46,9 +46,10 @@ class VendorService
             );
             $data = array_filter($data, fn($value) => !blank($value));
             $vendor = $this->VendorRepository->create($data);
-            if (isset($data['role_ids'])) {
-                $roleIds = explode(',', $data['role_ids']);
-                $vendor->roles()->sync($roleIds);
+            if (isset($data['role'])) {
+                // $roleIds = explode(',', $data['role_ids']);
+                // $vendor->roles()->sync($roleIds);
+                $vendor->syncRoles($data['role']);
             } else {
                 $vendor->assignRole('vendor');
             }

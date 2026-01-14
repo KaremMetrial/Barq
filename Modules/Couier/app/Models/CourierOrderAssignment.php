@@ -2,11 +2,13 @@
 
 namespace Modules\Couier\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
-
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\Couier\Observers\CourierOrderAssignmentObserver;
+#[ObservedBy(CourierOrderAssignmentObserver::class)]
 class CourierOrderAssignment extends Model
 {
     protected $fillable = [

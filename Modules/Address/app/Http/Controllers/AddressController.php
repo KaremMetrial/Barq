@@ -23,7 +23,7 @@ class AddressController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $addresses = $this->addressService->getAllAddresses();
+        $addresses = $this->addressService->getAllAddresses($request->all());
         return $this->successResponse([
             "addresses" => AddressResource::collection($addresses),
         ], __("message.success"));

@@ -3,11 +3,12 @@
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Modules\Couier\Services\SmartOrderAssignmentService;
 // use Modules\Couier\Services\SmartOrderAssignmentService;
 
 class CourierAssignmentTimeoutJob implements ShouldQueue
@@ -21,16 +22,16 @@ class CourierAssignmentTimeoutJob implements ShouldQueue
      */
     public function __construct($assignmentId)
     {
-        // $this->assignmentId = $assignmentId;
+        $this->assignmentId = $assignmentId;
     }
 
     /**
      * Execute the job.
      */
-    // public function handle(SmartOrderAssignmentService $assignmentService): void
-    // {
-    //     $assignmentService->handleTimeout($this->assignmentId);
-    // }
+    public function handle(SmartOrderAssignmentService $assignmentService): void
+    {
+        $assignmentService->handleTimeout($this->assignmentId);
+    }
 
     /**
      * Calculate the number of seconds to wait before retrying the job.

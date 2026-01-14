@@ -10,6 +10,7 @@ enum OrderStatus: string
     case READY_FOR_DELIVERY = 'ready_for_delivery';
     case ON_THE_WAY = 'on_the_way';
     case DELIVERED = 'delivered';
+    case REJECTED = 'rejected';
     case CANCELLED = 'cancelled';
 
     /**
@@ -52,6 +53,7 @@ enum OrderStatus: string
             self::ON_THE_WAY->value         => __('enums.order_status.on_the_way'),
             self::DELIVERED->value          => __('enums.order_status.delivered'),
             self::CANCELLED->value          => __('enums.order_status.cancelled'),
+            self::REJECTED->value           => __('enums.order_status.rejected'),
         ];
     }
     public static function label(string $value): string

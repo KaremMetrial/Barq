@@ -132,7 +132,12 @@ class CourierMapController extends Controller
             'status' => 'required|in:accepted,in_transit,delivered,failed',
             'location_lat' => 'numeric|between:-90,90',
             'location_lng' => 'numeric|between:-180,180',
-            'failure_reason' => 'required_if:status,failed|string|max:500'
+            'failure_reason' => 'required_if:status,failed|string|max:500',
+            'receipt_file' => 'nullable|file|image|mimes:jpeg,jpg,png,gif|max:5120',
+            'receipt_type' => 'required_with:receipt_file|in:pickup_product,pickup_receipt,delivery_proof,customer_signature',
+            'metadata' => 'nullable|array',
+            'metadata.latitude' => 'nullable|numeric|between:-90,90',
+            'metadata.longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         $courierId = auth('sanctum')->id();
@@ -150,6 +155,11 @@ class CourierMapController extends Controller
             // Validate status transition
             if (!$this->isValidStatusTransition($assignment->status, $request->status)) {
                 return $this->errorResponse(__('Invalid status transition'), 422);
+            }
+
+            // Validate receipt type for current status if receipt is being uploaded
+            if ($request->hasFile('receipt_file')) {
+                $this->validateReceiptTypeForStatus($request->receipt_type, $request->status);
             }
 
             $updateData = [];
@@ -172,11 +182,36 @@ class CourierMapController extends Controller
                 return $this->errorResponse(__('Failed to update order status'), 400);
             }
 
-            return $this->successResponse([
+            // Handle receipt upload if file is provided
+            $uploadedReceipt = null;
+            if ($request->hasFile('receipt_file')) {
+                $uploadedReceipt = $this->receiptService->uploadReceipt(
+                    $assignmentId,
+                    $request->file('receipt_file'),
+                    $request->receipt_type,
+                    $request->get('metadata', [])
+                );
+            }
+
+            $responseData = [
                 'assignment_id' => $assignmentId,
                 'new_status' => $request->status,
                 'updated_at' => now()->toISOString(),
-            ], __('Order status updated successfully'));
+            ];
+
+            // Add receipt information to response if receipt was uploaded
+            if ($uploadedReceipt) {
+                $responseData['receipt'] = [
+                    'id' => $uploadedReceipt->id,
+                    'file_name' => $uploadedReceipt->file_name,
+                    'url' => $uploadedReceipt->url,
+                    'file_size_human' => $uploadedReceipt->file_size_human,
+                    'type' => $uploadedReceipt->type,
+                    'uploaded_at' => $uploadedReceipt->created_at->toISOString(),
+                ];
+            }
+
+            return $this->successResponse($responseData, __('Order status updated successfully'));
 
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
@@ -563,6 +598,20 @@ class CourierMapController extends Controller
         ];
 
         return isset($transitions[$currentStatus]) && in_array($newStatus, $transitions[$currentStatus]);
+    }
+
+    private function validateReceiptTypeForStatus(string $type, string $status): void
+    {
+        $allowedTypes = match($status) {
+            'accepted' => ['pickup_product', 'pickup_receipt'],
+            'in_transit' => ['pickup_product', 'pickup_receipt', 'delivery_proof', 'customer_signature'],
+            'delivered', 'failed' => ['pickup_product', 'pickup_receipt', 'delivery_proof', 'customer_signature'],
+            default => []
+        };
+
+        if (!in_array($type, $allowedTypes)) {
+            throw new \InvalidArgumentException("Receipt type '{$type}' is not allowed for status '{$status}'");
+        }
     }
 
     private function applyPeriodFilter($query, string $period)

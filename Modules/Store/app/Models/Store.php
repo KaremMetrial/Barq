@@ -312,6 +312,10 @@ class Store extends Model implements TranslatableContract
                 }
                 $query->where('status', StoreStatusEnum::APPROVED)
                     ->where('is_active', true)
+                    ->whereNull('parent_id')
+                    ->whereHas('products', function ($query) {
+                        $query->where('is_active', true);
+                    })
                     ->where('type', '!=', 'delivery');
             }
         } else {
@@ -323,7 +327,10 @@ class Store extends Model implements TranslatableContract
                 }
             }
             $query->where('status', StoreStatusEnum::APPROVED)
-              ->whereHas('products')
+            ->whereNull('parent_id')
+              ->whereHas('products', function ($query) {
+                $query->where('is_active', true);
+              })
                 ->where('is_active', true)
                 ->where('type', '!=', 'delivery');
         }
@@ -345,8 +352,15 @@ class Store extends Model implements TranslatableContract
             $zone = Zone::findZoneByCoordinates($lat, $lng);
         }
         if ($zone) {
-            $query->whereHas('zoneToCover', function ($q) use ($zone) {
-                $q->where('zones.id', $zone->id);
+            $query->where(function ($query) use ($zone) {
+                $query->whereHas('zoneToCover', function ($q) use ($zone) {
+                    $q->where('zones.id', $zone->id);
+                })
+                ->orWhereHas('branches', function ($q) use ($zone) {
+                    $q->whereHas('zoneToCover', function ($qq) use ($zone) {
+                        $qq->where('zones.id', $zone->id);
+                    });
+                });
             });
         } else {
             if ($addressId || ($lat && $lng)) {

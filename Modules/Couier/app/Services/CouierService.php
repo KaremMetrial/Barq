@@ -15,6 +15,7 @@ use Stevebauman\Location\Facades\Location;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Zone\Http\Resources\ZoneResource;
 use Modules\Store\Repositories\StoreRepository;
+use Modules\Couier\Models\CourierOrderAssignment;
 use Modules\Couier\Repositories\CouierRepository;
 use Modules\Couier\Http\Resources\FullOrderResource;
 use Modules\Couier\Http\Resources\CourierShiftResource;
@@ -324,6 +325,7 @@ if (isset($data['address'])) {
         $shiftData = $this->getShiftData();
         $zoneData = $this->getZoneWithStoresHavingOrders();
 
+        $assignedOrder = CourierOrderAssignment::where('courier_id', $courier->id)->where('status', 'assigned')->where('expires_at', '>', now())->first();
         return [
             "first_name" => $courier->first_name,
             "last_name" => $courier->last_name,
@@ -337,8 +339,9 @@ if (isset($data['address'])) {
             'currency_factor' => $courier->store->getCurrencyFactor(),
             'currency_code' => $courier->store->getCurrencyCode(),
             'zone' => $zoneData,
-            'current_order' => $currentOrder ? new FullOrderResource($currentOrder->courierOrderAssignment) : null,
+            'current_order' => $currentOrder ? new FullOrderResource($currentOrder->courierOrderAssignment()->first()) : null,
             'shift' => $shiftData,
+            'assigned_order' => $assignedOrder ? new FullOrderResource($assignedOrder) : null,
         ];
     }
     private function getZoneWithStoresHavingOrders()

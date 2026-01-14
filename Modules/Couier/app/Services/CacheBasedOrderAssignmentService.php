@@ -66,7 +66,6 @@ class CacheBasedOrderAssignmentService
                 ]);
                 return null;
             }
-
             // Find nearest couriers in zone using cache
             $nearestCouriers = $this->locationCache->findNearestCouriersInZone(
                 $zoneId,
@@ -75,7 +74,6 @@ class CacheBasedOrderAssignmentService
                 5.0, // 5km radius
                 5   // Top 5 couriers
             );
-            Log::info('Processing cache-based auto-assignment for order: ' . $orderData['order_id'] . ', found ' . count($nearestCouriers) . ' couriers in zone ' . $zoneId);
             if (empty($nearestCouriers)) {
                 Log::info('No couriers found in zone cache, falling back to database', ['zone_id' => $zoneId]);
                 $nearestCouriers = $this->getCouriersFromDatabase($zoneId, $pickupLat, $pickupLng);
@@ -113,33 +111,54 @@ class CacheBasedOrderAssignmentService
      */
     private function attemptAssignment(int $courierId, array $orderData): ?CourierOrderAssignment
     {
-        $courier = Couier::find($courierId);
-        // Validate courier availability
-        if (!$this->isCourierAvailable($courier)) {
-            return null;
-        }
-        dd($courier);
-
-        // Create assignment
-        $assignment = CourierOrderAssignment::create([
+        Log::info('data:', [
+            'order_data' => $orderData,
             'courier_id' => $courierId,
-            'order_id' => $orderData['order_id'],
-            'status' => 'assigned',
-            'pickup_lat' => $orderData['pickup_lat'],
-            'pickup_lng' => $orderData['pickup_lng'],
-            'delivery_lat' => $orderData['delivery_lat'],
-            'delivery_lng' => $orderData['delivery_lng'],
-            'expires_at' => now()->addSeconds(120),
         ]);
 
-        // Send notifications
-        $this->realtimeService->notifyOrderAssigned($courierId, $assignment);
-        // $this->realtimeService->notifyOrderAssignedToOrder($assignment->order_id, [
-        //     'courier_id' => $courierId,
-        //     'assignment_id' => $assignment->id,
-        // ]);
+        // Check if order is already assigned
+        $existingAssignment = CourierOrderAssignment::where('order_id', $orderData['order_id'])
+            ->whereIn('status', ['assigned', 'accepted', 'in_progress'])
+            ->first();
 
-        return $assignment;
+        if ($existingAssignment) {
+            Log::warning('Order already assigned', [
+                'order_id' => $orderData['order_id'],
+                'existing_courier_id' => $existingAssignment->courier_id,
+                'existing_status' => $existingAssignment->status
+            ]);
+            return null;
+        }
+
+        try {
+            // Create assignment
+            $assignment = CourierOrderAssignment::create([
+                'courier_id' => $courierId,
+                'order_id' => $orderData['order_id'],
+                'status' => 'assigned',
+                'pickup_lat' => $orderData['pickup_lat'],
+                'pickup_lng' => $orderData['pickup_lng'],
+                'delivery_lat' => $orderData['delivery_lat'],
+                'delivery_lng' => $orderData['delivery_lng'],
+                'expires_at' => now()->addSeconds(120),
+            ]);
+
+            // Only notify if assignment was successful
+            $this->realtimeService->notifyOrderAssigned($courierId, $assignment);
+            $this->realtimeService->notifyOrderAssignedToOrder($assignment->order_id, [
+                'courier_id' => $courierId,
+                'assignment_id' => $assignment->id,
+            ]);
+
+            return $assignment;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to create assignment: ' . $e->getMessage(), [
+                'order_id' => $orderData['order_id'],
+                'courier_id' => $courierId
+            ]);
+            return null;
+        }
     }
 
     /**

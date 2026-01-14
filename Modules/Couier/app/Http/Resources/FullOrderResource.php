@@ -4,6 +4,7 @@ namespace Modules\Couier\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Address\Http\Resources\AddressResource;
 
 class FullOrderResource extends JsonResource
 {
@@ -25,33 +26,20 @@ class FullOrderResource extends JsonResource
 
             // Customer Information
             'customer' => [
-                'name' => $this->order->user->name ?? 'Unknown Customer',
+                'name' => $this->order->user->first_name . ' ' . $this->order->user->last_name ?? 'Unknown Customer',
                 'phone' => $this->order->user->phone ?? null,
                 'email' => $this->order->user->email ?? null,
             ],
 
             // Delivery Address
-            'delivery_address' => $this->order->deliveryAddress ? [
-                'street' => $this->order->deliveryAddress->street,
-                'building' => $this->order->deliveryAddress->building,
-                'floor' => $this->order->deliveryAddress->floor,
-                'apartment' => $this->order->deliveryAddress->apartment,
-                'area' => $this->order->deliveryAddress->area?->name ?? null,
-                'city' => $this->order->deliveryAddress->city?->name ?? null,
-                'governorate' => $this->order->deliveryAddress->governorate?->name ?? null,
-                'coordinates' => [
-                    'lat' => $this->delivery_lat,
-                    'lng' => $this->delivery_lng,
-                ],
-                'delivery_instructions' => $this->order->deliveryAddress->delivery_instructions,
-            ] : null,
+            'delivery_address' => $this->order->deliveryAddress ? new AddressResource($this->order->deliveryAddress->load('zone')) : null,
 
             // Store Information
             'store' => [
                 'id' => $this->order->store->id,
                 'name' => $this->order->store->name,
                 'phone' => $this->order->store->phone,
-                'address' => $this->order->store->address,
+                'address' => $this->order->store->address ? new AddressResource($this->order->store->address->load('zone')) : null,
             ],
 
             // Order Details
@@ -69,10 +57,7 @@ class FullOrderResource extends JsonResource
 
                 return [
                     'id' => $product->id,
-                    'name_ar' => $product->translate('ar')?->name ?? $product->name,
-                    'name_en' => $product->translate('en')?->name ?? $product->name,
-                    'sku' => $product->sku,
-                    'image' => $product->main_image_url,
+                    'name' => $product->name,
                     'quantity' => $item->quantity,
                     'unit_price' => $item->total_price / $item->quantity,
                     'total_price' => $item->total_price,
@@ -84,15 +69,14 @@ class FullOrderResource extends JsonResource
                     // Add-ons
                     'add_ons' => $item->addOns->map(function ($addOn) {
                         return [
-                            'name_ar' => $addOn->translate('ar')?->name ?? $addOn->name,
-                            'name_en' => $addOn->translate('en')?->name ?? $addOn->name,
+                            'name' => $addOn?->name,
                             'quantity' => $addOn->pivot->quantity,
                             'price' => $addOn->pivot->price_modifier,
                         ];
                     }),
 
                     // Allergens and special info
-                    'allergens' => $product->productAllergens->pluck('name')->toArray(),
+                    // 'allergens' => $product->productAllergens->pluck('name')->toArray(),
                     'special_instructions' => $product->special_instructions,
                     'preparation_time' => $product->preparation_time,
                 ];
@@ -100,15 +84,14 @@ class FullOrderResource extends JsonResource
 
             // Payment Information
             'payment' => [
-                'total_amount' => $this->order->total_amount,
-                'delivery_fee' => $this->order->delivery_fee,
-                'discount_amount' => $this->order->discount_amount,
-                'tax_amount' => $this->order->tax_amount,
-                'paid_amount' => $this->order->paid_amount,
+                'total_amount' => (int) $this->order->total_amount,
+                'delivery_fee' => (int) $this->order->delivery_fee,
+                'discount_amount' => (int) $this->order->discount_amount,
+                'tax_amount' => (int) $this->order->tax_amount,
+                'paid_amount' => (int) $this->order->paid_amount,
                 'payment_method' => $this->order->paymentMethod ? [
                     'id' => $this->order->paymentMethod->id,
                     'name' => $this->order->paymentMethod->name,
-                    'type' => $this->order->paymentMethod->type,
                     'is_cod' => $this->order->paymentMethod->is_cod,
                 ] : null,
                 'payment_status' => $this->order->payment_status?->value,
@@ -117,14 +100,14 @@ class FullOrderResource extends JsonResource
 
             // Delivery Information
             'delivery' => [
-                'estimated_delivery_time' => $this->order->estimated_delivery_time,
+                // 'estimated_delivery_time' => $this->order->estimated_delivery_time,
                 'estimated_distance' => $this->estimated_distance_km,
                 'estimated_duration' => $this->estimated_duration_minutes,
                 'estimated_earning' => $this->estimated_earning,
 
                 'actual_distance' => $this->actual_distance_km,
                 'actual_duration' => $this->actual_duration_minutes,
-                'actual_earning' => $this->actual_earning,
+                'actual_earning' => (int) $this->actual_earning,
 
                 'pickup_coordinates' => [
                     'lat' => $this->pickup_lat,
@@ -164,6 +147,7 @@ class FullOrderResource extends JsonResource
                 'start_time' => $this->courierShift->start_time?->toISOString(),
                 'is_open' => $this->courierShift->is_open,
             ] : null,
+            'currency_factor' => $this->order->store->getCurrencyFactor(),
         ];
     }
 

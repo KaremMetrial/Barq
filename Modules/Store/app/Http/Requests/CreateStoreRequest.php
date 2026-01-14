@@ -60,8 +60,21 @@ class CreateStoreRequest extends FormRequest
             'store.name' => ['required', 'string', 'max:255'],
             'store.status' => ['nullable', 'string', Rule::in(StoreStatusEnum::values())],
             'store.note' => ['nullable', 'string'],
-            'store.logo' => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
-            'store.cover_image' => ['nullable', 'requiredIf:store.type,store', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
+            'store.logo' => [
+                Rule::requiredIf(function () {
+                    return data_get($this->input('store'), 'type') === 'store'
+                        && data_get($this->input('store'), 'branch_type') === 'main';
+                }),
+                'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
+            'store.cover_image' => [
+                Rule::requiredIf(function () {
+                    return data_get($this->input('store'), 'type') === 'store'
+                        && data_get($this->input('store'), 'branch_type') === 'main';
+                }),
+                'image',
+                'mimes:jpg,png,jpeg,gif,svg',
+                'max:2048',
+            ],
             'store.phone' => ['required', 'string', 'unique:stores,phone'],
             'store.message' => ['nullable', 'string'],
             'store.is_featured' => ['nullable', 'boolean'],

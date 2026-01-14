@@ -89,7 +89,16 @@ class Category extends Model implements TranslatableContract
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }
-
+        if (isset($filters['parent_id'])) {
+            $query->where('parent_id', $filters['parent_id']);
+        }
+        if (isset($filters['is_active'])) {
+            $query->where('is_active', $filters['is_active']);
+        }
+        if(isset($filters['store_id'])) {
+            $query->where('store_id', $filters['store_id']);
+        }
+        
         if (!auth('admin')->check()) {
             $query->whereIsActive(true);
             // if (isset($filters['store_id'])) {

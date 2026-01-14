@@ -35,22 +35,18 @@ class RealTimeCourierService
     /**
      * Send new order assignment to courier
      */
-    public function notifyOrderAssigned(int $courierId, CourierOrderAssignment $assignment): void
+    public function notifyOrderAssigned(int $courierId, ?CourierOrderAssignment $assignment): void
     {
-        try {
-            $data = [
-                'order_id' => $assignment->order_id,
-                'assignment_id' => $assignment->id,
-                'expires_in' => $assignment->time_remaining ?? 120,
-                'pickup_coordinates' => $assignment->pickup_coordinates,
-                'delivery_coordinates' => $assignment->delivery_coordinates,
-                'estimated_distance' => $assignment->estimated_distance_km,
-                'estimated_earning' => $assignment->estimated_earning,
-                'priority_level' => $assignment->priority_level,
-                'assigned_at' => $assignment->assigned_at->toISOString(),
-            ];
+        // If assignment is null, log and return early
+        if (!$assignment) {
+            Log::warning("Attempted to notify null assignment", [
+                'courier_id' => $courierId
+            ]);
+            return;
+        }
 
-            event(new NewOrderAssigned($courierId, $data));
+        try {
+            event(new NewOrderAssigned( $assignment,$courierId));
 
             Log::info("Pusher: New order assigned to courier", [
                 'courier_id' => $courierId,

@@ -69,6 +69,23 @@ class Address extends Model implements TranslatableContract
             $query->where('addressable_id', $user->id)
                 ->where('addressable_type', 'user');
         }
+        if (!empty($filters['country_id'])) {
+            $query->where('country_id', $filters['country_id']);
+        }
+        if (!empty($filters['city_id'])) {
+            $query->where('city_id', $filters['city_id']);
+        }
+        if (!empty($filters['zone_id'])) {
+            $query->where('zone_id', $filters['zone_id']);
+        }
+        if (!empty($filters['addressable_type'])) {
+            $query->where('addressable_type', $filters['addressable_type']);
+        }
+        if (!empty($filters['addressable_id'])) {
+            $query->where('addressable_id', $filters['addressable_id']);
+        }
+
+
         return $query->latest();
     }
 

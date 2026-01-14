@@ -635,7 +635,7 @@ protected function latestOrders(array $filters = []): array
                 ->whereNull('orders.deleted_at')
                 ->limit(10);
 
-            $latestOrders = $latestOrdersQuery->get();
+            $latestOrders = $latestOrdersQuery->latest()->get();
 
             return $latestOrders->map(function ($order) {
                 $store = $order->store;

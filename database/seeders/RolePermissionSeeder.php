@@ -140,6 +140,32 @@ class RolePermissionSeeder extends Seeder
         ];
         $dataEntryRole->syncPermissions($dataEntryPermissions);
 
+
+
+
+
+        $dataEntryPermissions = [
+            'view_addon', 'create_addon', 'update_addon',
+            'view_city', 'view_governorate', 'view_country', 'view_zone',
+            'view_option', 'create_option', 'update_option',
+            // Product management
+            'view_product', 'create_product', 'update_product',
+            'view_vendor', 'create_vendor', 'update_vendor',
+            // Categories and sections
+            'view_category', 'create_category', 'update_category', 'delete_category',
+            'view_section', 'create_section', 'update_section', 'delete_section',
+            // Basic store features
+            'view_store', 'create_store', 'update_store',
+            'view_pos_shift', 'create_pos_shift', 'update_pos_shift',
+            'view_pos_terminal', 'create_pos_terminal', 'update_pos_terminal',
+            'manage_store', 'manage_products' ,'store_owner' ,'manage_staff',
+            'view_setting'
+        ];
+        $dataEntryRole->syncPermissions($dataEntryPermissions);
+
+
+
+
         // COURIER ADMIN ROLE - Manages couriers and deliveries
         $courierAdminRole = Role::firstOrCreate(['name' => 'courier_admin', 'guard_name' => 'admin']);
         $courierAdminPermissions = [

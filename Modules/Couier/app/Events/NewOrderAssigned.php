@@ -7,6 +7,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Modules\Couier\Http\Resources\FullOrderResource;
 
 class NewOrderAssigned implements ShouldBroadcast
 {
@@ -29,21 +30,17 @@ class NewOrderAssigned implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('couriers'),
+            new Channel('couriers.' . $this->courierId),
         ];
     }
     public function broadcastAs(): string
     {
-        return 'new-order-assigned' . $this->courierId;
+        return 'new-order-assigned';
     }
     public function broadcastWith(): array
     {
         return [
-            'message_id' => $this->data->messageId,
-            'conversation_id' => $this->data->conversationId,
-            'user_id' => $this->data->userId,
-            'user_type' => $this->data->userType,
-            'read_at' => now()->toDateTimeString(),
+            'assignment' =>    new FullOrderResource($this->data)
         ];
     }
 }

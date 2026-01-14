@@ -56,6 +56,12 @@ class Review extends Model
     }
     public function scopeFilter($query, $filters)
     {
+        if(isset($filters['product_id']))
+        {
+            $query->whereHas('order.items', function ($q) use ($filters) {
+                $q->where('product_id', $filters['product_id']);
+            });
+        }
        return $query;
     }
 }

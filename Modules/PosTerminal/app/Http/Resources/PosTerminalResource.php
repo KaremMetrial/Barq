@@ -26,7 +26,8 @@ class PosTerminalResource extends JsonResource
            'store_address' => $this->store->address_place,
            'last_sync' => $this->last_sync->format('Y-m-d H:i:s'),
            'count_today_orders' => $this->count_today_orders,
-           'amount_today_orders' => $this->amount_today_orders
+           'amount_today_orders' => $this->amount_today_orders,
+           'store_id' => $this->store->id
         ];
     }
 }

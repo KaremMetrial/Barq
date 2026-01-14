@@ -7,15 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 // use Modules\Couier\Services\SmartOrderAssignmentService;
-use Modules\Couier\Services\GeographicCourierService;
 use Modules\Couier\Models\CourierOrderAssignment;
+use Modules\Couier\Services\GeographicCourierService;
+use Modules\Couier\Services\SmartOrderAssignmentService;
 
 class OrderManagementController extends Controller
 {
     use ApiResponse;
 
     public function __construct(
-        // protected SmartOrderAssignmentService $assignmentService,
+        protected SmartOrderAssignmentService $assignmentService,
         protected GeographicCourierService $geographicService
     ) {}
 
@@ -53,20 +54,20 @@ class OrderManagementController extends Controller
                 'priority_level' => $request->priority_level ?? 'normal',
             ];
 
-            // $assignment = $this->assignmentService->autoAssignOrder(
-            //     $orderData,
-            //     $request->timeout_seconds ?? 120
-            // );
+            $assignment = $this->assignmentService->autoAssignOrder(
+                $orderData,
+                $request->timeout_seconds ?? 120
+            );
 
-            // if (!$assignment) {
-            //     return $this->errorResponse('No suitable couriers found nearby', 404);
-            // }
+            if (!$assignment) {
+                return $this->errorResponse('No suitable couriers found nearby', 404);
+            }
 
             return $this->successResponse([
-                // 'assignment_id' => $assignment->id,
-                // 'courier_id' => $assignment->courier_id,
-                // 'estimated_distance_km' => $assignment->estimated_distance_km,
-                // 'expires_at' => $assignment->expires_at->toISOString(),
+                'assignment_id' => $assignment->id,
+                'courier_id' => $assignment->courier_id,
+                'estimated_distance_km' => $assignment->estimated_distance_km,
+                'expires_at' => $assignment->expires_at->toISOString(),
             ], 'Order assigned to nearest courier');
 
         } catch (\Exception $e) {
@@ -198,29 +199,28 @@ class OrderManagementController extends Controller
                 'courier_shift_id' => $assignment->courier_shift_id,
             ];
 
-            // $newAssignment = $this->assignmentService->assignToCourier(
-            //     $newCourierId,
-            //     $newAssignmentData,
-            //     120 // 2 minutes timeout
-            // );
+            $newAssignment = $this->assignmentService->assignToCourier(
+                $newCourierId,
+                $newAssignmentData,
+                120 // 2 minutes timeout
+            );
 
-            // if (!$newAssignment) {
-            //     // If reassignment failed, reactivate old assignment
-            //     $assignment->update(['status' => 'assigned']);
-            //     return $this->errorResponse('Reassignment failed - courier unavailable', 500);
-            // }
+            if (!$newAssignment) {
+                // If reassignment failed, reactivate old assignment
+                $assignment->update(['status' => 'assigned']);
+                return $this->errorResponse('Reassignment failed - courier unavailable', 500);
+            }
 
-            // Log reassignment in notes
-            // $newAssignment->update([
-            //     'notes' => 'Reassigned from courier #' . $oldCourierId . ' - ' . ($request->reason ?? 'Admin reassignment')
-            // ]);
+            $newAssignment->update([
+                'notes' => 'Reassigned from courier #' . $oldCourierId . ' - ' . ($request->reason ?? 'Admin reassignment')
+            ]);
 
-            // return $this->successResponse([
-            //     // 'old_assignment_id' => $assignmentId,
-            //     // 'new_assignment_id' => $newAssignment->id,
-            //     'new_courier_id' => $newCourierId,
-            //     'reassignment_reason' => $request->reason ?? 'Manual reassignment',
-            // ], 'Order reassigned successfully');
+            return $this->successResponse([
+                'old_assignment_id' => $assignmentId,
+                'new_assignment_id' => $newAssignment->id,
+                'new_courier_id' => $newCourierId,
+                'reassignment_reason' => $request->reason ?? 'Manual reassignment',
+            ], 'Order reassigned successfully');
 
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);

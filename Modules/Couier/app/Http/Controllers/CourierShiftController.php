@@ -8,12 +8,14 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Enums\CouierAvaliableStatusEnum;
 use App\Http\Resources\PaginationResource;
+use Illuminate\Support\Facades\Log;
 use Stevebauman\Location\Facades\Location;
 use Modules\Address\Services\AddressService;
 use Modules\Couier\Services\CourierShiftService;
 use Modules\Couier\Services\ShiftTemplateService;
 use Modules\Couier\Http\Resources\CourierShiftResource;
 use Modules\Couier\Http\Resources\ShiftTemplateResource;
+use Modules\Couier\Http\Resources\CourierShiftTemplateResource;
 use Modules\Couier\Services\CourierLocationCacheService;
 
 class CourierShiftController extends Controller
@@ -52,7 +54,7 @@ class CourierShiftController extends Controller
             $shift = $this->courierShiftService->startShift($courier->id, $request->shift_template_id);
             $courier->avaliable_status = CouierAvaliableStatusEnum::AVAILABLE;
             $courier->save();
-            
+
             return $this->successResponse([
                 'shift' => new CourierShiftResource($shift)
             ], __('Shift started successfully'));
@@ -113,17 +115,93 @@ class CourierShiftController extends Controller
     }
 
     /**
-     * Get my shifts
+     * Get calendar data for a specific month
      */
-    public function index(Request $request): JsonResponse
+    public function calendar(Request $request): JsonResponse
     {
-        $courierId = auth('sanctum')->id();
-        $shifts = $this->courierShiftService->getShiftHistory($courierId, $request->all());
+        $request->validate([
+            'year' => 'required|integer|min:2020|max:2030',
+            'month' => 'required|integer|min:1|max:12',
+        ]);
+
+        $year = $request->input('year');
+        $month = $request->input('month');
+        $courier = auth('sanctum')->user();
+
+        // Generate all days for the month
+        $daysInMonth = \Carbon\Carbon::create($year, $month)->daysInMonth;
+        $calendarData = [];
+
+        // Get all shifts for this courier in the specified month
+        $shifts = \Modules\Couier\Models\CouierShift::where('couier_id', $courier->id)
+            ->whereYear('start_time', $year)
+            ->whereMonth('start_time', $month)
+            ->get();
+
+        // Map shifts by date for quick lookup
+        $shiftsByDate = $shifts->keyBy(function ($shift) {
+            return $shift->start_time->format('Y-m-d');
+        });
+
+        // Generate calendar data for each day
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = \Carbon\Carbon::create($year, $month, $day);
+            $dateString = $date->format('Y-m-d');
+            $shift = $shiftsByDate->get($dateString);
+
+            $arabicDayNames = [
+                0 => 'الأحد',
+                1 => 'الاثنين',
+                2 => 'الثلاثاء',
+                3 => 'الأربعاء',
+                4 => 'الخميس',
+                5 => 'الجمعة',
+                6 => 'السبت'
+            ];
+
+            $calendarData[] = [
+                'date' => $dateString,
+                'day_of_week' => $date->dayOfWeek,
+                'day_name' => $arabicDayNames[$date->dayOfWeek] ?? '',
+                'has_shift' => $shift !== null,
+                'shift_status' => $shift?->status,
+                'shift_data' => $shift ? [
+                    'id' => $shift->id,
+                    'start_time' => $shift->start_time?->format('H:i'),
+                    'end_time' => $shift->end_time?->format('H:i'),
+                    'duration' => $this->calculateShiftDuration($shift),
+                    'zones' => $courier->zonesToCover->pluck('name')->toArray(),
+                    'status' => $shift->status,
+                    'shift_template_id' => $shift->shift_template_id,
+                ] : null
+            ];
+        }
 
         return $this->successResponse([
-            'shifts' => CourierShiftResource::collection($shifts),
-            'pagination' => new PaginationResource($shifts)
+            'year' => $year,
+            'month' => $month,
+            'days' => $calendarData,
+            'month_name' => \Carbon\Carbon::create($year, $month)->translatedFormat('F'),
         ], __('message.success'));
+    }
+
+    /**
+     * Calculate shift duration in hours and minutes
+     */
+    private function calculateShiftDuration($shift): string
+    {
+        if (!$shift->start_time || !$shift->end_time) {
+            return '0h 0m';
+        }
+
+        $start = \Carbon\Carbon::parse($shift->start_time);
+        $end = \Carbon\Carbon::parse($shift->end_time);
+        $totalMinutes = $end->diffInMinutes($start);
+
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+
+        return "{$hours}h {$minutes}m";
     }
 
     /**

@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateVendorRequest extends FormRequest
 {
-    
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -30,7 +30,7 @@ class CreateVendorRequest extends FormRequest
             'is_owner' => ['required', 'boolean'],
             'is_active' => ['required', 'boolean'],
             'store_id' => ['required', 'integer', 'exists:stores,id'],
-            'role_id' => ['required','string', 'exists:roles,id']
+            'role' => ['required','string', 'exists:roles,name']
         ];
     }
 

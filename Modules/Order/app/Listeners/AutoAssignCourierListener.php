@@ -34,12 +34,10 @@ class AutoAssignCourierListener implements ShouldQueue
      */
     public function handle(OrderStatusChanged $event): void
     {
-        // Only process orders moving to ready_for_delivery status
-        if ($event->newStatus !== OrderStatus::READY_FOR_DELIVERY) {
+        if ($event->newStatus->value != 'ready_for_delivery') {
             return;
         }
 
-        // Validate order is eligible for auto-assignment
         if (!$this->isOrderEligibleForAssignment($event->order)) {
             Log::info('Order skipped for auto-assignment', [
                 'order_id' => $event->order->id,
@@ -47,7 +45,6 @@ class AutoAssignCourierListener implements ShouldQueue
             ]);
             return;
         }
-
         $this->processAutoAssignment($event);
     }
 
@@ -59,8 +56,8 @@ class AutoAssignCourierListener implements ShouldQueue
      */
     private function isOrderEligibleForAssignment($order): bool
     {
-        // Check if order already has a courier assigned
-        if ($order->courier_id) {
+        // Check if order already has a courier assigned - use correct column name 'couier_id'
+        if ($order->couier_id) {
             return false;
         }
 
@@ -88,8 +85,6 @@ class AutoAssignCourierListener implements ShouldQueue
      */
     private function processAutoAssignment(OrderStatusChanged $event): void
     {
-        Log::info('Processing cache-based auto-assignment for order: ' . $event->order->id);
-
         try {
             $orderData = $this->prepareOrderDataForAssignment($event->order);
             // Use new cache-based assignment service
@@ -97,9 +92,11 @@ class AutoAssignCourierListener implements ShouldQueue
             $assignment = $assignmentService->assignOrderToNearestCourier($orderData);
 
             if ($assignment) {
+                Log::info("handleSuccessfulAssignment");
                 $this->handleSuccessfulAssignment($event->order, $assignment);
                 Log::info('Cache-based assignment successful for order: ' . $event->order->id);
             } else {
+                Log::info("handleAssignmentFailure");
                 $this->handleAssignmentFailure($event->order);
                 Log::info('Cache-based assignment failed for order: ' . $event->order->id);
             }
@@ -138,8 +135,8 @@ class AutoAssignCourierListener implements ShouldQueue
      */
     private function handleSuccessfulAssignment($order, $assignment): void
     {
-        // Update order with assigned courier
-        $order->update(['courier_id' => $assignment->courier_id]);
+        // Update order with assigned courier - use correct column name 'couier_id'
+        $order->update(['couier_id' => $assignment->courier_id]);
 
         // Log successful assignment
         Log::info('Courier automatically assigned to order', [
@@ -149,8 +146,8 @@ class AutoAssignCourierListener implements ShouldQueue
             'estimated_distance' => $assignment->estimated_distance_km,
         ]);
 
-        // Send real-time notification to the assigned courier
-        $this->realtimeService->notifyOrderAssigned($assignment->courier_id, $assignment);
+        // Real-time notification is now handled by CacheBasedOrderAssignmentService
+        // to avoid duplicate event dispatching
     }
 
     /**
