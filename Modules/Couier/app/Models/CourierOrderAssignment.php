@@ -63,7 +63,7 @@ class CourierOrderAssignment extends Model
      */
     public function courier(): BelongsTo
     {
-        return $this->belongsTo(Couier::class);
+        return $this->belongsTo(Couier::class, 'courier_id');
     }
 
     /**

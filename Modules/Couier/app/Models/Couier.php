@@ -142,7 +142,7 @@ class Couier extends Authenticatable
      */
     public function assignments(): HasMany
     {
-        return $this->hasMany(\Modules\Couier\Models\CourierOrderAssignment::class);
+        return $this->hasMany(CourierOrderAssignment::class, 'courier_id');
     }
     public function conversations(): HasMany
     {

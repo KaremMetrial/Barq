@@ -1,0 +1,510 @@
+[33mcommit 1895fc342d2a980713e7fc295bce4dc91550efca[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Jan 14 15:24:07 2026 +0200
+
+    add assignment to courier
+
+[33mcommit 4c556572456610f75f08e4333333dfef58ca6415[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Jan 12 16:22:35 2026 +0200
+
+    home courier
+
+[33mcommit 6f7c80532f2871d4989004fe1a6edb9e7777cbc7[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Jan 11 16:52:11 2026 +0200
+
+    calender
+
+[33mcommit d6d5f5833e94bb8223337c54230f9ddf62ca73b5[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Jan 8 16:41:40 2026 +0200
+
+    modifie it
+
+[33mcommit 9a0fb260a21040513aae872848ec99cfb5bfd46f[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Jan 7 17:00:25 2026 +0200
+
+    policy
+
+[33mcommit a0b48407d60e6fa25a7623aa17d1ba6c2ec0bcbb[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Jan 6 16:42:33 2026 +0200
+
+    make permissions
+
+[33mcommit 9dd5bd2c28b9cc6347867d58aa04752935438d61[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Jan 1 16:54:26 2026 +0200
+
+    add events courier
+
+[33mcommit 212209eb49ed4bac6f7d376367a38bd7f094829c[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Dec 30 17:00:36 2025 +0200
+
+    modifie
+
+[33mcommit 21fef3209682bc5d7a19141ee5da2dc0ce5945fb[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Dec 29 16:54:02 2025 +0200
+
+    add count of use for reward
+
+[33mcommit d7cf9aa8ea26a6251286837e9118c1056fd32d35[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Dec 29 16:42:29 2025 +0200
+
+    modifie
+
+[33mcommit 257a5bedefd03f4b100db5cc0acbdb111c6ca5bd[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Dec 28 16:44:16 2025 +0200
+
+    modifie banner - offer -zone - store
+
+[33mcommit 917a5c6343f73034d1fcea0cc715beda08b0187c[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Dec 25 16:43:47 2025 +0200
+
+    modifie product - reward - store
+
+[33mcommit 53776501bce0c2c6eddbc7f16d43ca9e64d062e6[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Dec 24 16:44:22 2025 +0200
+
+    modifie update shipping price - price product
+
+[33mcommit 3c8c0c050ea7442abb648838bb4d1d7cb4a2edee[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Dec 23 16:55:28 2025 +0200
+
+    withdrawal
+
+[33mcommit d78bfed5446238b9af4a36f2e3fc2bc8f1a37ac6[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Dec 22 16:42:23 2025 +0200
+
+    modfie offer and coupon price
+
+[33mcommit 5507b1efeb40b6519094ded17b24475a9a9809da[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Dec 21 16:48:57 2025 +0200
+
+    modifie
+
+[33mcommit 50282b1ff59f4f7e6ac6cea0c1dd3e4f0b790448[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sat Dec 20 15:14:04 2025 +0200
+
+    fix prices
+
+[33mcommit 13d1cc93deccaa864160328edb96e5e5524c825e[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Dec 18 17:39:05 2025 +0200
+
+    modified
+
+[33mcommit d92c777e5c4694eb73f5f573b4b3c59ecffc1523[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Dec 18 16:55:43 2025 +0200
+
+    modifie price not finished and add more courier data and delivery company
+
+[33mcommit 5c066dc0549cf14d8b76d02e2b2e1148ce220996[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Dec 16 16:32:11 2025 +0200
+
+    fix prices =
+
+[33mcommit f598ab2632cbf337a1934b4fd93e5aa3f592ce6d[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Dec 15 16:40:58 2025 +0200
+
+    modifie conversation - product - file upload - store - cart service
+
+[33mcommit 3a0be911c418117b73e6bf7d69d0c561a03023fd[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Dec 14 16:58:00 2025 +0200
+
+    modifie chat
+
+[33mcommit 5653d90e8d3185a541229eca03653bb212a6f74e[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sat Dec 13 19:43:04 2025 +0200
+
+    couirer
+
+[33mcommit 9f141844301f5fa2930326d30102cceb47d24e86[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Dec 11 12:59:02 2025 +0200
+
+    shift courier
+
+[33mcommit d223e861ccb92120a455c1b674e7b4a7a398af1e[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Dec 10 23:53:28 2025 +0200
+
+    feat(courier): implement comprehensive courier authentication system
+    
+    - Add courier authentication endpoints (register, login, logout, profile)
+    - Create CourierAuthController with full CRUD operations
+    - Implement form request validation for login and registration
+    - Add courier guard and provider configuration in auth.php
+    - Enhance CourierResource with comprehensive courier data
+    - Add generateToken method to Courier model
+    - Support flexible login via email or phone
+    - Include FCM device token management for push notifications
+    - Add profile management and account deletion functionality
+
+[33mcommit b62b5d9fbbbce6d4a00d640722428fd41422ec96[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Dec 10 16:54:51 2025 +0200
+
+    add pusher for conversations
+
+[33mcommit 9ccd3fe669da5ad8246d59e844d13a86727ef871[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Dec 9 21:18:41 2025 +0200
+
+    fix migrations
+
+[33mcommit 4440aa0e348ae6aaaf81af6c3faa899f449a377f[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Dec 9 16:53:46 2025 +0200
+
+    modifie update product - make profits api - modifie dashborad api - toggle active products
+
+[33mcommit 5c80957ec04fef53556b38d6e8aa344380d6646c[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Dec 9 13:36:13 2025 +0200
+
+    add dashboard homepgae
+
+[33mcommit 1673b0d41fc6ba0a0a8483e25cab63eccbe394a5[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Dec 8 16:54:23 2025 +0200
+
+    db sql
+
+[33mcommit db2cfaf6962e8cc54eb1d220708b03b4e61bd107[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Dec 8 16:53:00 2025 +0200
+
+    add widget Dash
+
+[33mcommit 2d2ade5e5bf8dc9a4dcdd194f7bc194b42146cfd[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Dec 8 11:06:29 2025 +0200
+
+    shifts courier
+
+[33mcommit dbbfc2590644d81c168482cc0f0be11f3a630981[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Dec 7 13:37:06 2025 +0200
+
+    make rewards and loyality
+
+[33mcommit 542dcea70deb45c18089e585b9c334cf477ee55b[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Dec 4 16:44:01 2025 +0200
+
+    reward and loyality
+
+[33mcommit c172f5d4c97dbb6fe29ed220e52acfaf40be4aa8[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Nov 30 16:53:29 2025 +0200
+
+    modifie performance
+
+[33mcommit d9afa720bac57389199ede45abdd503897ddf325[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Nov 30 09:17:20 2025 +0200
+
+    validated status for user
+
+[33mcommit c759c31091344d0fbdb8f6212c93d32fc86391b3[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Nov 27 16:12:28 2025 +0200
+
+    feat: Implement deep linking, add CartItem and OrderItem API resources, and introduce new order and OTP services with related database migrations.
+
+[33mcommit b193ee43444420786169c794e7a85bf0b3a22757[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Nov 26 14:27:48 2025 +0200
+
+    feat: Implement initial project setup with multiple modules, API routes, database seeders, and remove Barq.zip.
+
+[33mcommit 40cd98c47eb664029ff92d839dbd152f1a4d6b3d[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Nov 24 16:52:36 2025 +0200
+
+    add notifications and deeplink
+
+[33mcommit 0543290a89fb4ed8f892a8ec46b463865ed0b54d[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Nov 19 16:51:57 2025 +0200
+
+    Complete delivery API fixes, stats endpoint, and OTP token logic
+
+[33mcommit a0c4ae7bd46a5a4c3e3863bcce33f3f8d249e7e2[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Nov 17 16:47:21 2025 +0200
+
+    feat: implement shipping price form with zone selection and multiple vehicles
+    
+    - Add shipping price creation with zone selection and multiple vehicles per form
+    - Implement bulk shipping price updates for zone-vehicle combinations
+    - Add shipping price statistics endpoint with zone, order, and courier metrics
+    - Create ShippingPriceCollectionResource for grouped vehicle pricing display
+    - Add vehicle icons and active status to shipping price resources
+    - Implement order status transition validation with business rules
+    - Add event-driven order status history tracking
+    - Fix user logout method for Sanctum authentication
+    - Update wallet balance to use dynamic currency based on user location
+    - Enhance favourites API to return section-organized store lists
+
+[33mcommit fd5fb8360a6ebdfe776eda4691e7fb30c5ce65d5[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Nov 12 16:56:45 2025 +0200
+
+    modifie address
+
+[33mcommit 58c314ffef21671def015f43b10cc50c4961e69a[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Nov 10 16:47:21 2025 +0200
+
+    Modified address-by-lat-long endpoint to include user addresses when logged in, fixed store creation logo/cover_image assignment, and other updates
+
+[33mcommit f2579c84a4d138a05472b43402b95c66a9655411[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Nov 6 16:58:22 2025 +0200
+
+    modifie code
+
+[33mcommit 3b50972840726cfa0eaa23c0f54261938da34679[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Nov 4 16:37:09 2025 +0200
+
+    Add delivery time calculation to cart resource and improve order service
+
+[33mcommit d65944dbb2901d57747e5c79dede0bc9ef04d19a[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Nov 3 16:54:24 2025 +0200
+
+    Add is_cod column to PaymentMethod module for COD identification
+
+[33mcommit c9a1910c01dbeef20b1f935dab6671c285d95155[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Nov 2 16:51:51 2025 +0200
+
+    modifie cart
+
+[33mcommit ca5b201ff66d8b66e19c8f1b88f2ddd4619ec364[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Nov 2 15:13:14 2025 +0200
+
+    feat: enhance address full address attribute, optimize vendor queries, fix coupon retrieval logic, and add dynamic currency symbol
+
+[33mcommit b442aabf81e367a147702cd57dba58fd91493938[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Oct 28 16:31:44 2025 +0300
+
+    modifie cart logic
+
+[33mcommit c589315a522e12b7bef30d4f5ff30ce0642a4bff[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Oct 26 12:35:53 2025 +0300
+
+    modifie file trait to upload image
+
+[33mcommit f208ae7b9549a19be733ac7001f634b93f98d077[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Oct 16 16:03:03 2025 +0300
+
+    refactor
+
+[33mcommit d1cd895e256cfda5e1b96036c38a17843dde2fea[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Oct 15 15:19:11 2025 +0300
+
+    modifie it
+
+[33mcommit 6c2638e2438b8a6a9e120d7266c096aff6a389d4[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Oct 14 16:12:01 2025 +0300
+
+    upload
+
+[33mcommit ff5744c746bfe81293e7cbb5bced51a8a52681c4[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Oct 12 16:05:53 2025 +0300
+
+    modifie
+
+[33mcommit b7bc0ea3b9215af7d399757f907b803d3ea50c04[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Oct 1 16:20:47 2025 +0300
+
+    modifie price order service
+
+[33mcommit 32d4a4cad9557a2f564a44b057643e834fb376fc[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Sep 29 14:24:10 2025 +0300
+
+    page module
+
+[33mcommit 2714e8eaa833b9c4e9eb8926a0bd3b5b70fb2d34[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Sep 28 14:13:09 2025 +0300
+
+    admibn module
+
+[33mcommit bb5f9667954693d15b655910a8fd05eff756d9f5[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Sep 28 12:47:28 2025 +0300
+
+    Cart Module
+
+[33mcommit 8ac954471c4623c95b903e1b2c3bf0fd9a41a6dc[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Sep 28 10:52:50 2025 +0300
+
+    add ons module
+
+[33mcommit fd64f698bc294b67e12021bad6f9a6bd9f62443b[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Sep 25 16:28:55 2025 +0300
+
+    Fix product option value
+
+[33mcommit d83001879d3eaaada5e81acc2fd121a5d5080f01[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Sep 25 14:05:56 2025 +0300
+
+    couier module
+
+[33mcommit 646ea48abd911d66c7cc346665309fb059555c2e[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Sep 25 12:04:14 2025 +0300
+
+    bannar module
+
+[33mcommit 2dcc8649f6e931cccaa8af34179175781ae11095[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Sep 24 16:03:01 2025 +0300
+
+    Interest Module
+
+[33mcommit fcf243122ff7f7533e3d4a114d2b3f5b95c824e0[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Sep 24 14:57:35 2025 +0300
+
+    Interest Module
+
+[33mcommit f8e2a286e1d2ee932a823ca1cb67b2d60d8c473b[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Sep 24 09:43:37 2025 +0300
+
+    modifie language for product relations
+
+[33mcommit 936938a5dbc0a1551c9f9699974d27676cb47de8[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Sep 23 17:00:27 2025 +0300
+
+    language to product
+
+[33mcommit f554ff6c0dc6337818c21537650aab8761d67a82[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Sep 23 16:14:10 2025 +0300
+
+    Product Module
+
+[33mcommit 1eb2490147046a99fdf39951ab3181c60194049f[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Sep 22 15:03:53 2025 +0300
+
+    balance module
+
+[33mcommit 6fd675ccb49bb809374d3c380eb893db9f9b8532[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Sep 22 12:23:42 2025 +0300
+
+    CompaignParicipation Module
+
+[33mcommit d407f4a3eff8d4138988d8885bdfb380dd1fa66b[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Sep 22 11:06:29 2025 +0300
+
+    PosTerminal Module
+
+[33mcommit 1ddada5730521f3a83e26fe573e8f7342e8bc039[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Sep 21 11:40:39 2025 +0300
+
+    Working Day Module
+
+[33mcommit b9af2e7d1abafd57f34d8f25bf18425648aacf0a[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Sep 21 11:01:13 2025 +0300
+
+    store settign module
+
+[33mcommit 02671c882c83456441f79e2b8c6a1416ab97f3e7[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Sun Sep 21 10:00:07 2025 +0300
+
+    coupons module
+
+[33mcommit c8423953e4c8e672c124c56731b2b3d9e90ceefb[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Thu Sep 18 16:22:57 2025 +0300
+
+    Refactor to modular structure: Move Address, City, Compaign, Governorate, Offer, Store, Tag, Zone models and related files to respective module directories. Add controllers, services, repositories, migrations, seeders, resources, and routes for each module. Updated existing module files and configurations.
+
+[33mcommit 0dc28e9c8a4aa1d0ea0e57f42be5b84cd701eb03[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Sep 17 16:49:25 2025 +0300
+
+    section
+
+[33mcommit c3bf4f9eac168cf2cb2579edb9a0235523b5c092[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Sep 17 15:05:33 2025 +0300
+
+    unit - category - country  module
+
+[33mcommit 3a9f6f74078f41cb797f2ddac1a26a1a2347dd7f[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Sep 17 10:12:47 2025 +0300
+
+    crud language operation
+
+[33mcommit f4e1a65b64ab01d7116d7455be9ccc92f5663ae6[m[33m ([m[1;31morigin/migrationsAndModels[m[33m, [m[1;32mmigrationsAndModels[m[33m)[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Wed Sep 17 09:41:34 2025 +0300
+
+    modifie language path model
+
+[33mcommit 0b40165c15a8d1316454a11be294330dc4769a84[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Tue Sep 16 16:28:13 2025 +0300
+
+    Refactor models, remove unused services, and update migrations
+    - modified setapilocale middleware to hande language settings
+    - update model for addon cartitem option order product and productoptiocalue
+    - move languageservice provider and languagerepositry and languageservice file and etc
+
+[33mcommit d32483bd39787d2818614e19c825b53d27ddf27d[m
+Author: KaremMetrial <karim.metrial@gmail.com>
+Date:   Mon Sep 15 16:22:13 2025 +0300
+
+    feat: Add models, migrations, and enums for orders, carts, and related entities
+    
+    - Added new models for Cart, CartItem, Conversation, Message, Order, PharmacyInfo, PharmacyInfoTranslation, PosShift, PosTerminal, ProductAllergen, ProductAllergenTranslation, ProductNutrition, ProductWatermarks, ShippingPrice, ShippingPriceTranslation, StoreSetting, etc.
+    - Updated models including AddOn, Admin, City, Courier, Product, Store, User, Vehicle, and Zone with necessary changes.
+    - Added enums for ConversationType, DeliveryTypeUnit, MessageType, OrderStatus, OrderType, PaymentStatus, ProductWatermarkPosition.
+    - Renamed migration files for product_unit and courier_vehicles tables.
+    - Created new migrations for the following tables: couier_shifts, shipping_prices, shipping_price_translations, product_nutrition, product_allergens, product_allergen_translations, pharmacy_infos, pharmacy_info_translations, product_watermarks, conversations, messages, store_settings, orders, and several other related changes to improve database structure.
+    - Updated language files (enums.php) for translations of enums.

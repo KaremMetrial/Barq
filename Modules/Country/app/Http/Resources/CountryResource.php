@@ -22,6 +22,8 @@ class CountryResource extends JsonResource
             'flag' => $this->flag ? asset('storage/' . $this->flag) : null,
             'currency_unit' => $this->currency_unit,
             'currency_factor' => (int) $this->currency_factor,
+            'tax' => (int) 4,
+            'service_fee' => (int) 0,
         ];
     }
 }
