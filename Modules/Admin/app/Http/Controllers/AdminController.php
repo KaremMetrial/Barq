@@ -127,7 +127,46 @@ class AdminController extends Controller
     {
         $filters = $request->only(['status', 'store_id', 'category_id', 'city', 'from_date', 'to_date']);
 
+        // Get currency information based on user's country or default
+        $currencyCode = config('settings.default_currency', 'USD');
+        $currencyFactor = 100; // Default factor
+        $countryId = null;
+
+        // Try to get country_id from authenticated user's token
+        if (auth('sanctum')->check()) {
+            $user = auth('sanctum')->user();
+
+            // Check if user has country_id in their token
+            if ($user->currentAccessToken() && $user->currentAccessToken()->country_id) {
+                $countryId = $user->currentAccessToken()->country_id;
+            }
+
+            // If no country_id in token, use default country id from settings
+            if (!$countryId) {
+                $countryId = config('settings.default_country', 1);
+            }
+        } else {
+            // If no authenticated user, use default country
+            $countryId = config('settings.default_country', 1);
+        }
+
+        // Get currency info from country
+        if ($countryId) {
+            $country = \Modules\Country\Models\Country::find($countryId);
+            if ($country) {
+                $currencyCode = $country->currency_name ?? config('settings.default_currency', 'USD');
+                $currencyFactor = $country->currency_factor ?? 100;
+            }
+        }
+
         $query = \Modules\Order\Models\Order::query();
+
+        // Filter orders by country if countryId is available
+        if ($countryId) {
+            $query->whereHas('store.address.zone.city.governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
+        }
 
         // Apply filters
         if (!empty($filters['status'])) {
@@ -158,6 +197,54 @@ class AdminController extends Controller
         $totalOrders = $query->count();
         $avgOrderValue = $totalOrders > 0 ? round($totalSales / $totalOrders, 2) : 0;
 
+        // Calculate previous period metrics for percentage comparison
+        $previousPeriodQuery = \Modules\Order\Models\Order::query();
+
+        // Apply same filters for previous period
+        if (!empty($filters['status'])) {
+            $previousPeriodQuery->where('status', $filters['status']);
+        }
+        if (!empty($filters['store_id'])) {
+            $previousPeriodQuery->where('store_id', $filters['store_id']);
+        }
+        if (!empty($filters['category_id'])) {
+            $previousPeriodQuery->whereHas('orderItems.product', function ($q) use ($filters) {
+                $q->where('category_id', $filters['category_id']);
+            });
+        }
+        if (!empty($filters['city'])) {
+            $previousPeriodQuery->whereHas('store.address', function ($q) use ($filters) {
+                $q->where('city', $filters['city']);
+            });
+        }
+
+        // Calculate date range for previous period
+        $previousFromDate = null;
+        $previousToDate = null;
+
+        if (!empty($filters['from_date']) && !empty($filters['to_date'])) {
+            $dateDiff = strtotime($filters['to_date']) - strtotime($filters['from_date']);
+            $previousToDate = date('Y-m-d', strtotime($filters['from_date']) - 1);
+            $previousFromDate = date('Y-m-d', strtotime($previousToDate) - $dateDiff);
+        } elseif (!empty($filters['from_date'])) {
+            $previousToDate = date('Y-m-d', strtotime($filters['from_date']) - 1);
+            $previousFromDate = date('Y-m-d', strtotime($previousToDate) - 30); // Default to 30 days
+        } elseif (!empty($filters['to_date'])) {
+            $previousToDate = date('Y-m-d', strtotime($filters['to_date']) - 1);
+            $previousFromDate = date('Y-m-d', strtotime($previousToDate) - 30); // Default to 30 days
+        } else {
+            // Default to previous 30 days
+            $previousToDate = date('Y-m-d', strtotime('-1 day'));
+            $previousFromDate = date('Y-m-d', strtotime('-31 days'));
+        }
+
+        $previousPeriodQuery->whereDate('created_at', '>=', $previousFromDate)
+                           ->whereDate('created_at', '<=', $previousToDate);
+
+        $previousTotalSales = (float) $previousPeriodQuery->sum('total_amount');
+        $previousTotalOrders = $previousPeriodQuery->count();
+        $previousAvgOrderValue = $previousTotalOrders > 0 ? round($previousTotalSales / $previousTotalOrders, 2) : 0;
+
         // Delivery Metrics
         $deliveredOrders = $query->clone()->where('status', 'delivered')->count();
         $cancelledOrders = $query->clone()->where('status', 'cancelled')->count();
@@ -166,16 +253,21 @@ class AdminController extends Controller
 
         // Average delivery time (assuming there's a delivered_at field)
         $avgDeliveryTime = 0;
-        $deliveredOrdersWithTime = \Modules\Order\Models\Order::whereNotNull('delivered_at')
+        $deliveryQuery = \Modules\Order\Models\Order::whereNotNull('delivered_at')
             ->when(!empty($filters['from_date']), fn($q) => $q->whereDate('created_at', '>=', $filters['from_date']))
-            ->when(!empty($filters['to_date']), fn($q) => $q->whereDate('created_at', '<=', $filters['to_date']))
-            ->count();
+            ->when(!empty($filters['to_date']), fn($q) => $q->whereDate('created_at', '<=', $filters['to_date']));
+
+        // Apply country filter to delivery time queries
+        if ($countryId) {
+            $deliveryQuery->whereHas('store.address.zone.city.governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
+        }
+
+        $deliveredOrdersWithTime = $deliveryQuery->count();
 
         if ($deliveredOrdersWithTime > 0) {
-            $avgDeliveryTime = round(\Modules\Order\Models\Order::whereNotNull('delivered_at')
-                ->when(!empty($filters['from_date']), fn($q) => $q->whereDate('created_at', '>=', $filters['from_date']))
-                ->when(!empty($filters['to_date']), fn($q) => $q->whereDate('created_at', '<=', $filters['to_date']))
-                ->avg(DB::raw('TIMESTAMPDIFF(MINUTE, created_at, delivered_at)')), 0);
+            $avgDeliveryTime = round($deliveryQuery->avg(DB::raw('TIMESTAMPDIFF(MINUTE, created_at, delivered_at)')), 0);
         }
 
         // Commission Earned: Sum of commissions based on store settings
@@ -239,6 +331,61 @@ class AdminController extends Controller
         $refunds += $refundOrderQuery->whereIn('payment_status', [\App\Enums\PaymentStatusEnum::UNPAID, \App\Enums\PaymentStatusEnum::PARTIALLY_PAID])
             ->sum('total_amount');
 
+        // Calculate previous period refunds for percentage comparison
+        $previousRefunds = \App\Models\Transaction::where('type', 'refund')
+            ->whereDate('created_at', '>=', $previousFromDate)
+            ->whereDate('created_at', '<=', $previousToDate)
+            ->sum('amount');
+
+        $previousRefundOrderQuery = \Modules\Order\Models\Order::query();
+        if (!empty($filters['status'])) {
+            $previousRefundOrderQuery->where('status', $filters['status']);
+        }
+        if (!empty($filters['store_id'])) {
+            $previousRefundOrderQuery->where('store_id', $filters['store_id']);
+        }
+        if (!empty($filters['category_id'])) {
+            $previousRefundOrderQuery->whereHas('orderItems.product', function ($q) use ($filters) {
+                $q->where('category_id', $filters['category_id']);
+            });
+        }
+        if (!empty($filters['city'])) {
+            $previousRefundOrderQuery->whereHas('store.address', function ($q) use ($filters) {
+                $q->where('city', $filters['city']);
+            });
+        }
+        $previousRefundOrderQuery->whereDate('created_at', '>=', $previousFromDate)
+                               ->whereDate('created_at', '<=', $previousToDate);
+        $previousRefunds += $previousRefundOrderQuery->whereIn('payment_status', [\App\Enums\PaymentStatusEnum::UNPAID, \App\Enums\PaymentStatusEnum::PARTIALLY_PAID])
+            ->sum('total_amount');
+
+        // Calculate previous period commission for percentage comparison
+        $previousCommissionQuery = \Modules\Order\Models\Order::query();
+        if (!empty($filters['status'])) {
+            $previousCommissionQuery->where('status', $filters['status']);
+        }
+        if (!empty($filters['store_id'])) {
+            $previousCommissionQuery->where('store_id', $filters['store_id']);
+        }
+        if (!empty($filters['category_id'])) {
+            $previousCommissionQuery->whereHas('orderItems.product', function ($q) use ($filters) {
+                $q->where('category_id', $filters['category_id']);
+            });
+        }
+        if (!empty($filters['city'])) {
+            $previousCommissionQuery->whereHas('store.address', function ($q) use ($filters) {
+                $q->where('city', $filters['city']);
+            });
+        }
+        $previousCommissionQuery->whereDate('orders.created_at', '>=', $previousFromDate)
+                              ->whereDate('orders.created_at', '<=', $previousToDate);
+        $previousCommissionEarned = $previousCommissionQuery->join('stores', 'orders.store_id', '=', 'stores.id')
+            ->selectRaw('SUM(CASE
+                WHEN stores.commission_type = "percentage" THEN orders.total_amount * (stores.commission_amount / 100)
+                WHEN stores.commission_type = "fixed" THEN stores.commission_amount
+                ELSE 0 END) as commission')
+            ->value('commission') ?? 0;
+
         // Charts
         $salesQuery = clone $query;
         $salesOverTime = $salesQuery->selectRaw('DATE(orders.created_at) as date, SUM(orders.total_amount) as value')
@@ -272,7 +419,7 @@ class AdminController extends Controller
             ->map(fn($item) => ['id' => $item->id, 'name' => $item->name, 'order_count' => (int) $item->order_count]);
 
         // Order status distribution
-        $statusDistribution = \Modules\Order\Models\Order::select('status')
+        $statusDistributionQuery = \Modules\Order\Models\Order::select('status')
             ->selectRaw('COUNT(*) as count')
             ->when(!empty($filters['status']), fn($q) => $q->where('status', $filters['status']))
             ->when(!empty($filters['store_id']), fn($q) => $q->where('store_id', $filters['store_id']))
@@ -283,8 +430,16 @@ class AdminController extends Controller
                 $q->where('city', $filters['city']);
             }))
             ->when(!empty($filters['from_date']), fn($q) => $q->whereDate('created_at', '>=', $filters['from_date']))
-            ->when(!empty($filters['to_date']), fn($q) => $q->whereDate('created_at', '<=', $filters['to_date']))
-            ->groupBy('status')
+            ->when(!empty($filters['to_date']), fn($q) => $q->whereDate('created_at', '<=', $filters['to_date']));
+
+        // Apply country filter
+        if ($countryId) {
+            $statusDistributionQuery->whereHas('store.address.zone.city.governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
+        }
+
+        $statusDistribution = $statusDistributionQuery->groupBy('status')
             ->get()
             ->map(fn($item) => ['status' => $item->status, 'count' => (int) $item->count]);
 
@@ -327,10 +482,18 @@ class AdminController extends Controller
             ->map(fn($item) => ['city_name' => $item->city_name, 'customer_count' => (int) $item->customer_count]);
 
         // Average delivery time trend (weekly)
-        $deliveryTimeTrend = \Modules\Order\Models\Order::whereNotNull('delivered_at')
+        $deliveryTimeTrendQuery = \Modules\Order\Models\Order::whereNotNull('delivered_at')
             ->when(!empty($filters['from_date']), fn($q) => $q->whereDate('created_at', '>=', $filters['from_date']))
-            ->when(!empty($filters['to_date']), fn($q) => $q->whereDate('created_at', '<=', $filters['to_date']))
-            ->selectRaw('WEEK(created_at) as week, AVG(TIMESTAMPDIFF(MINUTE, created_at, delivered_at)) as avg_time')
+            ->when(!empty($filters['to_date']), fn($q) => $q->whereDate('created_at', '<=', $filters['to_date']));
+
+        // Apply country filter
+        if ($countryId) {
+            $deliveryTimeTrendQuery->whereHas('store.address.zone.city.governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
+        }
+
+        $deliveryTimeTrend = $deliveryTimeTrendQuery->selectRaw('WEEK(created_at) as week, AVG(TIMESTAMPDIFF(MINUTE, created_at, delivered_at)) as avg_time')
             ->groupBy('week')
             ->orderBy('week')
             ->limit(4)
@@ -350,18 +513,68 @@ class AdminController extends Controller
             ->latest()
             ->paginate(10);
 
+        // Calculate percentage changes and determine increment/decrement
+        $totalSalesChange = $totalSales - $previousTotalSales;
+        $totalSalesPercentage = $previousTotalSales > 0 ? round(($totalSalesChange / $previousTotalSales) * 100, 2) : ($totalSales > 0 ? 100 : 0);
+        $totalSalesIncrement = $totalSalesChange > 0;
+
+        $totalOrdersChange = $totalOrders - $previousTotalOrders;
+        $totalOrdersPercentage = $previousTotalOrders > 0 ? round(($totalOrdersChange / $previousTotalOrders) * 100, 2) : ($totalOrders > 0 ? 100 : 0);
+        $totalOrdersIncrement = $totalOrdersChange > 0;
+
+        $avgOrderValueChange = $avgOrderValue - $previousAvgOrderValue;
+        $avgOrderValuePercentage = $previousAvgOrderValue > 0 ? round(($avgOrderValueChange / $previousAvgOrderValue) * 100, 2) : ($avgOrderValue > 0 ? 100 : 0);
+        $avgOrderValueIncrement = $avgOrderValueChange > 0;
+
+        $commissionEarnedChange = $commissionEarned - $previousCommissionEarned;
+        $commissionEarnedPercentage = $previousCommissionEarned > 0 ? round(($commissionEarnedChange / $previousCommissionEarned) * 100, 2) : ($commissionEarned > 0 ? 100 : 0);
+        $commissionEarnedIncrement = $commissionEarnedChange > 0;
+
+        $refundsChange = $refunds - $previousRefunds;
+        $refundsPercentage = $previousRefunds > 0 ? round(($refundsChange / $previousRefunds) * 100, 2) : ($refunds > 0 ? 100 : 0);
+        $refundsIncrement = $refundsChange > 0;
+
+
+        
         return $this->successResponse([
+            'currency_code' => $currencyCode,
+            'currency_factor' => $currencyFactor,
+            'order_widget' => [
+                'totalOrders' => $totalOrders,
+                'periodOrders' => $previousTotalOrders,
+                'periodRate' => $totalOrdersPercentage,
+                'periodTrend' => $totalOrdersIncrement ? 'increment' : 'decrement'
+            ],
+            'sales_widget' => [
+                'totalSales' => $totalSales,
+                'periodSales' => $previousTotalSales,
+                'periodRate' => $totalSalesPercentage,
+                'periodTrend' => $totalSalesIncrement ? 'increment' : 'decrement'
+            ],
+            'average_order_value_widget' => [
+                'totalAverage' => $avgOrderValue,
+                'periodAverage' => $previousAvgOrderValue,
+                'periodRate' => $avgOrderValuePercentage,
+                'periodTrend' => $avgOrderValueIncrement ? 'increment' : 'decrement'
+            ],
+            'commission_widget' => [
+                'totalCommission' => round($commissionEarned, 2),
+                'periodCommission' => round($previousCommissionEarned, 2),
+                'periodRate' => $commissionEarnedPercentage,
+                'periodTrend' => $commissionEarnedIncrement ? 'increment' : 'decrement'
+            ],
+            'refunds_widget' => [
+                'totalRefunds' => round($refunds, 2),
+                'periodRefunds' => round($previousRefunds, 2),
+                'periodRate' => $refundsPercentage,
+                'periodTrend' => $refundsIncrement ? 'increment' : 'decrement'
+            ],
             'metrics' => [
-                'total_sales' => $totalSales,
-                'total_orders' => $totalOrders,
-                'average_order_value' => $avgOrderValue,
                 'delivered_orders' => $deliveredOrders,
                 'cancelled_orders' => $cancelledOrders,
                 'returned_orders' => $returnedOrders,
                 'pending_orders' => $pendingOrders,
                 'average_delivery_time' => $avgDeliveryTime,
-                'commission_earned' => round($commissionEarned, 2),
-                'refunds' => round($refunds, 2),
             ],
             'charts' => [
                 'sales_over_time' => $salesOverTime,

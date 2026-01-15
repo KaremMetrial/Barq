@@ -47,7 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'ability' => CheckForAnyAbility::class,
                 'permission' => CheckPermission::class,
             ]);
-
+        // $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 404 - Not Found

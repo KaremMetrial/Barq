@@ -20,6 +20,8 @@ class StoreCountryRequest extends FormRequest
             'flag' => ["required", "image", 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
             'currency_unit' => ['required', 'string', 'max:100'],
             'currency_factor' => ['required', 'integer', 'min:1'],
+            'service_fee_percentage' => ['required', 'integer', 'min:0', 'max:100'],
+            'tax_rate' => ['required', 'integer', 'min:0', 'max:100'],
         ];
     }
 

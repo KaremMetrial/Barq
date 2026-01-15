@@ -21,6 +21,8 @@ class UpdateCountryRequest extends FormRequest
             'flag' => ["nullable", "image", 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
             'currency_unit' => ['nullable', 'string', 'max:100'],
             'currency_factor' => ['nullable', 'integer', 'min:1'],
+            'service_fee_percentage' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'tax_rate' => ['nullable', 'integer', 'min:0', 'max:100'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }

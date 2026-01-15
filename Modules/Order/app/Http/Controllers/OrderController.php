@@ -30,13 +30,13 @@ class OrderController extends Controller
         $filter = $request->only('search', 'status','from_date','to_date', 'courier_id');
 
         // Get current order (latest active order)
-        $currentOrder = $this->orderService->getCurrentOrder($userId);
+        // $currentOrder = $this->orderService->getCurrentOrder($userId);
 
         // Get finished orders (delivered or cancelled)
         $finishedOrders = $this->orderService->getFinishedOrders($userId, $filter);
 
         return $this->successResponse([
-            'current_orders' => $currentOrder ? OrderResource::collection($currentOrder) : null,
+            // 'current_orders' => $currentOrder ? OrderResource::collection($currentOrder) : null,
             'finished_orders' => OrderResource::collection($finishedOrders),
             'pagination' => new PaginationResource($finishedOrders),
         ], __('message.success'));

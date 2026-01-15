@@ -117,93 +117,511 @@ class CourierShiftController extends Controller
     /**
      * Get calendar data for a specific month
      */
-    public function calendar(Request $request): JsonResponse
-    {
-        $request->validate([
-            'year' => 'required|integer|min:2020|max:2030',
-            'month' => 'required|integer|min:1|max:12',
-        ]);
+public function calendar(Request $request)
+{
+    $request->validate([
+        'year' => 'required|integer|min:2020|max:2030',
+        'month' => 'required|integer|min:1|max:12',
+    ]);
 
-        $year = $request->input('year');
-        $month = $request->input('month');
-        $courier = auth('sanctum')->user();
+    $year = (int) $request->input('year');
+    $month = (int) $request->input('month');
+    $courier = auth('sanctum')->user();
 
-        // Generate all days for the month
-        $daysInMonth = \Carbon\Carbon::create($year, $month)->daysInMonth;
-        $calendarData = [];
+    // Prepare date boundaries
+    $startDate = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
+    $endDate = $startDate->copy()->endOfMonth()->endOfDay();
+    $daysInMonth = $startDate->daysInMonth;
+    $now = now();
 
-        // Get all shifts for this courier in the specified month
-        $shifts = \Modules\Couier\Models\CouierShift::where('couier_id', $courier->id)
-            ->whereYear('start_time', $year)
-            ->whereMonth('start_time', $month)
-            ->get();
+    // Fetch all required data
+    [$scheduledShiftsData, $actualShifts] = $this->fetchCalendarData($courier, $startDate, $endDate);
 
-        // Map shifts by date for quick lookup
-        $shiftsByDate = $shifts->keyBy(function ($shift) {
+    // Build calendar with optimized logic
+    $calendar = $this->buildCalendar(
+        $startDate,
+        $daysInMonth,
+        $scheduledShiftsData,
+        $actualShifts,
+        $now
+    );
+    $zone = $courier->zonesToCover->map(function($zone) {
+        return [
+            'id' => $zone->id,
+            'name' => $zone->name
+        ];
+    });
+
+
+    return $this->successResponse(
+    [
+        'calendar_data' =>
+           $this->formatCalendarResponse(
+                $year,
+                $month,
+                $startDate,
+                $daysInMonth,
+                $calendar,
+                $scheduledShiftsData['has_active_templates'],
+                $now
+            ),
+            'zones' => $zone
+        ]
+    );
+}
+
+/**
+ * Fetch all required calendar data efficiently
+ */
+private function fetchCalendarData($courier, $startDate, $endDate): array
+{
+    // Fetch scheduled shifts from templates
+    $activeAssignments = $courier->activeShiftTemplates()
+        ->with(['shiftTemplate' => function($query) {
+            $query->select(['id', 'name', 'is_flexible'])
+                  ->with(['days' => function($query) {
+                      $query->select([
+                          'id',
+                          'shift_template_id',
+                          'day_of_week',
+                          'start_time',
+                          'end_time',
+                          'break_duration',
+                          'is_off_day'
+                      ])->orderBy('day_of_week');
+                  }]);
+        }])
+        ->select(['id', 'courier_id', 'shift_template_id', 'is_active'])
+        ->where('is_active', true)
+        ->get();
+
+    // Pre-organize scheduled shifts by day of week for O(1) lookup
+    $scheduledShiftsByDay = $this->organizeScheduledShiftsByDay($activeAssignments);
+
+    // Fetch actual shifts
+    $actualShifts = $courier->shifts()
+        ->whereBetween('start_time', [$startDate, $endDate])
+        ->orderBy('start_time')
+        ->get()
+        ->groupBy(function($shift) {
             return $shift->start_time->format('Y-m-d');
         });
 
-        // Generate calendar data for each day
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $date = \Carbon\Carbon::create($year, $month, $day);
-            $dateString = $date->format('Y-m-d');
-            $shift = $shiftsByDate->get($dateString);
+    return [
+        [
+            'scheduled_shifts_by_day' => $scheduledShiftsByDay,
+            'has_active_templates' => $activeAssignments->isNotEmpty(),
+            'active_assignments_count' => $activeAssignments->count(),
+            'active_assignments' => $activeAssignments
+        ],
+        $actualShifts
+    ];
+}
 
-            $arabicDayNames = [
-                0 => 'الأحد',
-                1 => 'الاثنين',
-                2 => 'الثلاثاء',
-                3 => 'الأربعاء',
-                4 => 'الخميس',
-                5 => 'الجمعة',
-                6 => 'السبت'
-            ];
+/**
+ * Organize scheduled shifts by day of week for fast lookup
+ */
+private function organizeScheduledShiftsByDay($activeAssignments): array
+{
+    $scheduledShiftsByDay = array_fill(0, 7, []);
 
-            $calendarData[] = [
-                'date' => $dateString,
-                'day_of_week' => $date->dayOfWeek,
-                'day_name' => $arabicDayNames[$date->dayOfWeek] ?? '',
-                'has_shift' => $shift !== null,
-                'shift_status' => $shift?->status,
-                'shift_data' => $shift ? [
-                    'id' => $shift->id,
-                    'start_time' => $shift->start_time?->format('H:i'),
-                    'end_time' => $shift->end_time?->format('H:i'),
-                    'duration' => $this->calculateShiftDuration($shift),
-                    'zones' => $courier->zonesToCover->pluck('name')->toArray(),
-                    'status' => $shift->status,
-                    'shift_template_id' => $shift->shift_template_id,
-                ] : null
-            ];
+    foreach ($activeAssignments as $assignment) {
+        foreach ($assignment->shiftTemplate->days as $dayConfig) {
+            if (!$dayConfig->is_off_day) {
+                $dayOfWeek = $dayConfig->day_of_week;
+
+                // Calculate total hours correctly
+                $totalHours = $this->calculateTotalHours($dayConfig);
+
+                $scheduledShiftsByDay[$dayOfWeek][] = [
+                    'assignment_id' => $assignment->id,
+                    'template_id' => $assignment->shift_template_id,
+                    'template_name' => $assignment->shiftTemplate->name,
+                    'start_time' => $dayConfig->start_time?->format('H:i:s'),
+                    'end_time' => $dayConfig->end_time?->format('H:i:s'),
+                    'break_duration' => $dayConfig->break_duration,
+                    'total_hours' => $totalHours,
+                    'is_flexible' => $assignment->shiftTemplate->is_flexible,
+                ];
+            }
+        }
+    }
+
+    return $scheduledShiftsByDay;
+}
+
+/**
+ * Calculate total hours from day config
+ */
+private function calculateTotalHours($dayConfig): float
+{
+    if ($dayConfig->is_off_day || !$dayConfig->start_time || !$dayConfig->end_time) {
+        return 0.0;
+    }
+
+    $start = \Carbon\Carbon::parse($dayConfig->start_time);
+    $end = \Carbon\Carbon::parse($dayConfig->end_time);
+
+    // Make sure end time is after start time
+    if ($end->lessThan($start)) {
+        $end = $end->copy()->addDay();
+    }
+
+    $workMinutes = $end->diffInMinutes($start) - ($dayConfig->break_duration ?? 0);
+
+    return round($workMinutes / 60, 2);
+}
+
+/**
+ * Build calendar array with future shifts as pending
+ */
+private function buildCalendar($startDate, $daysInMonth, $scheduledShiftsData, $actualShifts, $now)
+{
+    $calendar = [];
+    $currentDate = $now->format('Y-m-d');
+
+    for ($day = 1; $day <= $daysInMonth; $day++) {
+        $date = $startDate->copy()->addDays($day - 1);
+        $dateString = $date->format('Y-m-d');
+        $dayOfWeek = $date->dayOfWeek;
+
+        // Get scheduled shifts for this day
+        $scheduledShifts = $scheduledShiftsData['scheduled_shifts_by_day'][$dayOfWeek] ?? [];
+
+        // Get actual shifts for this date
+        $actualShiftsForDate = $actualShifts->get($dateString, collect());
+
+        // Format actual shifts
+        $formattedActualShifts = $this->formatActualShifts($actualShiftsForDate, $now);
+
+        // Add pending future shifts to actual_shifts
+        if (!empty($scheduledShifts) && $date->isFuture()) {
+            $formattedActualShifts = array_merge(
+                $formattedActualShifts,
+                $this->createPendingShiftsFromSchedule($scheduledShifts, $date, $now)
+            );
         }
 
-        return $this->successResponse([
+        $calendar[] = [
+            'date' => $dateString,
+            'day' => $day,
+            'day_name' => $date->translatedFormat('l'),
+            'day_short_name' => $date->translatedFormat('D'),
+            'is_today' => $dateString === $currentDate,
+            'is_weekend' => in_array($dayOfWeek, [5, 6], true),
+            'is_off_day' => empty($scheduledShifts),
+            'is_past' => $date->isPast(),
+            'is_future' => $date->isFuture(),
+            'scheduled_shifts' => $scheduledShifts,
+            'actual_shifts' => $formattedActualShifts,
+            'day_status' => $this->determineDayStatus($scheduledShifts, $formattedActualShifts, $date, $now),
+        ];
+    }
+
+    return $calendar;
+}
+
+/**
+ * Create pending shifts from scheduled shifts for future dates
+ */
+private function createPendingShiftsFromSchedule(array $scheduledShifts, $date, $now): array
+{
+    $pendingShifts = [];
+
+    foreach ($scheduledShifts as $index => $scheduledShift) {
+        // Create pending shift ID (negative to distinguish from real shifts)
+        $pendingShiftId = -($index + 1);
+
+        // Calculate start and end datetime
+        $startDatetime = $date->copy()->setTimeFrom(
+            \Carbon\Carbon::parse($scheduledShift['start_time'] ?? '00:00:00')
+        );
+
+        $endDatetime = $date->copy()->setTimeFrom(
+            \Carbon\Carbon::parse($scheduledShift['end_time'] ?? '23:59:59')
+        );
+
+        // If end time is earlier than start time, add one day (overnight shift)
+        if ($endDatetime->lessThan($startDatetime)) {
+            $endDatetime = $endDatetime->copy()->addDay();
+        }
+
+        $pendingShifts[] = [
+            'id' => $pendingShiftId,
+            'is_pending_shift' => true,
+            'start_time' => $scheduledShift['start_time'],
+            'end_time' => $scheduledShift['end_time'],
+            'start_datetime' => $startDatetime->format('Y-m-d H:i:s'),
+            'end_datetime' => $endDatetime->format('Y-m-d H:i:s'),
+            'is_open' => false,
+            'total_hours' => $scheduledShift['total_hours'],
+            'notes' => null,
+            'status' => 'pending',
+            'is_active' => false,
+            'has_break' => !empty($scheduledShift['break_duration']) && $scheduledShift['break_duration'] > 0,
+            'break_duration' => $scheduledShift['break_duration'],
+            'template_name' => $scheduledShift['template_name'],
+            'assignment_id' => $scheduledShift['assignment_id'],
+            'template_id' => $scheduledShift['template_id'],
+            'is_flexible' => $scheduledShift['is_flexible'],
+        ];
+    }
+
+    return $pendingShifts;
+}
+
+/**
+ * Format actual shifts with status
+ */
+private function formatActualShifts($shifts, $now)
+{
+    return $shifts->map(function($shift) use ($now) {
+        $status = $this->determineShiftStatuss($shift, $now);
+
+        // Calculate total hours for the shift
+        $totalHours = $shift->total_hours ?? 0;
+
+        return [
+            'id' => $shift->id,
+            'is_pending_shift' => false,
+            'start_time' => $shift->start_time->format('H:i:s'),
+            'end_time' => $shift->end_time?->format('H:i:s'),
+            'start_datetime' => $shift->start_time->format('Y-m-d H:i:s'),
+            'end_datetime' => $shift->end_time?->format('Y-m-d H:i:s'),
+            'is_open' => (bool) $shift->is_open,
+            'total_hours' => (float) $totalHours,
+            'notes' => $shift->notes,
+            'status' => $status,
+            'is_active' => $status === 'active',
+            'has_break' => !empty($shift->break_start) && !empty($shift->break_end),
+            'break_start' => $shift->break_start?->format('H:i:s'),
+            'break_end' => $shift->break_end?->format('H:i:s'),
+            'break_duration' => $shift->break_start && $shift->break_end
+                ? $shift->break_end->diffInMinutes($shift->break_start)
+                : 0,
+        ];
+    })->values()->toArray();
+}
+
+/**
+ * Determine shift status
+ */
+private function determineShiftStatuss($shift, $now): string
+{
+    if ($shift->is_open) {
+        return 'active';
+    }
+
+    if ($shift->end_time && $shift->end_time->isPast()) {
+        return 'completed';
+    }
+
+    // If shift has end_time in future but is not open
+    if ($shift->end_time && $shift->end_time->isFuture()) {
+        return 'pending';
+    }
+
+    // If no end_time but start_time is in past
+    if ($shift->start_time->isPast() && !$shift->end_time) {
+        return 'abandoned';
+    }
+
+    return 'pending';
+}
+
+/**
+ * Determine overall day status
+ */
+private function determineDayStatus($scheduledShifts, $actualShifts, $date, $now): string
+{
+    // If no scheduled shifts
+    if (empty($scheduledShifts)) {
+        return 'free';
+    }
+
+    // If future date with scheduled shifts but no actual shifts
+    if ($date->isFuture() && empty($actualShifts)) {
+        return 'pending';
+    }
+
+    // Check actual shifts statuses
+    $hasActive = false;
+    $hasCompleted = false;
+
+    foreach ($actualShifts as $shift) {
+        if ($shift['status'] === 'active') {
+            $hasActive = true;
+        }
+        if ($shift['status'] === 'completed') {
+            $hasCompleted = true;
+        }
+    }
+
+    if ($hasActive) {
+        return 'active';
+    }
+
+    if ($hasCompleted) {
+        return 'completed';
+    }
+
+    // Past date with scheduled shifts but no actual shifts (excluding pending shifts)
+    if ($date->isPast() && !empty($scheduledShifts)) {
+        $hasRealShifts = false;
+        foreach ($actualShifts as $shift) {
+            if (!$shift['is_pending_shift']) {
+                $hasRealShifts = true;
+                break;
+            }
+        }
+
+        if (!$hasRealShifts) {
+            return 'absent';
+        }
+    }
+
+    return 'pending';
+}
+
+/**
+ * Format the final calendar response
+ */
+private function formatCalendarResponse($year, $month, $startDate, $daysInMonth, $calendar, $hasActiveTemplates, $now)
+{
+    $statistics = $this->calculateCalendarStatistics($calendar);
+
+    return [
+        'period' => [
             'year' => $year,
             'month' => $month,
-            'days' => $calendarData,
-            'month_name' => \Carbon\Carbon::create($year, $month)->translatedFormat('F'),
-        ], __('message.success'));
-    }
+            'month_name' => $startDate->translatedFormat('F'),
+            'month_year' => $startDate->translatedFormat('F Y'),
+            'days_in_month' => $daysInMonth,
+            'start_date' => $startDate->format('Y-m-d'),
+            'end_date' => $startDate->copy()->endOfMonth()->format('Y-m-d'),
+        ],
+        'calendar' => $calendar,
+        'summary' => [
+            'has_active_templates' => $hasActiveTemplates,
+            'total_days' => $daysInMonth,
+            'scheduled_days' => $statistics['scheduled_days'],
+            'worked_days' => $statistics['worked_days'],
+            'absent_days' => $statistics['absent_days'],
+            'free_days' => $statistics['free_days'],
+            'active_days' => $statistics['active_days'],
+            'completed_days' => $statistics['completed_days'],
+            'total_scheduled_hours' => round($statistics['total_scheduled_hours'], 2),
+            'total_worked_hours' => round($statistics['total_worked_hours'], 2),
+            'total_pending_shifts' => $statistics['pending_shifts_count'],
+            'total_actual_shifts' => $statistics['total_actual_shifts'],
+            'active_shifts_count' => $statistics['active_shifts_count'],
+            'completed_shifts_count' => $statistics['completed_shifts_count'],
+            'attendance_rate' => $statistics['attendance_rate'],
+            'avg_hours_per_scheduled_day' => $statistics['avg_hours_per_scheduled_day'],
+            'avg_hours_per_worked_day' => $statistics['avg_hours_per_worked_day'],
+        ],
+        'meta' => [
+            'current_date' => $now->format('Y-m-d'),
+            'current_time' => $now->format('H:i:s'),
+        ]
+    ];
+}
 
-    /**
-     * Calculate shift duration in hours and minutes
-     */
-    private function calculateShiftDuration($shift): string
-    {
-        if (!$shift->start_time || !$shift->end_time) {
-            return '0h 0m';
+/**
+ * Calculate calendar statistics - FIXED VERSION
+ */
+private function calculateCalendarStatistics($calendar): array
+{
+    // Initialize all possible day status counters
+    $statistics = [
+        'total_days' => count($calendar),
+        'scheduled_days' => 0,
+        'worked_days' => 0,
+        'absent_days' => 0,
+        'free_days' => 0,
+        'active_days' => 0,
+        'completed_days' => 0,
+        'total_scheduled_hours' => 0.0,
+        'total_worked_hours' => 0.0,
+        'pending_shifts_count' => 0,
+        'active_shifts_count' => 0,
+        'completed_shifts_count' => 0,
+        'total_actual_shifts' => 0,
+    ];
+
+    foreach ($calendar as $day) {
+        // Count days by their day_status
+        $dayStatus = $day['day_status'] ?? 'free';
+
+        // Initialize counter if not exists
+        if (!isset($statistics[$dayStatus . '_days'])) {
+            $statistics[$dayStatus . '_days'] = 0;
         }
 
-        $start = \Carbon\Carbon::parse($shift->start_time);
-        $end = \Carbon\Carbon::parse($shift->end_time);
-        $totalMinutes = $end->diffInMinutes($start);
+        // Increment the specific day status counter
+        $statistics[$dayStatus . '_days']++;
 
-        $hours = floor($totalMinutes / 60);
-        $minutes = $totalMinutes % 60;
+        // Sum scheduled hours
+        foreach ($day['scheduled_shifts'] as $scheduledShift) {
+            $statistics['total_scheduled_hours'] += $scheduledShift['total_hours'] ?? 0.0;
+        }
 
-        return "{$hours}h {$minutes}m";
+        // Count actual shifts and hours
+        foreach ($day['actual_shifts'] as $actualShift) {
+            if ($actualShift['is_pending_shift']) {
+                $statistics['pending_shifts_count']++;
+            } else {
+                $statistics['total_actual_shifts']++;
+                $statistics['total_worked_hours'] += $actualShift['total_hours'] ?? 0.0;
+
+                // Count by status
+                if ($actualShift['status'] === 'active') {
+                    $statistics['active_shifts_count']++;
+                } elseif ($actualShift['status'] === 'completed') {
+                    $statistics['completed_shifts_count']++;
+                }
+            }
+        }
+
+        // Count worked days (days with actual non-pending shifts)
+        if (!empty($day['actual_shifts'])) {
+            $hasNonPendingShift = false;
+            foreach ($day['actual_shifts'] as $shift) {
+                if (!$shift['is_pending_shift']) {
+                    $hasNonPendingShift = true;
+                    break;
+                }
+            }
+            if ($hasNonPendingShift) {
+                $statistics['worked_days']++;
+            }
+        }
     }
 
+    // Make sure all day status counters exist with at least 0
+    $dayStatuses = ['free', 'scheduled', 'active', 'completed', 'absent'];
+    foreach ($dayStatuses as $status) {
+        $key = $status . '_days';
+        if (!isset($statistics[$key])) {
+            $statistics[$key] = 0;
+        }
+    }
+
+    // Calculate derived statistics
+    $statistics['attendance_rate'] = $statistics['scheduled_days'] > 0
+        ? round(($statistics['worked_days'] / $statistics['scheduled_days']) * 100, 2)
+        : 0.0;
+
+    $statistics['avg_hours_per_scheduled_day'] = $statistics['scheduled_days'] > 0
+        ? round($statistics['total_scheduled_hours'] / $statistics['scheduled_days'], 2)
+        : 0.0;
+
+    $statistics['avg_hours_per_worked_day'] = $statistics['worked_days'] > 0
+        ? round($statistics['total_worked_hours'] / $statistics['worked_days'], 2)
+        : 0.0;
+
+    return $statistics;
+}
     /**
      * Get personal statistics
      */
@@ -464,187 +882,6 @@ class CourierShiftController extends Controller
             'current_shift' => $currentShift,
             'has_current_shift' => $currentShift !== null
         ], __('message.success'));
-    }
-
-    /**
-     * Build calendar data for the given month and year
-     */
-    private function buildCalendarData(int $year, int $month, $shifts): array
-    {
-        $calendarData = [];
-        $startOfMonth = \Carbon\Carbon::create($year, $month, 1);
-        $endOfMonth = $startOfMonth->copy()->endOfMonth();
-        $startDayOfWeek = $startOfMonth->dayOfWeek; // 0 = Sunday, 1 = Monday, etc.
-
-        // Adjust for Arabic calendar (Sunday = 0, Saturday = 6)
-        $daysInMonth = $endOfMonth->day;
-
-        // Group shifts by date
-        $shiftsByDate = [];
-        foreach ($shifts as $shift) {
-            $dateKey = $shift->start_time ? $shift->start_time->toDateString() : $shift->expected_end_time->toDateString();
-            if (!isset($shiftsByDate[$dateKey])) {
-                $shiftsByDate[$dateKey] = [];
-            }
-            $shiftsByDate[$dateKey][] = $shift;
-        }
-
-        // Build calendar days
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $date = \Carbon\Carbon::create($year, $month, $day);
-            $dateKey = $date->toDateString();
-
-            $hasShift = isset($shiftsByDate[$dateKey]);
-            $shiftStatuses = [];
-
-            if ($hasShift) {
-                foreach ($shiftsByDate[$dateKey] as $shift) {
-                    // Determine status for each shift
-                    if ($shift->is_open) {
-                        if ($shift->start_time && $shift->start_time->isFuture()) {
-                            $shiftStatuses[] = 'pending';
-                        } elseif (!$shift->start_time && $shift->expected_end_time && $shift->expected_end_time->isPast()) {
-                            $shiftStatuses[] = 'absence';
-                        } else {
-                            $shiftStatuses[] = 'open';
-                        }
-                    } else {
-                        if ($shift->start_time && $shift->end_time) {
-                            $shiftStatuses[] = 'finished';
-                        } else {
-                            $shiftStatuses[] = 'closed';
-                        }
-                    }
-                }
-            }
-
-            // Determine primary status (first one, or based on priority)
-            $primaryStatus = null;
-            if (!empty($shiftStatuses)) {
-                // Priority: absence > open > pending > finished > closed
-                $priorityOrder = ['absence', 'open', 'pending', 'finished', 'closed'];
-                foreach ($priorityOrder as $status) {
-                    if (in_array($status, $shiftStatuses)) {
-                        $primaryStatus = $status;
-                        break;
-                    }
-                }
-            }
-
-            $calendarData[] = [
-                'day' => $day,
-                'date' => $dateKey,
-                'has_shift' => $hasShift,
-                'shift_count' => $hasShift ? count($shiftsByDate[$dateKey]) : 0,
-                'status' => $primaryStatus,
-                'statuses' => array_unique($shiftStatuses),
-                'is_today' => $date->isToday(),
-                'is_selected' => false // This would be set based on request parameter
-            ];
-        }
-
-        return $calendarData;
-    }
-
-    /**
-     * Get detailed shift information for a specific date
-     */
-    private function getShiftDetailsForDate($courier, string $selectedDate, $allShifts): ?array
-    {
-        $shiftsForDate = $allShifts->filter(function ($shift) use ($selectedDate) {
-            $shiftDate = $shift->start_time ? $shift->start_time->toDateString() : $shift->expected_end_time->toDateString();
-            return $shiftDate === $selectedDate;
-        });
-
-        if ($shiftsForDate->isEmpty()) {
-            return null;
-        }
-
-        $formattedShifts = $shiftsForDate->map(function ($shift) use ($courier, $selectedDate) {
-            // Determine status
-            $status = 'closed';
-            $statusLabel = 'مغلق';
-
-            if ($shift->is_open) {
-                if ($shift->start_time && $shift->start_time->isFuture()) {
-                    $status = 'pending';
-                    $statusLabel = 'معلق';
-                } elseif (!$shift->start_time && $shift->expected_end_time && $shift->expected_end_time->isPast()) {
-                    $status = 'absence';
-                    $statusLabel = 'غياب';
-                } else {
-                    $status = 'open';
-                    $statusLabel = 'مفتوح';
-                }
-            } else {
-                if ($shift->start_time && $shift->end_time) {
-                    $status = 'finished';
-                    $statusLabel = 'مكتمل';
-                }
-            }
-
-            // Format time display
-            $startTime = $shift->start_time ? $shift->start_time->format('H:i') : null;
-            $endTime = $shift->end_time ? $shift->end_time->format('H:i') : ($shift->expected_end_time ? $shift->expected_end_time->format('H:i') : null);
-
-            $timeDisplay = '';
-            if ($startTime && $endTime) {
-                $duration = $shift->start_time->diff($shift->end_time);
-                $hours = $duration->h;
-                $minutes = $duration->i;
-                $timeDisplay = "({$hours}h {$minutes}m) {$startTime} - {$endTime}";
-            } elseif ($startTime) {
-                $timeDisplay = $startTime;
-            }
-
-            // Get zones for this shift (using courier's zones as default)
-            $zones = $courier->zonesToCover->map(function ($zone) {
-                return $zone->name . '، ' . ($zone->city ? $zone->city->name . '، ' : '') . ($zone->governorate ? $zone->governorate->name : '');
-            })->join('، ');
-
-            return [
-                'id' => $shift->id,
-                'status' => $status,
-                'status_label' => $statusLabel,
-                'date' => $selectedDate,
-                'date_arabic' => $this->formatArabicDate($selectedDate),
-                'time' => $timeDisplay,
-                'zones' => $zones,
-                'template_name' => $shift->shiftTemplate ? $shift->shiftTemplate->name : null,
-                'total_orders' => $shift->total_orders ?? 0,
-                'total_earnings' => $shift->total_earnings ?? 0,
-                'notes' => $shift->notes
-            ];
-        });
-
-        return [
-            'date' => $selectedDate,
-            'shifts' => $formattedShifts,
-            'total_shifts' => $formattedShifts->count()
-        ];
-    }
-
-    /**
-     * Get Arabic month name
-     */
-    private function getArabicMonthName(int $month): string
-    {
-        $months = [
-            1 => 'يناير',
-            2 => 'فبراير',
-            3 => 'مارس',
-            4 => 'أبريل',
-            5 => 'مايو',
-            6 => 'يونيو',
-            7 => 'يوليو',
-            8 => 'أغسطس',
-            9 => 'سبتمبر',
-            10 => 'أكتوبر',
-            11 => 'نوفمبر',
-            12 => 'ديسمبر'
-        ];
-
-        return $months[$month] ?? '';
     }
 
     /**
