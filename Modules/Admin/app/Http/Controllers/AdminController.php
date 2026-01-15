@@ -502,8 +502,8 @@ class AdminController extends Controller
 
         $paymentMethodsQuery = clone $query;
         $paymentMethods = $paymentMethodsQuery->join('payment_methods', 'orders.payment_method_id', '=', 'payment_methods.id')
-            ->selectRaw('payment_methods.id, COUNT(*) as count')
-            ->groupBy('payment_methods.id')
+            ->selectRaw('payment_methods.id, payment_methods.name, COUNT(*) as count')
+            ->groupBy('payment_methods.id', 'payment_methods.name')
             ->get()
             ->map(fn($item) => ['method' => $item->name, 'count' => $item->count]);
 
@@ -535,7 +535,7 @@ class AdminController extends Controller
         $refundsIncrement = $refundsChange > 0;
 
 
-        
+
         return $this->successResponse([
             'currency_code' => $currencyCode,
             'currency_factor' => $currencyFactor,
