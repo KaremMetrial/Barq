@@ -103,11 +103,11 @@ class Store extends Model implements TranslatableContract
     /**
      * Calculate commission for a specific order amount
      */
-    public function calculateCommission(float $orderAmount): float
+    public function calculateCommission($orderAmount)
     {
-        if ($this->commission_type === PlanTypeEnum::PERCENTAGE) {
+        if ($this->commission_type === PlanTypeEnum::COMMISSION) {
             return ($orderAmount * $this->commission_amount) / 100;
-        } elseif ($this->commission_type === PlanTypeEnum::FIXED) {
+        } elseif ($this->commission_type === PlanTypeEnum::SUBSCRIPTION) {
             return $this->commission_amount;
         }
         return 0;

@@ -96,6 +96,9 @@ class FullOrderResource extends JsonResource
                 ] : null,
                 'payment_status' => $this->order->payment_status?->value,
                 'cash_amount_due' => $this->calculateCashDue(),
+                'amount_courier_pays_to_store' => $this->order->paymentMethod?->is_cod ?
+                $this->order->total_amount - $this->order->store->calculateCommission($this->order->total_amount) :
+                null,
             ],
 
             // Delivery Information

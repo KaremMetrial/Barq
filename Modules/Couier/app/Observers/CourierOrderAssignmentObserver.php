@@ -15,20 +15,21 @@ class CourierOrderAssignmentObserver
      * Handle the CourierOrderAssignment "updated" event.
      */
     public function updated(CourierOrderAssignment $courierorderassignment): void {
-        if($courierorderassignment->status === 'delivered') {
-            $order = $courierorderassignment->order;
-            if($order && $order->status !== \App\Enums\OrderStatus::DELIVERED) {
-                $order->update(['status' => \App\Enums\OrderStatus::DELIVERED]);
+        $courierorderassignment->refresh();
+            if($courierorderassignment->status == 'delivered') {
+                $order = $courierorderassignment->order;
+                if($order && $order->status != \App\Enums\OrderStatus::DELIVERED) {
+                    $order->update(['status' => \App\Enums\OrderStatus::DELIVERED]);
+                }
             }
-        }
 
-        // When courier status changes to in_transit, update order status to on_the_way
-        if($courierorderassignment->status === 'in_transit') {
-            $order = $courierorderassignment->order;
-            if($order && $order->status !== \App\Enums\OrderStatus::ON_THE_WAY) {
-                $order->update(['status' => \App\Enums\OrderStatus::ON_THE_WAY]);
+            // When courier status changes to in_transit, update order status to on_the_way
+            if($courierorderassignment->status == 'in_transit') {
+                $order = $courierorderassignment->order;
+                if($order && $order->status != \App\Enums\OrderStatus::ON_THE_WAY) {
+                    $order->update(['status' => \App\Enums\OrderStatus::ON_THE_WAY]);
+                }
             }
-        }
 
     }
 

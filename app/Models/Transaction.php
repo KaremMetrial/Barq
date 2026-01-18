@@ -23,7 +23,8 @@ class Transaction extends Model implements TranslatableContract
         'amount',
         'currency',
         'payment_method_id',
-        'status'
+        'status',
+        'order_id'
     ];
 
     protected $casts = [

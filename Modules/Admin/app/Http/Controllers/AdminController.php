@@ -4,18 +4,22 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Modules\User\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Modules\Admin\Services\AdminService;
+use Modules\Withdrawal\Models\Withdrawal;
+use App\Http\Resources\PaginationResource;
 use Modules\Admin\Http\Requests\LoginRequest;
 use Modules\Admin\Http\Resources\AdminResource;
+use Modules\Order\Http\Resources\OrderResource;
 use Modules\Admin\Http\Requests\CreateAdminRequest;
 use Modules\Admin\Http\Requests\UpdateAdminRequest;
 use Modules\Admin\Http\Requests\UpdatePasswordRequest;
-use Modules\Order\Http\Resources\OrderResource;
-use App\Http\Resources\PaginationResource;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Modules\Withdrawal\Http\Resources\WithdrawalResource;
+
 class AdminController extends Controller
 {
     use ApiResponse, AuthorizesRequests;
@@ -193,7 +197,7 @@ class AdminController extends Controller
         }
 
         // Metrics
-        $totalSales = (float) $query->sum('total_amount');
+        $totalSales = (int) $query->sum('total_amount');
         $totalOrders = $query->count();
         $avgOrderValue = $totalOrders > 0 ? round($totalSales / $totalOrders, 2) : 0;
 
@@ -388,11 +392,26 @@ class AdminController extends Controller
 
         // Charts
         $salesQuery = clone $query;
-        $salesOverTime = $salesQuery->selectRaw('DATE(orders.created_at) as date, SUM(orders.total_amount) as value')
+        $salesOverTime = $salesQuery->where('status', 'delivered')
+            ->selectRaw('DATE(orders.created_at) as date, SUM(orders.total_amount) as value')
             ->groupBy('date')
             ->orderBy('date')
             ->get()
             ->map(fn($item) => ['date' => $item->date, 'value' => (float) $item->value]);
+
+        $orderQuery = clone $query;
+        $ordersOverTime = $orderQuery->selectRaw('DATE(orders.created_at) as date, SUM(orders.total_amount) as value')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(fn($item) => ['date' => $item->date, 'value' => (float) $item->value]);
+
+        $userQuery = User::query();
+        $userOverTime = $userQuery->selectRaw('DATE(users.created_at) as date, COUNT(*) as value')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(fn($item) => ['date' => $item->date, 'value' => (int) $item->value]);
 
         // Top stores by revenue (existing)
         $topStoresQuery = clone $query;
@@ -481,6 +500,31 @@ class AdminController extends Controller
             ->get()
             ->map(fn($item) => ['city_name' => $item->city_name, 'customer_count' => (int) $item->customer_count]);
 
+        // Calculate Performance Metrics for Radar Chart
+        $ordersPerformance = $totalOrders > 0 ? round(($deliveredOrders / $totalOrders) * 100, 0) : 0;
+
+        // Calculate average rating (using store ratings as proxy)
+        $averageRating = \Modules\Review\Models\Review::avg('rating') ?? 0;
+        $ratingPerformance = round(($averageRating / 5) * 100, 0); // Convert 1-5 scale to 0-100
+
+        // Calculate profit performance (using commission as proxy for profit)
+        $profitPerformance = $totalSales > 0 ? round(($commissionEarned / $totalSales) * 100, 0) : 0;
+
+        // Calculate speed performance (inverse of delivery time, normalized)
+        $maxAcceptableTime = 120; // 2 hours max acceptable delivery time in minutes
+        $speedPerformance = $avgDeliveryTime > 0 ? max(0, round(100 - (($avgDeliveryTime / $maxAcceptableTime) * 100), 0)) : 100;
+
+        // Calculate quality performance (based on refund rate)
+        $refundRate = $totalSales > 0 ? ($refunds / $totalSales) : 0;
+        $qualityPerformance = round(100 - ($refundRate * 100), 0);
+
+        // Ensure all values are within 0-100 range
+        $ordersPerformance = max(0, min(100, $ordersPerformance));
+        $ratingPerformance = max(0, min(100, $ratingPerformance));
+        $profitPerformance = max(0, min(100, $profitPerformance));
+        $speedPerformance = max(0, min(100, $speedPerformance));
+        $qualityPerformance = max(0, min(100, $qualityPerformance));
+
         // Average delivery time trend (weekly)
         $deliveryTimeTrendQuery = \Modules\Order\Models\Order::whereNotNull('delivered_at')
             ->when(!empty($filters['from_date']), fn($q) => $q->whereDate('created_at', '>=', $filters['from_date']))
@@ -508,6 +552,9 @@ class AdminController extends Controller
             ->map(fn($item) => ['method' => $item->name, 'count' => $item->count]);
 
         // Recent Orders with courier information
+        $recentwithdrawels = Withdrawal::with(['withdrawable'])
+            ->latest()
+            ->paginate(10);
         $recentOrders = $query->with(['store', 'user', 'courier'])
             // ->select('id', 'order_number', 'total_amount', 'status', 'created_at', 'store_id', 'user_id')
             ->latest()
@@ -578,6 +625,8 @@ class AdminController extends Controller
             ],
             'charts' => [
                 'sales_over_time' => $salesOverTime,
+                'order_over_time' => $ordersOverTime,
+                'user_over_time' => $userOverTime,
                 'top_stores_by_revenue' => $topStoresByRevenue,
                 'top_stores_by_orders' => $topStoresByOrders,
                 'order_status_distribution' => $statusDistribution,
@@ -590,10 +639,15 @@ class AdminController extends Controller
                 'returning_customers' => $returningCustomers,
                 'top_cities' => $topCities,
             ],
+            'recent_withdrawels' => [
+                'withdrawals' => WithdrawalResource::collection($recentwithdrawels),
+                'pagination' => new PaginationResource($recentwithdrawels),
+            ],
             'recent_orders' => [
-                'orders' => OrderResource::collection($recentOrders),
+                'orders' => WithdrawalResource::collection($recentOrders),
                 'pagination' => new PaginationResource($recentOrders),
             ],
+
         ], __('message.success'));
     }
 }

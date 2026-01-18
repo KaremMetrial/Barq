@@ -130,14 +130,14 @@ class CourierMapController extends Controller
     {
         $request->validate([
             'status' => 'required|in:accepted,in_transit,delivered,failed',
-            'location_lat' => 'numeric|between:-90,90',
-            'location_lng' => 'numeric|between:-180,180',
+            'location_lat' => 'string',
+            'location_lng' => 'string',
             'failure_reason' => 'required_if:status,failed|string|max:500',
             'receipt_file' => 'nullable|file|image|mimes:jpeg,jpg,png,gif|max:5120',
             'receipt_type' => 'required_with:receipt_file|in:pickup_product,pickup_receipt,delivery_proof,customer_signature',
             'metadata' => 'nullable|array',
-            'metadata.latitude' => 'nullable|numeric|between:-90,90',
-            'metadata.longitude' => 'nullable|numeric|between:-180,180',
+            'metadata.latitude' => 'nullable|string',
+            'metadata.longitude' => 'nullable|string',
         ]);
 
         $courierId = auth('sanctum')->id();

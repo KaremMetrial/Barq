@@ -253,19 +253,37 @@ class CacheBasedOrderAssignmentService
         }
 
         try {
-            // Create assignment
+            // Get courier's current location from cache
+            $courierLocation = $this->locationCache->getCourierLocation($courierId);
+            $currentCourierLat = $courierLocation['lat'] ?? null;
+            $currentCourierLng = $courierLocation['lng'] ?? null;
+
+            // Calculate estimated duration based on distance (assuming average speed of 30 km/h)
+            $estimatedDistance = $this->calculateEstimatedDistance($orderData);
+            $estimatedDuration = $estimatedDistance > 0 ? round(($estimatedDistance / 30) * 60, 0) : 0;
+
+            // Calculate estimated earning (basic calculation - could be enhanced)
+            $estimatedEarning = $this->calculateEstimatedEarning($estimatedDistance);
+
+            // Create assignment with all relevant fields filled
             $assignment = CourierOrderAssignment::create([
                 'courier_id' => $courierId,
                 'order_id' => $orderData['order_id'],
+                'courier_shift_id' => $orderData['courier_shift_id'] ?? null,
                 'status' => 'assigned',
+                'assigned_at' => now(),
+                'expires_at' => now()->addSeconds($timeoutSeconds),
                 'pickup_lat' => $orderData['pickup_lat'],
                 'pickup_lng' => $orderData['pickup_lng'],
                 'delivery_lat' => $orderData['delivery_lat'] ?? null,
                 'delivery_lng' => $orderData['delivery_lng'] ?? null,
-                'assigned_at' => now(),
-                'expires_at' => now()->addSeconds($timeoutSeconds),
-                'estimated_distance_km' => $this->calculateEstimatedDistance($orderData),
-                'courier_shift_id' => $orderData['courier_shift_id'] ?? null,
+                'current_courier_lat' => $currentCourierLat,
+                'current_courier_lng' => $currentCourierLng,
+                'estimated_distance_km' => $estimatedDistance,
+                'estimated_duration_minutes' => $estimatedDuration,
+                'estimated_earning' => $estimatedEarning,
+                'priority_level' => $orderData['priority_level'] ?? 'normal',
+                'assignment_metadata' => $this->buildAssignmentMetadata($orderData, $courierId, $estimatedDistance, $estimatedDuration),
             ]);
 
             // Only notify if assignment was successful
@@ -287,12 +305,44 @@ class CacheBasedOrderAssignmentService
             return null;
         }
     }
-        private function scheduleTimeoutHandling(int $assignmentId, int $timeoutSeconds): void
-        {
-            // Schedule a job to handle assignment timeout
-            \App\Jobs\CourierAssignmentTimeoutJob::dispatch($assignmentId)
-                ->delay(now()->addSeconds($timeoutSeconds));
-        }
+
+    /**
+     * Calculate estimated earning for the assignment
+     */
+    private function calculateEstimatedEarning(float $distanceKm): float
+    {
+        // Basic earning calculation: base fee + distance-based fee
+        // This could be enhanced with more complex logic based on zone, time, etc.
+        $baseFee = 5.0; // Base delivery fee
+        $perKmRate = 1.5; // Rate per kilometer
+
+        return round($baseFee + ($distanceKm * $perKmRate), 2);
+    }
+
+    /**
+     * Build assignment metadata array
+     */
+    private function buildAssignmentMetadata(array $orderData, int $courierId, float $distance, int $duration): array
+    {
+        return [
+            'assignment_source' => 'auto_assignment',
+            'assignment_method' => 'cache_based',
+            'courier_id' => $courierId,
+            'order_id' => $orderData['order_id'],
+            'distance_km' => $distance,
+            'duration_minutes' => $duration,
+            'priority' => $orderData['priority_level'] ?? 'normal',
+            'assigned_at' => now()->toDateTimeString(),
+            'timeout_seconds' => $orderData['timeout_seconds'] ?? 120,
+        ];
+    }
+
+    private function scheduleTimeoutHandling(int $assignmentId, int $timeoutSeconds): void
+    {
+        // Schedule a job to handle assignment timeout
+        \App\Jobs\CourierAssignmentTimeoutJob::dispatch($assignmentId)
+            ->delay(now()->addSeconds($timeoutSeconds));
+    }
 
     public function handleTimeout(int $assignmentId): void
     {
@@ -320,7 +370,7 @@ class CacheBasedOrderAssignmentService
                 $this->tryReassignment($assignment->order_id, $assignmentId);
             }
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to handle assignment timeout', [
                 'assignment_id' => $assignmentId,
                 'error' => $e->getMessage()

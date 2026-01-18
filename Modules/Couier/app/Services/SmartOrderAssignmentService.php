@@ -150,8 +150,8 @@ class SmartOrderAssignmentService
             $assignment->save();
 
             $order = $this->orderRepository->find($assignment->order_id);
-            $oldStatus = $order->status;
-            $order->status = OrderStatus::ON_THE_WAY;
+            // $oldStatus = $order->status;
+            // $order->status = OrderStatus::ON_THE_WAY;
             $order->couier_id = $courierId;
             $order->save();
 
@@ -172,7 +172,7 @@ class SmartOrderAssignmentService
             );
             Log::info('Assignment finalized for order: ' . $assignment->order_id . ' - ' . $courierId);
                 $courier = auth('courier')->user();
-                event(new \Modules\Order\Events\OrderStatusChanged($order, $oldStatus, $order->status));
+                // event(new \Modules\Order\Events\OrderStatusChanged($order, $oldStatus, $order->status));
                 OrderAssignmentToCourier::dispatch($order, auth('sanctum')->user(), (int) $order->courierUnreadMessagesCount(), auth('sanctum')->user()->getCurrentLatitudeAttribute(), auth('sanctum')->user()->getCurrentLongitudeAttribute());
 
             DB::commit();
