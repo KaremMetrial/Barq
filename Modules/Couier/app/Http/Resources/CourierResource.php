@@ -181,6 +181,9 @@ class CourierResource extends JsonResource
             }),
             'iban' => $this->iban,
 
+            'auto_accept_orders' => (bool) false, // $this->auto_accept_orders,
+            'accept_overtime' => (bool) false, // $this->accept_overtime,
+
             'shift' => $this->getNextShiftData(),
         ];
     }
@@ -263,18 +266,15 @@ class CourierResource extends JsonResource
      */
     private function calculateCommission($ordersQuery): float
     {
-        $commission = 0;
-
         $orders = $ordersQuery->get();
+        $totalEarnings = 0;
 
         foreach ($orders as $order) {
-            if ($this->commission_type === 'percentage') {
-                $commission += $order->delivery_fee * ($this->commission_amount / 100);
-            } elseif ($this->commission_type === 'fixed') {
-                $commission += $this->commission_amount;
-            }
+            $deliveryFee = $order->delivery_fee ?? 0;
+            $commission = $this->resource->calculateCommission($deliveryFee);
+            $totalEarnings += ($deliveryFee - $commission);
         }
 
-        return round($commission, 2);
+        return round($totalEarnings, 2);
     }
 }

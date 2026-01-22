@@ -6,14 +6,15 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Traits\FileUploadTrait;
 use Modules\Couier\Http\Resources\CourierResource;
 use Modules\Couier\Http\Requests\LoginCourierRequest;
 use Modules\Couier\Http\Requests\RegisterCourierRequest;
-use Modules\Couier\Http\Requests\UpdateCourierRequest;
+use Modules\Couier\Http\Requests\UpdateCouierRequest;
 
 class CourierAuthController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, FileUploadTrait;
 
     /**
      * Register a new courier.
@@ -79,16 +80,21 @@ class CourierAuthController extends Controller
     /**
      * Update the authenticated courier's profile.
      */
-    public function updateProfile(UpdateCourierRequest $request): JsonResponse
+    public function updateProfile(Request $request): JsonResponse
     {
         $courier = auth('courier')->user();
 
-        // Remove password from update data if empty
-        $data = $request->validated();
+        $data = $request->validate([
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'auto_accept_orders' => 'nullable|boolean',
+            'accept_overtime' => 'nullable|boolean',
+        ]);
         if (empty($data['password'])) {
             unset($data['password']);
         }
-
+        if($request->hasFile('avatar')) {
+            $data['avatar'] = $this->upload($request,'avatar','couriers');
+        }
         $courier->update($data);
 
         return $this->successResponse([

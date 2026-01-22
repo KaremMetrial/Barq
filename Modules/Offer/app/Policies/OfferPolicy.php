@@ -29,7 +29,7 @@ class OfferPolicy
         }
 
         // Vendors can view offers related to their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_offer', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class OfferPolicy
         }
 
         // Vendors can view offers related to their stores or products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_offer', 'vendor')) {
+        if ($user instanceof Vendor) {
             // Check if offer is on vendor's store
             if ($offer->offerable_type === 'Modules\Store\Models\Store' && $offer->offerable_id === $user->store_id) {
                 return true;
@@ -101,7 +101,7 @@ class OfferPolicy
         }
 
         // Vendors can create offers for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_offer', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -124,7 +124,7 @@ class OfferPolicy
         }
 
         // Vendors can only update offers related to their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_offer', 'vendor')) {
+        if ($user instanceof Vendor) {
             // Check if offer is on vendor's store
             if ($offer->offerable_type === 'Modules\Store\Models\Store' && $offer->offerable_id === $user->store_id) {
                 return true;
@@ -158,7 +158,7 @@ class OfferPolicy
         }
 
         // Vendors can only delete offers from their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_offer', 'vendor')) {
+        if ($user instanceof Vendor) {
             // Check if offer is on vendor's store
             if ($offer->offerable_type === 'Modules\Store\Models\Store' && $offer->offerable_id === $user->store_id) {
                 return true;
@@ -284,7 +284,7 @@ class OfferPolicy
         }
 
         // Vendors can create flash sales for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_offer', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -323,7 +323,7 @@ class OfferPolicy
         // Vendors can view analytics for their store's offers
         if ($user instanceof Vendor) {
             if ($offer->offerable_type === 'Modules\Store\Models\Store' && $offer->offerable_id === $user->store_id) {
-                return PermissionHelper::hasPermission('view_report', 'vendor');
+                return true;
             }
             return false;
         }
@@ -375,7 +375,7 @@ class OfferPolicy
         }
 
         // Vendors can export data for their store's offers
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_offer', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -416,7 +416,7 @@ class OfferPolicy
         }
 
         // Vendors can bulk update their store's offers
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_offer', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -439,7 +439,7 @@ class OfferPolicy
         }
 
         // Vendors can bulk delete their store's offers
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_offer', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -548,7 +548,7 @@ class OfferPolicy
         // Vendors can view financial impact of their offers
         if ($user instanceof Vendor) {
             if ($offer->offerable_type === 'Modules\Store\Models\Store' && $offer->offerable_id === $user->store_id) {
-                return PermissionHelper::hasPermission('view_report', 'vendor');
+                return true;
             }
             return false;
         }
@@ -572,7 +572,7 @@ class OfferPolicy
         }
 
         // Vendors can create campaigns for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_offer', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 

@@ -29,7 +29,7 @@ class CouponPolicy
         }
 
         // Vendors can view coupons related to their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_coupon', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class CouponPolicy
         }
 
         // Vendors can view coupons related to their stores or products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_coupon', 'vendor')) {
+        if ($user instanceof Vendor) {
             // Check if coupon is related to vendor's store
             if ($coupon->stores()->where('stores.id', $user->store_id)->exists()) {
                 return true;
@@ -93,7 +93,7 @@ class CouponPolicy
         }
 
         // Vendors can create coupons for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_coupon', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -116,7 +116,7 @@ class CouponPolicy
         }
 
         // Vendors can only update coupons related to their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_coupon', 'vendor')) {
+        if ($user instanceof Vendor) {
             // Check store relationship
             if ($coupon->stores()->where('stores.id', $user->store_id)->exists()) {
                 return true;
@@ -147,7 +147,7 @@ class CouponPolicy
         }
 
         // Vendors can only delete coupons from their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_coupon', 'vendor')) {
+        if ($user instanceof Vendor) {
             // Check store relationship
             if ($coupon->stores()->where('stores.id', $user->store_id)->exists()) {
                 return true;
@@ -258,7 +258,7 @@ class CouponPolicy
         }
 
         // Vendors can only manage their own store relationships
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_coupon', 'vendor')) {
+        if ($user instanceof Vendor) {
             return $coupon->stores()->where('stores.id', $user->store_id)->exists();
         }
 
@@ -281,7 +281,7 @@ class CouponPolicy
         }
 
         // Vendors can view usage for their store's coupons
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_coupon', 'vendor')) {
+        if ($user instanceof Vendor) {
             if ($coupon->stores()->where('stores.id', $user->store_id)->exists()) {
                 return true;
             }
@@ -309,7 +309,7 @@ class CouponPolicy
         // Vendors can view analytics for their store's coupons
         if ($user instanceof Vendor) {
             if ($coupon->stores()->where('stores.id', $user->store_id)->exists()) {
-                return PermissionHelper::hasPermission('view_report', 'vendor');
+                return true;
             }
             return false;
         }
@@ -361,7 +361,7 @@ class CouponPolicy
         }
 
         // Vendors can export data for their store's coupons
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_coupon', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -402,7 +402,7 @@ class CouponPolicy
         }
 
         // Vendors can bulk update their store's coupons
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_coupon', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -425,7 +425,7 @@ class CouponPolicy
         }
 
         // Vendors can bulk delete their store's coupons
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_coupon', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -546,7 +546,7 @@ class CouponPolicy
         // Vendors can view financial impact of their coupons
         if ($user instanceof Vendor) {
             if ($coupon->stores()->where('stores.id', $user->store_id)->exists()) {
-                return PermissionHelper::hasPermission('view_report', 'vendor');
+                return true;
             }
             return false;
         }

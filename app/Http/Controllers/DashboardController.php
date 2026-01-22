@@ -31,7 +31,32 @@ class DashboardController extends Controller
      */
     public function __invoke(Request $request)
     {
+        $currencyCode = config('settings.default_currency', 'USD');
+        $currencyFactor = 100;
+        $countryId = null;
+
+        if (auth('sanctum')->check()) {
+            $user = auth('sanctum')->user();
+            if ($user->currentAccessToken() && $user->currentAccessToken()->country_id) {
+                $countryId = $user->currentAccessToken()->country_id;
+            }
+            if (!$countryId) {
+                $countryId = config('settings.default_country', 1);
+            }
+        } else {
+            $countryId = config('settings.default_country', 1);
+        }
+
+        if ($countryId) {
+            $country = \Modules\Country\Models\Country::find($countryId);
+            if ($country) {
+                $currencyCode = $country->currency_name ?? config('settings.default_currency', 'USD');
+                $currencyFactor = $country->currency_factor ?? 100;
+            }
+        }
+
         $filters = $this->validateFilters($request->only(['store_id', 'period', 'zone_id']));
+        $filters['country_id'] = $countryId;
 
         try {
             $widget = [
@@ -46,6 +71,9 @@ class DashboardController extends Controller
             $topStores = $this->topStores($filters);
             $latestOrders = $this->latestOrders($filters);
             return $this->successResponse([
+                'currency_code' => $currencyCode,
+                'currency_factor' => $currencyFactor,
+                'country_id' => $countryId,
                 'widget' => $widget,
                 'area_chart' => $areaChart,
                 'pie_chart' => $pieChart,
@@ -236,6 +264,12 @@ class DashboardController extends Controller
         if (!empty($filters['zone_id'])) {
             $query->where('zone_id', $filters['zone_id']);
         }
+
+        if (!empty($filters['country_id'])) {
+            $query->whereHas('store.address.zone.city.governorate', function ($q) use ($filters) {
+                $q->where('country_id', $filters['country_id']);
+            });
+        }
     }
 
     /**
@@ -243,8 +277,11 @@ class DashboardController extends Controller
      */
     private function applyStoreFilters(Builder $query, array $filters): void
     {
-        // Stores don't have store_id filter, but can add other filters if needed
-        // Example: $query->where('type', $filters['store_type'] ?? null);
+        if (!empty($filters['country_id'])) {
+            $query->whereHas('address.zone.city.governorate', function ($q) use ($filters) {
+                $q->where('country_id', $filters['country_id']);
+            });
+        }
     }
 
     /**
@@ -258,6 +295,12 @@ class DashboardController extends Controller
 
         if (!empty($filters['zone_id'])) {
             $query->where('zone_id', $filters['zone_id']);
+        }
+
+        if (!empty($filters['country_id'])) {
+            $query->whereHas('address.zone.city.governorate', function ($q) use ($filters) {
+                $q->where('country_id', $filters['country_id']);
+            });
         }
     }
 
@@ -571,13 +614,11 @@ class DashboardController extends Controller
             return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($filters) {
                 $period = $this->getPeriodDates($filters['period'] ?? 'month');
 
-                $topStoresQuery = Store::query()
-                    ->where('stores.status', StoreStatusEnum::APPROVED)
-                    ->where('stores.is_active', true);
+                $topStoresQuery = Store::query();
+                $this->applyStoreFilters($topStoresQuery, $filters);
 
-                if (!empty($filters['store_id'])) {
-                    $topStoresQuery->where('stores.id', $filters['store_id']);
-                }
+                $topStoresQuery->where('stores.status', StoreStatusEnum::APPROVED)
+                    ->where('stores.is_active', true);
 
                 // Join orders with stores and calculate total sales per store
                 $topStoresQuery->join('orders', 'stores.id', '=', 'orders.store_id')
@@ -610,55 +651,51 @@ class DashboardController extends Controller
             return [];
         }
     }
-protected function latestOrders(array $filters = []): array
-{
-    $cacheKey = 'dashboard_latest_orders_' . md5(serialize($filters));
-    try {
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($filters) {
-            $period = $this->getPeriodDates($filters['period'] ?? 'month');
+    protected function latestOrders(array $filters = []): array
+    {
+        $cacheKey = 'dashboard_latest_orders_' . md5(serialize($filters));
+        try {
+            return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($filters) {
+                $period = $this->getPeriodDates($filters['period'] ?? 'month');
 
-            $latestOrdersQuery = Order::query();
+                $latestOrdersQuery = Order::query();
+                $this->applyFilters($latestOrdersQuery, $filters);
 
-            if (!empty($filters['store_id'])) {
-                $latestOrdersQuery->where('orders.store_id', $filters['store_id']);
-            }
+                $latestOrdersQuery->join('stores', 'orders.store_id', '=', 'stores.id')
+                    ->select(
+                        'orders.id',
+                        'orders.order_number',
+                        'orders.total_amount',
+                        'orders.created_at',
+                        'stores.id as store_id',
+                        'orders.status'
+                    )
+                    ->whereNull('orders.deleted_at')
+                    ->limit(10);
 
-            $latestOrdersQuery->join('stores', 'orders.store_id', '=', 'stores.id')
-                ->select(
-                    'orders.id',
-                    'orders.order_number',
-                    'orders.total_amount',
-                    'orders.created_at',
-                    'stores.id as store_id',
-                    'orders.status'
-                )
-                ->whereNull('orders.deleted_at')
-                ->limit(10);
+                $latestOrders = $latestOrdersQuery->latest()->get();
 
-            $latestOrders = $latestOrdersQuery->latest()->get();
+                return $latestOrders->map(function ($order) {
+                    $store = $order->store;
+                    $storeName = $store->name;
+                    $storeCurrencyFactor = $store->getCurrencyFactor();
 
-            return $latestOrders->map(function ($order) {
-                $store = $order->store;
-                $storeName = $store->name;
-                $storeCurrencyFactor = $store->getCurrencyFactor();
-
-                return [
-                    'id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'status' => $order->status->value,
-                    'status_label' => OrderStatus::label($order->status->value),
-                    'total_amount' => round($order->total_amount, 2),
-                    'created_at' => $order->created_at->format('Y-m-d H:i:s'),
-                    'store_name' => $storeName,
-                    'symbol_currency' => $order->store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
-                    'currency_factor' => $storeCurrencyFactor,
-                ];
-            })->toArray();
-        });
-    } catch (\Exception $e) {
-        \Log::error('Error fetching latest orders: ' . $e->getMessage());
-        return [];
+                    return [
+                        'id' => $order->id,
+                        'order_number' => $order->order_number,
+                        'status' => $order->status->value,
+                        'status_label' => OrderStatus::label($order->status->value),
+                        'total_amount' => round($order->total_amount, 2),
+                        'created_at' => $order->created_at->format('Y-m-d H:i:s'),
+                        'store_name' => $storeName,
+                        'symbol_currency' => $order->store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+                        'currency_factor' => $storeCurrencyFactor,
+                    ];
+                })->toArray();
+            });
+        } catch (\Exception $e) {
+            \Log::error('Error fetching latest orders: ' . $e->getMessage());
+            return [];
+        }
     }
-}
-
 }

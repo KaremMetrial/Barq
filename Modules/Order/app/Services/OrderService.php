@@ -105,6 +105,24 @@ class OrderService
             'statusHistories',
         ]);
     }
+    public function getCourierOrders(int $userId, array $filter = [])
+    {
+        $query = Order::where('couier_id', $userId)
+            ->whereIn('status', ['delivered', 'cancelled'])
+            ->with(['items.product', 'items.addOns', 'store', 'user', 'courier', 'deliveryAddress', 'statusHistories']);
+
+        // Apply search filter
+        if (isset($filter['search'])) {
+            $query->where('order_number', 'like', '%' . $filter['search'] . '%');
+        }
+
+        // Apply status filter
+        if (isset($filter['status'])) {
+            $query->where('status', $filter['status']);
+        }
+
+        return $query->limit(3)->latest()->get();
+    }
     // private function validateStoreForOrder(int $storeId, ?int $deliveryAddressId): void
     // {
     //     $this->validateStoreAvailability($storeId);
@@ -120,7 +138,7 @@ class OrderService
         $orderData = $this->prepareOrderData($data);
         // $this->validateStoreForOrder($orderData['store_id'], $data['order']['delivery_address_id'] ?? null);
 
-        return DB::transaction(function () use ($data , $orderData) {
+        return DB::transaction(function () use ($data, $orderData) {
             $order = $this->createOrderRecord($orderData);
             $this->createOrderItems($order, $data['items']);
             $this->applyPostOrderLogic($order, $orderData, $data['items']);
@@ -209,9 +227,9 @@ class OrderService
         $orderData['discount_amount'] = round($discountAmount, 3);
 
         // Calculate fees based on store settings
-        $orderData['delivery_fee'] = (float) $this->calculateDeliveryFee($orderData);
-        $orderData['service_fee'] = (float) $this->calculateServiceFee($orderData);
-        $orderData['tax_amount'] = (float) $this->calculateTaxAmount($orderData);
+        $orderData['delivery_fee'] = (int) $this->calculateDeliveryFee($orderData);
+        $orderData['service_fee'] = (int) $this->calculateServiceFee($orderData);
+        $orderData['tax_amount'] = (int) $this->calculateTaxAmount($orderData);
 
         // OTP for delivery
         $orderData['otp_code'] = ($orderData['requires_otp'] ?? false)
@@ -354,6 +372,15 @@ class OrderService
             ];
         }
 
+        // Check maximum order amount
+        if ($coupon->maximum_order_amount && $totalAmount > $coupon->maximum_order_amount) {
+            return [
+                'valid' => false,
+                'discount' => 0,
+                'message' => "Maximum order amount is {$coupon->maximum_order_amount}"
+            ];
+        }
+
         // Check usage limits
         if ($coupon->usage_limit && $coupon->usageCount() >= $coupon->usage_limit) {
             return ['valid' => false, 'discount' => 0, 'message' => 'Coupon usage limit reached'];
@@ -365,16 +392,17 @@ class OrderService
             return ['valid' => false, 'discount' => 0, 'message' => 'You have reached the usage limit for this coupon'];
         }
 
-        // Check object type (store/product/category specific)
+        // Check applicability and calculate applicable amount
+        $applicableAmount = $totalAmount;
         if ($coupon->object_type !== 'general') {
-            $isApplicable = $this->isCouponApplicable($coupon, $storeId, $orderItems);
-            if (!$isApplicable) {
-                return ['valid' => false, 'discount' => 0, 'message' => 'Coupon not applicable to this order'];
+            $applicableAmount = $this->calculateApplicableAmount($coupon, $storeId, $orderItems);
+            if ($applicableAmount <= 0) {
+                return ['valid' => false, 'discount' => 0, 'message' => 'Coupon not applicable to any items in this order'];
             }
         }
 
         // Calculate discount
-        $discount = $this->calculateCouponDiscount($coupon, $totalAmount);
+        $discount = $this->calculateCouponDiscount($coupon, $applicableAmount);
 
         return [
             'valid' => true,
@@ -385,27 +413,45 @@ class OrderService
     }
 
     /**
-     * Check if coupon is applicable to order
+     * Calculate total amount of items applicable for the coupon
      */
-    private function isCouponApplicable(Coupon $coupon, ?int $storeId, array $orderItems): bool
+    private function calculateApplicableAmount(Coupon $coupon, ?int $storeId, array $orderItems): float
     {
         switch ($coupon->object_type) {
             case 'store':
-                return $coupon->stores()->where('store_id', $storeId)->exists();
+                // For store-specific coupons, if it matches the store, it applies to all items in that store's order
+                $isMatch = $coupon->stores()->where('store_id', $storeId)->exists();
+                return $isMatch ? $this->calculateItemsTotal($orderItems) : 0.0;
 
             case 'product':
-                $productIds = collect($orderItems)->pluck('product_id')->toArray();
-                return $coupon->products()->whereIn('product_id', $productIds)->exists();
+                $couponProductIds = $coupon->products()->pluck('product_id')->toArray();
+                $applicableItems = collect($orderItems)->filter(fn($item) => in_array($item['product_id'], $couponProductIds));
+                return $this->calculateItemsTotal($applicableItems->toArray());
 
             case 'category':
-                $products = Product::whereIn('id', collect($orderItems)->pluck('product_id'))
-                    ->get();
-                $categoryIds = $products->pluck('category_id')->unique()->toArray();
-                return $coupon->categories()->whereIn('category_id', $categoryIds)->exists();
+                $couponCategoryIds = $coupon->categories()->pluck('category_id')->toArray();
+                $productIds = collect($orderItems)->pluck('product_id')->unique()->toArray();
+
+                $matchingProductIds = Product::whereIn('id', $productIds)
+                    ->whereIn('category_id', $couponCategoryIds)
+                    ->pluck('id')
+                    ->toArray();
+
+                $applicableItems = collect($orderItems)->filter(fn($item) => in_array($item['product_id'], $matchingProductIds));
+                return $this->calculateItemsTotal($applicableItems->toArray());
 
             default:
-                return true;
+                return $this->calculateItemsTotal($orderItems);
         }
+    }
+
+    /**
+     * Helper to calculate total for a specific subset of order items
+     */
+    private function calculateItemsTotal(array $items): float
+    {
+        if (empty($items)) return 0.0;
+        return $this->calculateTotalAmount($items);
     }
 
     /**
@@ -429,8 +475,7 @@ class OrderService
     private function incrementCouponUsage(Coupon $coupon, ?int $userId): void
     {
         // Increment global coupon usage count
-        $coupon->usage_count += 1;
-        $coupon->save();
+        $coupon->increment('usage_count');
 
         // Track per-user usage in database if user is authenticated
         if ($userId) {
@@ -440,6 +485,34 @@ class OrderService
                 ['usage_count' => 0]
             );
             $couponUsage->increment('usage_count');
+        }
+    }
+
+    /**
+     * Decrement coupon usage (restore usage)
+     */
+    private function decrementCouponUsage(?int $couponId, ?int $userId): void
+    {
+        if (!$couponId) {
+            return;
+        }
+
+        $coupon = Coupon::find($couponId);
+        if ($coupon) {
+            // Decrement global usage count, but not below 0
+            if ($coupon->usage_count > 0) {
+                $coupon->decrement('usage_count');
+            }
+
+            if ($userId) {
+                $couponUsage = \App\Models\CouponUsage::where('coupon_id', $couponId)
+                    ->where('user_id', $userId)
+                    ->first();
+
+                if ($couponUsage && $couponUsage->usage_count > 0) {
+                    $couponUsage->decrement('usage_count');
+                }
+            }
         }
     }
 
@@ -673,7 +746,7 @@ class OrderService
                 }
             }
 
-         $productPrice = $this->getProductEffectivePrice($product);
+            $productPrice = $this->getProductEffectivePrice($product);
 
             $addOnTotal = collect($item['add_ons'] ?? [])->sum(function ($ao) {
                 return ($ao['price'] ?? 0) * ($ao['quantity'] ?? 1);
@@ -685,37 +758,37 @@ class OrderService
 
         return $total;
     }
-private function getProductEffectivePrice(?Product $product): int
-{
-    if (!$product) {
-        return 0;
-    }
-
-    $basePrice = (int) ($product->price?->price ?? 0);
-
-    $activeOffer = $product->offers()
-        ->where('is_active', true)
-        ->where('start_date', '<=', now())
-        ->where('end_date', '>=', now())
-        ->first();
-
-    if ($activeOffer) {
-        $discount = 0;
-        if ($activeOffer->discount_type === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
-            $discount = (int) (($basePrice * $activeOffer->discount_amount) / 100);
-        } else {
-            $discount = (int) $activeOffer->discount_amount;
+    private function getProductEffectivePrice(?Product $product): int
+    {
+        if (!$product) {
+            return 0;
         }
 
-        return max(0, $basePrice - $discount);
-    }
+        $basePrice = (int) ($product->price?->price ?? 0);
 
-    if ($product->price && $product->price->sale_price && $product->price->sale_price > 0) {
-        return (int) $product->price->sale_price;
-    }
+        $activeOffer = $product->offers()
+            ->where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
 
-    return $basePrice;
-}
+        if ($activeOffer) {
+            $discount = 0;
+            if ($activeOffer->discount_type === \App\Enums\SaleTypeEnum::PERCENTAGE->value) {
+                $discount = (int) (($basePrice * $activeOffer->discount_amount) / 100);
+            } else {
+                $discount = (int) $activeOffer->discount_amount;
+            }
+
+            return max(0, $basePrice - $discount);
+        }
+
+        if ($product->price && $product->price->sale_price && $product->price->sale_price > 0) {
+            return (int) $product->price->sale_price;
+        }
+
+        return $basePrice;
+    }
 
 
     /**
@@ -947,6 +1020,12 @@ private function getProductEffectivePrice(?Product $product): int
 
             // Fire event if status changed
             if ($updatedOrder && isset($filtered['status']) && $oldStatus != $updatedOrder->status) {
+
+                // Restore coupon usage if cancelled
+                if ($updatedOrder->status === 'cancelled' && $oldStatus !== 'cancelled') {
+                    $this->decrementCouponUsage($updatedOrder->coupon_id, $updatedOrder->user_id);
+                }
+
                 event(new OrderStatusChanged(
                     $updatedOrder,
                     $oldStatus,
@@ -983,6 +1062,9 @@ private function getProductEffectivePrice(?Product $product): int
                     $availability->update(['is_in_stock' => true]);
                 }
             }
+
+            // Restore coupon usage
+            $this->decrementCouponUsage($order->coupon_id, $order->user_id);
 
             return $this->orderRepository->delete($id);
         });

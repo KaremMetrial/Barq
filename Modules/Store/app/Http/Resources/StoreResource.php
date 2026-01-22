@@ -24,6 +24,18 @@ class StoreResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Calculate delivery fee based on delivery address or user location if available
+        $deliveryAddressId = $request->header('address-id');
+        $userLat = $request->header('lat');
+        $userLng = $request->header('lng');
+
+        if ($userLat && $userLng && !$deliveryAddressId) {
+            // Use user location to calculate delivery fee if no delivery address provided
+            $deliveryFee = (int) $this->getDeliveryFeeForDisplay(null, null, $userLat, $userLng);
+        } else {
+            $deliveryFee = (int) $this->getDeliveryFeeForDisplay($deliveryAddressId);
+        }
+
         return [
             "id" => $this->id,
             "name" => $this->name,
@@ -42,22 +54,30 @@ class StoreResource extends JsonResource
             "section" => new SectionResource($this->section),
             "banners" => $this->getProductBanners(),
             "categories" => $this->getCategoriesString(),
-            "getStoreCategory" => CategoryResource::collection($this->getProductCategories()),
+            "getStoreCategory" => $this->when($this->relationLoaded('categories'), function () {
+                return CategoryResource::collection($this->getProductCategories());
+            }),
             'store_setting' => new StoreSettingResource($this->whenLoaded('storeSetting')),
-            "delivery_fee" => $this->getDeliveryFee() ? (int) $this->getDeliveryFee() : null,
+            "delivery_fee" => $deliveryFee,
             "active_sale" => $this->whenLoaded('offers', function () {
                 return $this->getActiveOffers();
             }),
             "banner_text" => $this->getBannerText(),
-            "is_open" => $this->isOpenNow(),
+            "is_open" => $this->relationLoaded('workingDays') ? $this->isOpenNow() : $this->whenLoaded('workingDays', fn() => $this->isOpenNow()),
             "currency_factor" => $this->getCurrencyFactor() ?? $this->address?->zone?->city?->governorate?->country?->currency_factor ?? 100,
             // "cart_count" => $this->getCartCount()
             // "cart_total_price" => $this->getCartTotalPrice(),
             // "cart_item_count" => $this->getCartItemCount()
-            "address" => $this->address ? $this->address_place : null,
-            "count_reviews" => $this->getReviewCountFormatted(),
+            "address" => $this->relationLoaded('address') ? ($this->address ? $this->address_place : null) : $this->whenLoaded('address', fn() => $this->address_place),
+            "count_reviews" => $this->reviews_count ?? ($this->relationLoaded('reviews') ? $this->getReviewCountFormatted() : $this->whenCounted('reviews', $this->getReviewCountFormatted())),
         ];
     }
+    public function getDeliveryFeeForDisplay(?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null)
+    {
+        $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
+        return $deliveryFeeService->calculateForCart($this->resource, $deliveryAddressId, $vehicleId, $userLat, $userLng);
+    }
+
     private function getCartCount(): int
     {
         $cart = $this->resolveCart();

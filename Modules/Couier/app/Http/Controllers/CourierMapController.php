@@ -102,10 +102,6 @@ class CourierMapController extends Controller
                 $success = $this->assignmentService->acceptAssignment($assignmentId, $courierId);
                 $message = $success ? __('Order accepted successfully') : __('Failed to accept order');
             } else {
-                if (!$request->filled('reason')) {
-                    return $this->errorResponse(__('Reason is required for rejection'), 422);
-                }
-
                 $success = $this->assignmentService->rejectAssignment($assignmentId, $courierId, $request->reason);
                 $message = $success ? __('Order rejected') : __('Failed to reject order');
             }

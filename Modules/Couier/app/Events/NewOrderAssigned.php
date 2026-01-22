@@ -13,8 +13,8 @@ class NewOrderAssigned implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    protected $data;
-    protected $courierId;
+    public $data;
+    public $courierId;
     /**
      * Create a new event instance.
      */

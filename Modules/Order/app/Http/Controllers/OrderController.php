@@ -27,18 +27,29 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $userId = auth('user')->id();
-        $filter = $request->only('search', 'status','from_date','to_date', 'courier_id');
+        $filter = $request->only('search', 'status', 'from_date', 'to_date', 'courier_id');
 
         // Get current order (latest active order)
-        // $currentOrder = $this->orderService->getCurrentOrder($userId);
+        $currentOrder = $this->orderService->getCurrentOrder($userId);
 
         // Get finished orders (delivered or cancelled)
         $finishedOrders = $this->orderService->getFinishedOrders($userId, $filter);
 
         return $this->successResponse([
-            // 'current_orders' => $currentOrder ? OrderResource::collection($currentOrder) : null,
+            'current_orders' => $currentOrder ? OrderResource::collection($currentOrder) : null,
             'finished_orders' => OrderResource::collection($finishedOrders),
             'pagination' => new PaginationResource($finishedOrders),
+        ], __('message.success'));
+    }
+    public function courierIndex(Request $request): JsonResponse
+    {
+        $userId = auth('courier')->id();
+        $filter = $request->only('search', 'status', 'from_date', 'to_date', 'courier_id');
+
+        $finishedOrders = $this->orderService->getCourierOrders($userId, $filter);
+
+        return $this->successResponse([
+            'orders' => OrderResource::collection($finishedOrders),
         ], __('message.success'));
     }
 
@@ -47,7 +58,7 @@ class OrderController extends Controller
      */
     public function store(CreateOrderRequest $request): JsonResponse
     {
-        $order = $this->orderService->createOrder($request->validated());
+        $order = $this->orderService->createOrder($request());
         return $this->successResponse([
             'order' => new OrderResource($order),
         ], __('message.success'));

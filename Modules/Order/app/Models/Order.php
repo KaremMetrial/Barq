@@ -152,6 +152,12 @@ class Order extends Model
                 $query->where('status', $filters['status']);
             })->when(isset($filters['courier_id']), function ($query) use ($filters) {
                 $query->where('couier_id', $filters['courier_id']);
+            })
+            ->when(isset($filters['store_id']), function ($query) use ($filters) {
+                $query->where('store_id', $filters['store_id']);
+            })
+            ->when(isset($filters['user_id']), function ($query) use ($filters) {
+                $query->where('user_id', $filters['user_id']);
             });
 
         $user = auth()->user();
@@ -271,7 +277,7 @@ class Order extends Model
             'cancelled' => (int) $stats->cancelled,
         ];
     }
-        public function hasConsecutiveCancellations(int $count = 2): bool
+    public function hasConsecutiveCancellations(int $count = 2): bool
     {
         if (!$this->user_id) {
             return false;
@@ -331,9 +337,9 @@ class Order extends Model
         }
 
         $conversation = Conversation::where(function ($query) {
-                $query->where('user_id', $this->user->id)
-                      ->orWhere('store_id', $this->store->id);
-            })
+            $query->where('user_id', $this->user->id)
+                ->orWhere('store_id', $this->store->id);
+        })
             ->where('couier_id', $this->courier->id)
             ->where('order_id', $this->id)
             ->where('type', 'delivery')

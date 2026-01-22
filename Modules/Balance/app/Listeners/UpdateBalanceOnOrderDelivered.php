@@ -21,6 +21,8 @@ class UpdateBalanceOnOrderDelivered implements ShouldQueue
 
     /**
      * Handle the event.
+     * Final settlement when order is delivered.
+     * Courier collected cash from customer and now must settle with platform.
      */
     public function handle(OrderStatusChanged $event): void
     {
@@ -37,93 +39,48 @@ class UpdateBalanceOnOrderDelivered implements ShouldQueue
         $order = $event->order;
 
         DB::transaction(function () use ($order) {
-            // Calculate store amount (order amount minus commission)
-            $storeAmount = $order->total_amount - $order->store->calculateCommission($order->total_amount);
-            $commissionAmount = $order->store->calculateCommission($order->total_amount);
-
-            // Update courier balance - deduct store amount and courier commission, add delivery fee
             $courier = $order->courier;
-            if ($courier) {
-                $courierBalance = $courier->balance()->firstOrCreate([], [
-                    'available_balance' => 0,
-                    'pending_balance' => 0,
-                    'total_balance' => 0,
-                ]);
+            $store = $order->store;
 
-                // Calculate courier commission
-                $courierCommission = $this->calculateCourierCommission($courier, $order->total_amount);
-
-                // Deduct store amount from courier's available balance
-                $courierBalance->decrement('available_balance', $storeAmount);
-                $courierBalance->decrement('total_balance', $storeAmount);
-
-                // Create transaction record for store payment by courier
-                Transaction::create([
-                    'transactionable_type' => 'courier',
-                    'transactionable_id' => $courier->id,
-                    'type' => TransactionType::DECREMENT,
-                    'amount' => $storeAmount,
-                    'currency' => $courier->store->getCurrencyCode() ?? 'USD',
-                    'translations' => [
-                        'en' => ['description' => "Payment for order you paid for store #{$order->order_number}"],
-                        'ar' => ['description' => "التي تم دفعها للمطعم دفعة للطلب رقم #{$order->order_number}"],
-                    ],
-                    'status' => TransactionStatusEnum::SUCCESS->value,
-                    'order_id' => $order->id
-                ]);
-
-                // Deduct courier commission from courier's available balance
-                $courierBalance->decrement('available_balance', $courierCommission);
-                $courierBalance->decrement('total_balance', $courierCommission);
-
-                // Create transaction record for courier commission
-                Transaction::create([
-                    'transactionable_type' => 'courier',
-                    'transactionable_id' => $courier->id,
-                    'type' => TransactionType::DECREMENT,
-                    'amount' => $courierCommission,
-                    'currency' => $courier->store->getCurrencyCode() ?? 'USD',
-                    'translations' => [
-                        'en' => ['description' => "Courier commission for order #{$order->order_number}"],
-                        'ar' => ['description' => "عمولة عامل التوصيل للطلب رقم #{$order->order_number}"],
-                    ],
-                    'status' => TransactionStatusEnum::SUCCESS->value,
-                    'order_id' => $order->id
-                ]);
-
-                // Add delivery fee to courier's available balance
-                $deliveryFee = $this->calculateCourierPayment($order);
-                $courierBalance->increment('available_balance', $deliveryFee);
-                $courierBalance->increment('total_balance', $deliveryFee);
-
-                // Create transaction record for delivery fee
-                Transaction::create([
-                    'transactionable_type' => 'courier',
-                    'transactionable_id' => $courier->id,
-                    'type' => TransactionType::EARNING,
-                    'amount' => $deliveryFee,
-                    'currency' => $courier->store->getCurrencyCode() ?? 'USD',
-                    'translations' => [
-                        'en' => ['description' => "Delivery fee for order #{$order->order_number}"],
-                        'ar' => ['description' => "رسوم توصيل للطلب رقم #{$order->order_number}"],
-                    ],
-                    'status' => TransactionStatusEnum::SUCCESS->value,
-                    'order_id' => $order->id
-                ]);
+            if (!$courier || !$store) {
+                return;
             }
 
-            // Update store balance - add to available
-            $store = $order->store;
+            // Calculate amounts using fixed model methods to avoid unit errors
+            $platformCommissionFromOrder = $store->calculateCommission($order->total_amount);
+            $storeAmount = $order->total_amount - $platformCommissionFromOrder;
+
+            $deliveryFee = $order->delivery_fee ?? 0;
+            $courierCommissionFromDelivery = $courier->calculateCommission($deliveryFee);
+            $courierProfit = $deliveryFee - $courierCommissionFromDelivery;
+
+            // Get balances
+            $courierBalance = $courier->balance()->firstOrCreate([], [
+                'available_balance' => 0,
+                'pending_balance' => 0,
+                'total_balance' => 0,
+            ]);
+
             $storeBalance = $store->balance()->firstOrCreate([], [
                 'available_balance' => 0,
                 'pending_balance' => 0,
                 'total_balance' => 0,
             ]);
 
+            $platformBalance = \Modules\Balance\Models\Balance::firstOrCreate(
+                ['balanceable_type' => 'platform', 'balanceable_id' => 1],
+                ['available_balance' => 0, 'pending_balance' => 0, 'total_balance' => 0]
+            );
+
+            // ============================================
+            // 1. SETTLE STORE EARNINGS
+            // ============================================
+            // We assume the courier already paid the store cash (at OnTheWay pickup)
+            // or the store is paid electronically. In either case, we credit their wallet
+            // for the earning, and if they got cash, we'd debit it (done via Courier wallet decrement).
             $storeBalance->increment('available_balance', $storeAmount);
             $storeBalance->increment('total_balance', $storeAmount);
 
-            // Create transaction record for store
             Transaction::create([
                 'transactionable_type' => 'store',
                 'transactionable_id' => $store->id,
@@ -131,32 +88,77 @@ class UpdateBalanceOnOrderDelivered implements ShouldQueue
                 'amount' => $storeAmount,
                 'currency' => $store->getCurrencyCode() ?? 'USD',
                 'translations' => [
-                    'en' => ['description' => "Earnings from order #{$order->order_number}"],
                     'ar' => ['description' => "أرباح من الطلب رقم #{$order->order_number}"],
+                    'en' => ['description' => "Earnings from order #{$order->order_number}"],
                 ],
                 'status' => TransactionStatusEnum::SUCCESS->value,
                 'order_id' => $order->id
             ]);
 
-            // Update platform balance with commission
-            $platformBalance = \Modules\Balance\Models\Balance::firstOrCreate(
-                ['balanceable_type' => 'platform', 'balanceable_id' => 1],
-                ['available_balance' => 0, 'pending_balance' => 0, 'total_balance' => 0]
-            );
+            // ============================================
+            // 2. SETTLE COURIER DEBT/PROFIT
+            // ============================================
+            // Courier collected cash (Total + Delivery Fee) = 1000 + 50 = 1050
+            // Courier paid Store cash = 900
+            // Courier owes Platform = 100 (Store Commission) + 5 (Courier Commission) = 105
 
-            $platformBalance->increment('available_balance', $commissionAmount);
-            $platformBalance->increment('total_balance', $commissionAmount);
+            // To reflect this in wallet:
+            // Debit courier for Store Amount (because they "collected" it or paid it from pocket)
+            // Debit courier for Platform Commissions
+            // Credit courier for Delivery Fee (their gross pay)
 
-            // Create transaction record for platform commission
+            $totalDebitToCourier = $storeAmount + $platformCommissionFromOrder + $courierCommissionFromDelivery;
+            $courierBalance->decrement('available_balance', $totalDebitToCourier);
+            $courierBalance->decrement('total_balance', $totalDebitToCourier);
+
+            // Credit net delivery fee? No, credit gross then debit commission is clearer.
+            $courierBalance->increment('available_balance', $deliveryFee);
+            $courierBalance->increment('total_balance', $deliveryFee);
+
+            Transaction::create([
+                'transactionable_type' => 'courier',
+                'transactionable_id' => $courier->id,
+                'type' => TransactionType::DECREMENT,
+                'amount' => $totalDebitToCourier,
+                'currency' => $store->getCurrencyCode() ?? 'USD',
+                'translations' => [
+                    'ar' => ['description' => "تسوية مستحقات الطلب رقم #{$order->order_number} (مبلغ المتجر + عمولة المنصة)"],
+                    'en' => ['description' => "Order settlement for #{$order->order_number} (Store amount + Platform commission)"],
+                ],
+                'status' => TransactionStatusEnum::SUCCESS->value,
+                'order_id' => $order->id
+            ]);
+
+            Transaction::create([
+                'transactionable_type' => 'courier',
+                'transactionable_id' => $courier->id,
+                'type' => TransactionType::INCREMENT,
+                'amount' => $deliveryFee,
+                'currency' => $store->getCurrencyCode() ?? 'USD',
+                'translations' => [
+                    'ar' => ['description' => "رسوم التوصيل للطلب رقم #{$order->order_number}"],
+                    'en' => ['description' => "Delivery fee for order #{$order->order_number}"],
+                ],
+                'status' => TransactionStatusEnum::SUCCESS->value,
+                'order_id' => $order->id
+            ]);
+
+            // ============================================
+            // 3. SETTLE PLATFORM REVENUE
+            // ============================================
+            $totalPlatformRealized = $platformCommissionFromOrder + $courierCommissionFromDelivery;
+            $platformBalance->increment('available_balance', $totalPlatformRealized);
+            $platformBalance->increment('total_balance', $totalPlatformRealized);
+
             Transaction::create([
                 'transactionable_type' => 'platform',
                 'transactionable_id' => 1,
                 'type' => TransactionType::COMMISSION,
-                'amount' => $commissionAmount,
+                'amount' => $totalPlatformRealized,
                 'currency' => $store->getCurrencyCode() ?? 'USD',
                 'translations' => [
-                    'en' => ['description' => "Commission from order #{$order->order_number}"],
-                    'ar' => ['description' => "عمولة من الطلب رقم #{$order->order_number}"],
+                    'ar' => ['description' => "إجمالي عمولة الطلب رقم #{$order->order_number}"],
+                    'en' => ['description' => "Total commission for order #{$order->order_number}"],
                 ],
                 'status' => TransactionStatusEnum::SUCCESS->value,
                 'order_id' => $order->id
@@ -165,23 +167,10 @@ class UpdateBalanceOnOrderDelivered implements ShouldQueue
     }
 
     /**
-     * Calculate courier payment (delivery fee)
+     * Calculate courier commission
      */
-    private function calculateCourierPayment($order)
+    private function calculateCourierCommission($courier, $deliveryFee)
     {
-        return $order->delivery_fee ?? 0;
-    }
-
-    /**
-     * Calculate courier commission based on courier's commission settings
-     */
-    private function calculateCourierCommission($courier, $orderAmount)
-    {
-        if ($courier->commission_type === PlanTypeEnum::COMMISSION) {
-            return ($orderAmount * $courier->commission_amount) / 100;
-        } elseif ($courier->commission_type === PlanTypeEnum::SUBSCRIPTION) {
-            return $courier->commission_amount;
-        }
-        return 0;
+        return $courier->calculateCommission($deliveryFee);
     }
 }

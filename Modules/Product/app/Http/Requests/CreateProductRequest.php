@@ -122,14 +122,14 @@ class CreateProductRequest extends FormRequest
 
             // Product Option and Values Table
             'productOptions' => ['nullable', 'array'],
-            'productOptions.*.option_id' => ['required', 'integer', 'exists:options,id'],
+            'productOptions.*.option_id' => ['nullable', 'integer', 'exists:options,id'],
             'productOptions.*.min_select' => ['nullable', 'integer', 'min:0'],
             'productOptions.*.max_select' => ['nullable', 'integer', 'min:1'],
             'productOptions.*.is_required' => ['nullable', 'boolean'],
             'productOptions.*.sort_order' => ['nullable', 'integer', 'min:1'],
 
             'productOptions.*.values' => ['nullable', 'array'],
-            'productOptions.*.values.*.name' => ['required', 'string', 'max:255'],
+            'productOptions.*.values.*.name' => ['nullable', 'string', 'max:255'],
             'productOptions.*.values.*.price' => ['nullable', 'numeric', 'min:0'],
             'productOptions.*.values.*.stock' => ['nullable', 'integer', 'min:0'],
             'productOptions.*.values.*.is_default' => ['nullable', 'boolean'],

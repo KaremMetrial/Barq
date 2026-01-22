@@ -25,5 +25,5 @@ Broadcast::channel('store.{storeId}.new-orders', function ($user, $storeId) {
     return $user instanceof Vendor && $user->store_id === (int) $storeId;
 });
 Broadcast::channel('couriers.{courierId}', function ($user, $courierId) {
-    return $user instanceof Couier && $user->id === (int) $courierId;
+    return $user instanceof Couier && $user->id == (int) $courierId;
 });

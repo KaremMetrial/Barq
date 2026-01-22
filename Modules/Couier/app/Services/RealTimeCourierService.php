@@ -67,7 +67,7 @@ class RealTimeCourierService
     public function notifyOrderExpiring(int $courierId, int $orderId, int $secondsLeft): void
     {
         try {
-            event(new OrderAssignedExpired($courierId, $orderId, $secondsLeft));
+            // event(new OrderAssignedExpired($courierId, $orderId, $secondsLeft));
 
             Log::info("Pusher: Order expiring notification sent", [
                 'courier_id' => $courierId,
@@ -88,12 +88,14 @@ class RealTimeCourierService
      */
     public function notifyOrderExpired(int $courierId, int $orderId, string $reason = 'timeout'): void
     {
+
         try {
-            $this->pusher->trigger("couriers", "order-expired.{$courierId}", [
-                'order_id' => $orderId,
-                'reason' => $reason,
-                'expired_at' => now()->toISOString(),
-            ]);
+            event(new OrderAssignedExpired($courierId, $orderId, $reason, now()->toISOString()));
+            // $this->pusher->trigger("couriers.{$courierId}", "order-expired", [
+            //     'order_id' => $orderId,
+            //     'reason' => $reason,
+            //     'expired_at' => now()->toISOString(),
+            // ]);
 
             Log::info("Pusher: Order expired notification sent", [
                 'courier_id' => $courierId,

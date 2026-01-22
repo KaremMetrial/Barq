@@ -127,14 +127,14 @@ class FirebaseService
     }
     public function fcmTest()
     {
-        $tokens = ['cIdiV8RyT4CvJMNrxymoMc:APA91bG2U4ty2KCIKQaJZn71omW6MsS0ywP_93EM19a3iPuEMzNSSk85Wjr0lmaOklD1Ub5NZAdnD_nKqmWPrP5yfen9aq5TDU3qFSRYKhwxCNziLL88oEU'];
+        $tokens = ['flhsb-GnScCOoD8rLPeVOd:APA91bFWqATctWTRCe4_xIHttJlUiXS5Rol4upUfA0dg49dJ_EeuwL1JfX_MWVcw_KzD2yKpEIQkq1Q5oy6aNVOxbNn_uUnrURZs4B64-X1468gHvoKnyLU'];
 
         $title = "دا مش نوتفيكشن دا تيست انا عمله ملوش علاقة باى حاجة ";
         $body = "You have a new order";
         $data = [
             'order_id' => 1,
-            'store_id' => 1,
-            'notification_type' => 'new_order',
+            'order_number' => 1,
+            'notification_type' => 'new_assignment',
         ];
         $message = CloudMessage::new()
             ->withNotification(FirebaseNotification::create($title, $body))

@@ -37,7 +37,7 @@ class WalletController extends Controller
                 'currency_factor' => 100,
             ],
             'loyalty_points' => [
-                'total_points' => $user->loyalty_points,
+                'total_points' => (int) $user->loyalty_points,
             ],
             'recent_loyalty_transactions' => LoyaltyTransactionResource::collection($recentLoyaltyTransactions),
             'recent_transactions' => $recentTransactions->map(function ($transaction) {

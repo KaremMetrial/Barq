@@ -40,7 +40,7 @@ class SearchRepository implements SearchRepositoryInterface
                         'logo' => $store->logo ? asset('storage/' . $store->logo) : null,
                         "status" => $store->status->value,
                         "status_label" => StoreStatusEnum::label($store->status->value),
-                        "delivery_fee" => (float) $store->getDeliveryFee() ?? 0,
+                        "delivery_fee" => (int) $store->getDeliveryFee() ?? 0,
                         'delivery_time_min' => $store->storeSetting->delivery_time_min,
                         'delivery_time_max' => $store->storeSetting->delivery_time_max,
                         'products'   => $storeProducts->map(fn($product) => [

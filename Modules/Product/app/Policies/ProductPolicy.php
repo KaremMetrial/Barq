@@ -29,7 +29,7 @@ class ProductPolicy
         }
 
         // Vendors can view products from their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class ProductPolicy
         }
 
         // Vendors can view products from their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $product->store_id === $user->store_id;
         }
 
@@ -85,7 +85,7 @@ class ProductPolicy
         }
 
         // Vendors can create products for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -108,7 +108,7 @@ class ProductPolicy
         }
 
         // Vendors can update products from their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $product->store_id === $user->store_id;
         }
 
@@ -131,7 +131,7 @@ class ProductPolicy
         }
 
         // Vendors can delete products from their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $product->store_id === $user->store_id;
         }
 
@@ -196,7 +196,7 @@ class ProductPolicy
         }
 
         // Vendors can manage pricing for their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $product->store_id === $user->store_id;
         }
 
@@ -345,7 +345,7 @@ class ProductPolicy
         }
 
         // Vendors can activate/deactivate their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $product->store_id === $user->store_id;
         }
 
@@ -368,7 +368,7 @@ class ProductPolicy
         }
 
         // Vendors can feature/unfeature their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $product->store_id === $user->store_id;
         }
 
@@ -405,7 +405,7 @@ class ProductPolicy
         }
 
         // Vendors can export data for their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -428,7 +428,7 @@ class ProductPolicy
         }
 
         // Vendors can import data for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -451,7 +451,7 @@ class ProductPolicy
         }
 
         // Vendors can bulk update their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -474,7 +474,7 @@ class ProductPolicy
         }
 
         // Vendors can bulk delete their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_product', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -499,7 +499,7 @@ class ProductPolicy
         // Vendors can view analytics for their products
         if ($user instanceof Vendor) {
             if ($product->store_id === $user->store_id) {
-                return PermissionHelper::hasPermission('view_report', 'vendor');
+                return true;
             }
             return false;
         }
@@ -537,7 +537,7 @@ class ProductPolicy
         }
 
         // Vendors can moderate reviews for their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_product', 'vendor')) {
+        if ($user instanceof Vendor) {
             return $product->store_id === $user->store_id;
         }
 
@@ -560,7 +560,7 @@ class ProductPolicy
         }
 
         // Vendors can view reports for their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_product', 'vendor')) {
+        if ($user instanceof Vendor) {
             return $product->store_id === $user->store_id;
         }
 
@@ -601,7 +601,7 @@ class ProductPolicy
         }
 
         // Vendors can view order items for their products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_order', 'vendor')) {
+        if ($user instanceof Vendor) {
             return $product->store_id === $user->store_id;
         }
 

@@ -67,6 +67,18 @@ class Zone extends Model implements TranslatableContract
         if (isset($filters['city_id']) && $filters['city_id'] != 0) {
             $query->where('city_id', $filters['city_id']);
         }
+        if (isset($filters['country_id']) && $filters['country_id'] != 0) {
+            $query->whereHas('city', function ($query) use ($filters) {
+                $query->whereHas('governorate', function ($query) use ($filters) {
+                    $query->where('country_id', $filters['country_id']);
+                });
+            });
+        }
+        if (isset($filters['governorate_id']) && $filters['governorate_id'] != 0) {
+            $query->whereHas('city', function ($query) use ($filters) {
+                $query->where('governorate_id', $filters['governorate_id']);
+            });
+        }
         if (isset($filters['search'])) {
             $query->whereTranslationLike('name', '%' . $filters['search'] . '%');
         }

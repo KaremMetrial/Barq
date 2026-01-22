@@ -28,7 +28,7 @@ class VendorCollectionResource extends JsonResource
             "is_active" => (bool) $this->is_active,
             'store_name' => $this->store ? $this->store->name : null,
             'store_address' => $this->store ? $this->store->address_place : null,
-            'last_login' => $this->last_login?->format('Y-m-d H:i:s'),
+            'last_login' => $this->last_login,
             'role' => $this->getRoleNames()->first() ?? 'none'
         ];
     }

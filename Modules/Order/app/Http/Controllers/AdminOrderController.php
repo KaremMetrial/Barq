@@ -14,6 +14,10 @@ use Modules\Order\Http\Requests\CreateOrderRequest;
 use Modules\Order\Http\Requests\UpdateOrderRequest;
 use Modules\Order\Http\Resources\OrderCollectionResource;
 use Modules\Order\Models\Order;
+use LaravelDaily\Invoices\Invoice;
+use LaravelDaily\Invoices\Classes\Buyer;
+use LaravelDaily\Invoices\Classes\Seller;
+use LaravelDaily\Invoices\Classes\InvoiceItem;
 
 class AdminOrderController extends Controller
 {
@@ -27,11 +31,11 @@ class AdminOrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Order::class);
-        $filter = $request->only('search','status','from_date','to_date', 'courier_id', 'store_id', 'user_id');
+        $filter = $request->only('search', 'status', 'from_date', 'to_date', 'courier_id', 'store_id', 'user_id');
         $orders = $this->orderService->getAllOrders($filter);
 
         return $this->successResponse([
-            'orders' => OrderResource::collection($orders->load('user', 'courier','items.product', 'paymentMethod')),
+            'orders' => OrderResource::collection($orders->load('user', 'courier', 'items.product', 'paymentMethod')),
             'pagination' => new PaginationResource($orders),
         ], __('message.success'));
     }
@@ -58,7 +62,7 @@ class AdminOrderController extends Controller
         // $order->load('items.product', 'items.productOptionValue', 'items.addOns', 'store', 'user', 'courier', 'statusHistories');
 
         return $this->successResponse([
-            'order' => new OrderResource($order->load('statusHistories', 'paymentMethod')),
+            'order' => new OrderResource($order->load('statusHistories', 'paymentMethod', 'items.product', 'items.productOptionValue')),
         ], __('message.success'));
     }
 
@@ -91,5 +95,31 @@ class AdminOrderController extends Controller
         $stats = $this->orderService->getStats();
 
         return $this->successResponse($stats, __('message.success'));
+    }
+
+    /**
+     * Get order invoice for printing.
+     */
+    public function invoice(int $id)
+    {
+        $order = Order::with([
+            'store.address.zone.city.governorate.country',
+            'user',
+            'deliveryAddress.zone.city',
+            'items.product.translations',
+            'items.addOns',
+            'items.productOptionValue',
+            'paymentMethod'
+        ])->findOrFail($id);
+
+        $this->authorize('view', $order);
+
+        if (request()->wantsJson() || request()->get('format') === 'json') {
+            return $this->successResponse([
+                'order' => new OrderResource($order)
+            ], __('message.success'));
+        }
+
+        return view('order::invoice', compact('order'));
     }
 }

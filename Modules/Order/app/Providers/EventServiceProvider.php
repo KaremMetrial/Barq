@@ -15,11 +15,12 @@ class EventServiceProvider extends ServiceProvider
         \Modules\Order\Events\OrderStatusChanged::class => [
             \Modules\Order\Listeners\SaveOrderStatusHistory::class,
             \Modules\Order\Listeners\AutoAssignCourierListener::class,
+            \Modules\Order\Listeners\ScheduleCourierAssignmentListener::class,
             // \Modules\Balance\Listeners\UpdateBalanceOnOrderDelivered::class,
 
         ],
         // \Modules\Order\Events\OrderNotAcceptedOnTime::class => [
-            // \Modules\Order\Listeners\CancelOrderIfNotAccepted::class,
+        // \Modules\Order\Listeners\CancelOrderIfNotAccepted::class,
         // ],
     ];
 

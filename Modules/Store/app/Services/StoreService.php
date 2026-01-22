@@ -4,6 +4,7 @@ namespace Modules\Store\Services;
 
 use Carbon\Carbon;
 use App\Enums\OrderStatus;
+use App\Helpers\CurrencyHelper;
 use Modules\Role\Models\Role;
 use App\Traits\FileUploadTrait;
 use Modules\Store\Models\Store;
@@ -92,7 +93,58 @@ class StoreService
                 'public'
             );
             $data['store'] = array_filter($data['store'], fn($value) => !blank($value));
+
+            // Get currency factor from the address data or country data for updates
+            $currencyFactor = 100; // Default fallback
+
+            // Try to get currency factor from the address being updated
+            if (isset($data['address']['zone_id'])) {
+                $zone = \Modules\Zone\Models\Zone::find($data['address']['zone_id']);
+                if ($zone && $zone->city && $zone->city->governorate && $zone->city->governorate->country) {
+                    $currencyFactor = $zone->city->governorate->country->currency_factor ?? 100;
+                }
+            } else {
+                // For updates, try to get currency factor from existing store
+                $store = $this->StoreRepository->find($id);
+                if ($store && $store->address && $store->address->zone && $store->address->zone->city && $store->address->zone->city->governorate && $store->address->zone->city->governorate->country) {
+                    $currencyFactor = $store->address->zone->city->governorate->country->currency_factor ?? 100;
+                }
+            }
+
+            // Fallback: try to get from store data if provided
+            if (!isset($data['address']['zone_id']) && isset($data['store']['currency_factor'])) {
+                $currencyFactor = $data['store']['currency_factor'];
+            }
+
+            // Convert commission amount to minor units using the correct currency factor ONLY if it's a fixed amount (subscription)
+            $currentStore = $this->StoreRepository->find($id);
+            if (
+                isset($data['store']['commission_amount']) &&
+                ($data['store']['commission_type'] ?? $currentStore->commission_type->value) === \App\Enums\PlanTypeEnum::SUBSCRIPTION->value
+            ) {
+                $data['store']['commission_amount'] = CurrencyHelper::toMinorUnits($data['store']['commission_amount'], $currencyFactor);
+            }
+
             $store = $this->StoreRepository->update($id, $data['store']);
+            $store->storeSetting()->update([
+                'orders_enabled' => $data['store']['orders_enabled'] ?? $store->storeSetting?->orders_enabled,
+                'delivery_service_enabled' => $data['store']['delivery_service_enabled'] ?? $store->storeSetting?->delivery_service_enabled,
+                'external_pickup_enabled' => $data['store']['external_pickup_enabled'] ?? $store->storeSetting?->external_pickup_enabled,
+                'product_classification' => $data['store']['product_classification'] ?? $store->storeSetting?->product_classification,
+                'self_delivery_enabled' => $data['store']['self_delivery_enabled'] ?? $store->storeSetting?->self_delivery_enabled,
+                'free_delivery_enabled' => $data['store']['free_delivery_enabled'] ?? $store->storeSetting?->free_delivery_enabled,
+                'minimum_order_amount' => $data['store']['minimum_order_amount'] ?? $store->storeSetting?->minimum_order_amount,
+                'delivery_time_min' => $data['store']['delivery_time_min'] ?? $store->storeSetting?->delivery_time_min,
+                'delivery_time_max' => $data['store']['delivery_time_max'] ?? $store->storeSetting?->delivery_time_max,
+                'tax_rate' => $data['store']['tax_rate'] ?? $store->storeSetting?->tax_rate,
+                'order_interval_time' => $data['store']['order_interval_time'] ?? $store->storeSetting?->order_interval_time,
+                'service_fee_percentage' => $data['store']['service_fee_percentage'] ?? $store->storeSetting?->service_fee_percentage,
+            ]);
+
+            // Update address if provided
+            if (isset($data['address'])) {
+                $store->address()->update($data['address']);
+            }
 
             // Sync zones to cover if provided
             if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
@@ -140,10 +192,13 @@ class StoreService
             $store->categories()->delete();
             $store->branches()->delete();
             $store->CompaignParicipations()->delete();
+            $store->couriers()->delete();
+            $store->vendors()->delete();
 
             // 3. Delete morph-many relationships
             $store->favourites()->delete();
             $store->reviews()->delete();
+            $store->banners()->delete();
 
             // 4. Delete has-one relationships
             $store->storeSetting()->delete();
@@ -159,8 +214,8 @@ class StoreService
         $relation = [
             'section.categories',
             'storeSetting',
-            'address',
-            'translations',
+            'address.zone.city.governorate.country',
+            'address.zone.shippingPrices',
             'section',
             'currentUserFavourite',
             'offers',
@@ -211,12 +266,14 @@ class StoreService
             });
 
         return [
-            'total_orders' => (string) $stats['total_orders'],
-            'today_revenue' => (string) $stats['today_revenue'],
-            'pending_orders' => (string) $stats['pending_orders'],
-            'average_order' => (string) $stats['average_order'],
+            'total_orders' => (int) $stats['total_orders'],
+            'today_revenue' => (int) $stats['today_revenue'],
+            'pending_orders' => (int) $stats['pending_orders'],
+            'average_order' => (int) $stats['average_order'],
             'latest_orders' => OrderResource::collection($latestOrders),
             'top_products' => $products,
+            'currency_code' => $store->getCurrencyCode(),
+            'currency_factor' => $store->getCurrencyFactor(),
         ];
     }
     public function adminStats()
@@ -251,12 +308,40 @@ class StoreService
                 'public'
             );
             $data = array_filter($data, fn($value) => !blank($value));
+
+            // Get currency factor from the address data or country data
+            $currencyFactor = 100; // Default fallback
+
+            // Try to get currency factor from the address being created
+            if (isset($data['address']['zone_id'])) {
+                $zone = \Modules\Zone\Models\Zone::find($data['address']['zone_id']);
+                if ($zone && $zone->city && $zone->city->governorate && $zone->city->governorate->country) {
+                    $currencyFactor = $zone->city->governorate->country->currency_factor ?? 100;
+                }
+            }
+
+            // Fallback: try to get from store data if provided
+            if (!isset($data['address']['zone_id']) && isset($data['store']['currency_factor'])) {
+                $currencyFactor = $data['store']['currency_factor'];
+            }
+
+            // Convert commission amount to minor units using the correct currency factor ONLY if it's a fixed amount (subscription)
+            if (
+                isset($data['store']['commission_amount']) &&
+                ($data['store']['commission_type'] ?? \App\Enums\PlanTypeEnum::COMMISSION->value) === \App\Enums\PlanTypeEnum::SUBSCRIPTION->value
+            ) {
+                $data['store']['commission_amount'] = CurrencyHelper::toMinorUnits($data['store']['commission_amount'], $currencyFactor);
+            }
+
             $store =  $this->StoreRepository->create($data['store'] + ['zone_id' => $data['address']['zone_id']]);
             $store->address()->create($data['address']);
+            $store->refresh();
+            $store->load('address.zone.city.governorate.country'); // Load deep relations for currency factor
+
             if ($data['store']['type'] != 'delivery') {
                 $store->storeSetting()->create([
                     'orders_enabled' => $data['store']['orders_enabled'] ?? true,
-                    'delivery_service_enabled' => $data['storeSetting']['delivery_service_enabled'] ?? true,
+                    'delivery_service_enabled' => $data['store']['delivery_service_enabled'] ?? true,
                     'external_pickup_enabled' => $data['store']['external_pickup_enabled'] ?? false,
                     'product_classification' => $data['store']['product_classification'] ?? false,
                     'self_delivery_enabled' => $data['store']['self_delivery_enabled'] ?? true,
@@ -268,13 +353,15 @@ class StoreService
                     'order_interval_time' => $data['store']['order_interval_time'] ?? 0,
                     'service_fee_percentage' => $data['store']['service_fee_percentage'] ?? 0,
                     'commission_amount' => $data['store']['commission_amount'] ?? 0,
-                    'commission_type' => $data['store']['commission_type'] ?? 'percentage',
+                    'commission_type' => $data['store']['commission_type'] ?? 'commission',
                 ]);
+
                 if (isset($data['vendor'])) {
                     $data['vendor']['role_id'] = \Spatie\Permission\Models\Role::where('name', 'store_owner')->first()->id;
                     $vendor = $store->vendors()->create($data['vendor']);
                     $vendor->assignRole('store_owner');
                 }
+
                 // Attach zones to cover if provided
                 if (isset($data['zones_to_cover']) && is_array($data['zones_to_cover'])) {
                     $store->zoneToCover()->attach($data['zones_to_cover']);
@@ -297,10 +384,39 @@ class StoreService
 
     public function deliveryStoreStats($filter = [])
     {
+        $currencyCode = config('settings.default_currency', 'USD');
+        $currencyFactor = 100;
+        $countryId = null;
+
+        if (auth('sanctum')->check()) {
+            $user = auth('sanctum')->user();
+            if ($user->currentAccessToken() && $user->currentAccessToken()->country_id) {
+                $countryId = $user->currentAccessToken()->country_id;
+            }
+            if (!$countryId) {
+                $countryId = config('settings.default_country', 1);
+            }
+        } else {
+            $countryId = config('settings.default_country', 1);
+        }
+
+        if ($countryId) {
+            $country = \Modules\Country\Models\Country::find($countryId);
+            if ($country) {
+                $currencyCode = $country->currency_name ?? config('settings.default_currency', 'USD');
+                $currencyFactor = $country->currency_factor ?? 100;
+            }
+        }
+
         $deliveryStores = Store::when($filter['store_id'] ?? null, function ($query) use ($filter) {
-                $query->where('id', $filter['store_id']);
-            })
+            $query->where('id', $filter['store_id']);
+        })
             ->where('type', 'delivery')
+            ->when($countryId, function ($query) use ($countryId) {
+                $query->whereHas('address.zone.city.governorate', function ($q) use ($countryId) {
+                    $q->where('country_id', $countryId);
+                });
+            })
             ->get();
         $totalDeliveryCompanies = $deliveryStores->count();
 
@@ -329,13 +445,15 @@ class StoreService
             'executed_orders' => $successfulOrders,
             'total_couriers' => $totalCouriers,
             'total_delivery_companies' => $totalDeliveryCompanies,
+            'currency_factor' => $currencyFactor,
+            'currency_code' => $currencyCode
         ];
     }
     public function deliveryStoreStatsInfo($filter = [])
     {
         $store = Store::when($filter['store_id'] ?? null, function ($query) use ($filter) {
-                $query->where('id', $filter['store_id']);
-            })
+            $query->where('id', $filter['store_id']);
+        })
             ->where('type', 'delivery')
             ->first();
 

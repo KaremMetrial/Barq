@@ -15,15 +15,17 @@ class OrderAssignedExpired implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
     protected $courierId;
     protected $orderId;
-    protected $secondsLeft;
+    protected $reason;
+    protected $expiredAt;
     /**
      * Create a new event instance.
      */
-    public function __construct($courierId, $orderId, $secondsLeft)
+    public function __construct($courierId, $orderId, $reason, $expiredAt)
     {
         $this->courierId = $courierId;
         $this->orderId = $orderId;
-        $this->secondsLeft = $secondsLeft;
+        $this->reason = $reason;
+        $this->expiredAt = $expiredAt;
     }
     /**
      * Get the channels the event should be broadcast on.
@@ -31,19 +33,19 @@ class OrderAssignedExpired implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('couriers'),
+            new Channel('couriers.'.$this->courierId),
         ];
     }
     public function broadcastAs(): string
     {
-        return 'order-expiring.' . $this->courierId;
+        return 'order-expired';
     }
     public function broadcastWith(): array
     {
         return [
                 'order_id' => $this->orderId,
-                'seconds_left' => $this->secondsLeft,
-                'expires_at' => now()->addSeconds($this->secondsLeft)->toISOString(),
+                'reason' => $this->reason,
+                'expires_at' => $this->expiredAt,
         ];
     }
 }

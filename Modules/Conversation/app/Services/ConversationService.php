@@ -82,4 +82,9 @@ class ConversationService
             ]);
         });
     }
+
+    public function findExisting(array $criteria)
+    {
+        return $this->ConversationRepository->checkExisting($criteria);
+    }
 }

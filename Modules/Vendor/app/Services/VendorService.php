@@ -99,6 +99,9 @@ class VendorService
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
+        $vendor->update([
+            'last_login' => now(),
+        ]);
         $newToken = $vendor->createToken('token',['vendor']);
         $newToken->accessToken->fcm_device = request()->input('fcm_device');
         $newToken->accessToken->save();

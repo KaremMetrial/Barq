@@ -28,7 +28,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can view their store's working days
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -55,7 +55,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can view working days for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $workingDay->store && $workingDay->store->owner && $workingDay->store->owner->id === $user->id;
         }
 
@@ -82,7 +82,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can create working days for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -104,7 +104,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can update working days for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $workingDay->store && $workingDay->store->owner && $workingDay->store->owner->id === $user->id;
         }
 
@@ -126,7 +126,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can delete working days for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $workingDay->store && $workingDay->store->owner && $workingDay->store->owner->id === $user->id;
         }
 
@@ -175,7 +175,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can export their store's working day data
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -197,7 +197,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can import working day data for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -219,7 +219,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can bulk update their store's working days
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -241,7 +241,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can bulk delete their store's working days
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -263,7 +263,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage templates for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -311,7 +311,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage holidays for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -333,7 +333,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage special hours for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -355,7 +355,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage breaks for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -377,7 +377,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage delivery hours for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -408,7 +408,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can set their stores as 24/7
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -430,7 +430,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage seasonal hours for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -452,7 +452,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage emergency hours for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -474,7 +474,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can view analytics for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_report', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -496,7 +496,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can generate reports for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_report', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -518,7 +518,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage notifications for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -625,7 +625,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage timezone for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -647,7 +647,7 @@ class WorkingDayPolicy
         }
 
         // Vendors can manage DST for their stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_working_day', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 

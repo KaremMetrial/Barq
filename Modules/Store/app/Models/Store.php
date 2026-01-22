@@ -14,6 +14,7 @@ use Modules\Coupon\Models\Coupon;
 use Modules\Review\Models\Review;
 use Modules\Vendor\Models\Vendor;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Modules\Address\Models\Address;
 use Modules\Balance\Models\Balance;
 use Modules\Product\Models\Product;
@@ -36,11 +37,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\CompaignParicipation\Models\CompaignParicipation;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Modules\AddOn\Models\AddOn;
-use Illuminate\Support\Facades\DB;
+use Modules\Banner\Models\Banner;
+use Laravel\Scout\Searchable;
 
 class Store extends Model implements TranslatableContract
 {
-    use SoftDeletes, Translatable;
+    use SoftDeletes, Translatable, Searchable;
     public $translatedAttributes = ['name'];
 
     protected $fillable = [
@@ -74,12 +76,20 @@ class Store extends Model implements TranslatableContract
         'status' => StoreStatusEnum::class,
         'commission_type' => PlanTypeEnum::class,
     ];
+    protected $with = ['workingDays', 'address', 'reviews', 'translations','categories'];
+    public function toSearchableArray()
+    {
+        return [
+            'id' => (int) $this->id,
+            'name' => $this->name,
+        ];
+    }
     public function getTotalEarnedCommission(): float
     {
         return $this->orders()
-            ->join('stores', 'orders.store_id', '=', 'stores.id')
-            ->where('orders.payment_status', 'paid')
-            ->sum(DB::raw('orders.total_amount * (stores.commission_amount / 100)'));
+            ->where('payment_status', 'paid')
+            ->get()
+            ->sum(fn($order) => $this->calculateCommission($order->total_amount));
     }
 
     /**
@@ -88,15 +98,15 @@ class Store extends Model implements TranslatableContract
     public function getTotalPendingCommission(): float
     {
         return $this->orders()
-            ->join('stores', 'orders.store_id', '=', 'stores.id')
-            ->where('orders.payment_status', '!=', 'paid')
-            ->sum(DB::raw('orders.total_amount * (stores.commission_amount / 100)'));
+            ->where('payment_status', '!=', 'paid')
+            ->get()
+            ->sum(fn($order) => $this->calculateCommission($order->total_amount));
     }
     public function scopeWithCustomCommission($query)
     {
         return $query->where(function ($query) {
             $query->where('commission_amount', '>', 0)
-                  ->orWhere('commission_type', '!=', PlanTypeEnum::COMMISSION);
+                ->orWhere('commission_type', '!=', PlanTypeEnum::COMMISSION);
         });
     }
 
@@ -106,8 +116,10 @@ class Store extends Model implements TranslatableContract
     public function calculateCommission($orderAmount)
     {
         if ($this->commission_type === PlanTypeEnum::COMMISSION) {
+            // commission_amount is stored as a percentage (e.g., 10 for 10%)
             return ($orderAmount * $this->commission_amount) / 100;
         } elseif ($this->commission_type === PlanTypeEnum::SUBSCRIPTION) {
+            // commission_amount is stored as minor units (fixed amount)
             return $this->commission_amount;
         }
         return 0;
@@ -189,6 +201,10 @@ class Store extends Model implements TranslatableContract
     {
         return $this->hasMany(Category::class);
     }
+    public function banners()
+    {
+        return $this->morphMany(Banner::class, 'bannerable');
+    }
 
     public function scopeFilter($query, $filters)
     {
@@ -232,17 +248,17 @@ class Store extends Model implements TranslatableContract
             $query->whereHas('products', function ($query) {
                 $query->whereHas('offers', function ($query) {
                     $query->where('is_active', true)
-                          ->whereDate('start_date', '<=', now()->toDateString())
-                          ->whereDate('end_date', '>=', now()->toDateString());
+                        ->whereDate('start_date', '<=', now()->toDateString())
+                        ->whereDate('end_date', '>=', now()->toDateString());
                 });
             });
         }
 
-        if(!empty($filters['is_active']) && $filters['is_active'] == 'true'){
+        if (!empty($filters['is_active']) && $filters['is_active'] == 'true') {
             $query->where('is_active', true);
         }
 
-        if(!empty($filters['is_active']) && $filters['is_active'] == 'false'){
+        if (!empty($filters['is_active']) && $filters['is_active'] == 'false') {
             $query->where('is_active', false);
         }
 
@@ -327,10 +343,10 @@ class Store extends Model implements TranslatableContract
                 }
             }
             $query->where('status', StoreStatusEnum::APPROVED)
-            ->whereNull('parent_id')
-              ->whereHas('products', function ($query) {
-                $query->where('is_active', true);
-              })
+                ->whereNull('parent_id')
+                ->whereHas('products', function ($query) {
+                    $query->where('is_active', true);
+                })
                 ->where('is_active', true)
                 ->where('type', '!=', 'delivery');
         }
@@ -356,11 +372,11 @@ class Store extends Model implements TranslatableContract
                 $query->whereHas('zoneToCover', function ($q) use ($zone) {
                     $q->where('zones.id', $zone->id);
                 })
-                ->orWhereHas('branches', function ($q) use ($zone) {
-                    $q->whereHas('zoneToCover', function ($qq) use ($zone) {
-                        $qq->where('zones.id', $zone->id);
+                    ->orWhereHas('branches', function ($q) use ($zone) {
+                        $q->whereHas('zoneToCover', function ($qq) use ($zone) {
+                            $qq->where('zones.id', $zone->id);
+                        });
                     });
-                });
             });
         } else {
             if ($addressId || ($lat && $lng)) {
@@ -370,38 +386,45 @@ class Store extends Model implements TranslatableContract
         return $query;
     }
     public function getProductCategories()
-{
-    // Check if the section type is not 'restaurant'
-    if ($this->section->type->value != 'restaurant') {
-        // If section type is not 'restaurant', get only parent categories that have products from this store
-        return Category::with('children')
-            ->whereNull('parent_id') // Only parent categories
-            ->whereHas('products', function ($query) {
-                $query->where('store_id', $this->id); // Products should belong to this store
-            })
-            ->orWhere(function ($query) {
-                $query->whereHas('children', function ($q) {
-                    $q->whereHas('products', function ($qq) {
-                        $qq->where('store_id', $this->id); // Products from this store within children categories
+    {
+        // If categories are already loaded, we can filter them in memory
+        // if ($this->relationLoaded('categories')) {
+        //     $categories = $this->categories;
+        //     if ($this->section->type->value != 'restaurant') {
+        //         return $categories->where('parent_id', null);
+        //     }
+        //     return $categories;
+        // }
+
+        // Fallback to existing logic if not loaded
+        if ($this->section->type->value != 'restaurant') {
+            return Category::with('children')
+                ->whereNull('parent_id')
+                ->whereHas('products', function ($query) {
+                    $query->where('store_id', $this->id);
+                })
+                ->orWhere(function ($query) {
+                    $query->whereHas('children', function ($q) {
+                        $q->whereHas('products', function ($qq) {
+                            $qq->where('store_id', $this->id);
+                        });
                     });
-                });
+                })
+                ->get();
+        }
+
+        return Category::with('children')
+            ->whereHas('products', function ($query) {
+                $query->where('store_id', $this->id);
             })
             ->get();
     }
-
-    // If the section type is 'restaurant', get all categories with children that have products from this store
-    return Category::with('children')
-        ->whereHas('products', function ($query) {
-            $query->where('store_id', $this->id); // Products should belong to this store
-        })
-        ->get();
-}
 
 
 
     public function getReviewCountFormatted(): string
     {
-        $reviewCount = $this->orders()
+        $reviewCount = $this->reviews_count ?? $this->orders()
             ->whereHas('reviews', function ($query) {
                 $query->whereHas('order', function ($query) {
                     $query->where('status', 'delivered');
@@ -419,6 +442,35 @@ class Store extends Model implements TranslatableContract
     {
         $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
         return $deliveryFeeService->calculateForStore($this, $vehicleId, $distanceKm);
+    }
+
+    /**
+     * Get delivery fee for store display with currency information and dynamic calculation
+     * Similar to CartResource's getDeliveryFeeForDisplay method
+     */
+    public function getDeliveryFeeForDisplay(?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null): array
+    {
+        $deliveryFeeService = app(\Modules\Order\Services\DeliveryFeeService::class);
+
+        // Check for delivery address in request headers
+        $deliveryAddressId = request()->header('address-id') ?? request()->header('AddressId');
+
+        // Check for user coordinates in request headers
+        $userLat = request()->header('lat');
+        $userLng = request()->header('lng');
+
+        // Calculate delivery fee based on available context
+        $deliveryFee = $deliveryFeeService->calculateForCart($this, $deliveryAddressId, $vehicleId, $userLat, $userLng);
+
+        // Get currency information
+        $currencyCode = $this->getCurrencyCode();
+        $currencyFactor = $this->getCurrencyFactor();
+
+        return [
+            'amount' => (int) $deliveryFee,
+            'symbol_currency' => $currencyCode,
+            'currency_factor' => $currencyFactor,
+        ];
     }
 
     /**
@@ -520,6 +572,17 @@ class Store extends Model implements TranslatableContract
     {
         return $this->belongsToMany(Zone::class, 'store_zone', 'store_id', 'zone_id');
     }
+    public function zoneCourierToCover()
+    {
+        return $this->hasManyThrough(
+            \Modules\Zone\Models\Zone::class,
+            \Modules\Couier\Models\Couier::class,
+            'store_id', // Foreign key on couiers table
+            'id',       // Foreign key on zones table  
+            'id',       // Local key on stores table
+            'id'        // Local key on couiers table
+        )->distinct();
+    }
 
     /**
      * Get the currency factor for this store
@@ -533,7 +596,7 @@ class Store extends Model implements TranslatableContract
     }
     public function getCurrencyCode(): string
     {
-        return $this->currency_code ?? $this->address?->zone?->city?->governorate?->country?->currency_code ?? 'USD';
+        return $this->currency_code ?? $this->address?->zone?->city?->governorate?->country?->code ?? 'USD';
     }
 
     /**
@@ -595,6 +658,5 @@ class Store extends Model implements TranslatableContract
             ->filter()
             ->unique()
             ->implode(', ');
-
     }
 }

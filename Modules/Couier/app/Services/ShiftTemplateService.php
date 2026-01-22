@@ -51,6 +51,7 @@ class ShiftTemplateService
                         'end_time' => $day['end_time'] ?? null,
                         'break_duration' => $day['break_duration'] ?? 0,
                         'is_off_day' => $day['is_off_day'] ?? false,
+                        'is_flexible' => $day['is_flexible'] ?? false
                     ]);
                 }
             }
@@ -88,6 +89,7 @@ class ShiftTemplateService
                         'end_time' => $day['end_time'] ?? null,
                         'break_duration' => $day['break_duration'] ?? 0,
                         'is_off_day' => $day['is_off_day'] ?? false,
+                        'is_flexible' => $day['is_flexible'] ?? false
                     ]);
                 }
             }

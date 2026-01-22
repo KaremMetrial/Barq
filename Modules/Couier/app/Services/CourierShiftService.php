@@ -123,7 +123,7 @@ class CourierShiftService
             throw new \Exception('Break already started');
         }
 
-        $this->courierShiftRepository->update(['break_start' => Carbon::now()], $shiftId);
+        $this->courierShiftRepository->update($shiftId, ['break_start' => Carbon::now()]);
 
         return $shift->fresh();
     }
@@ -147,7 +147,7 @@ class CourierShiftService
             throw new \Exception('Break already ended');
         }
 
-        $this->courierShiftRepository->update(['break_end' => Carbon::now()], $shiftId);
+        $this->courierShiftRepository->update($shiftId, ['break_end' => Carbon::now()]);
 
         return $shift->fresh();
     }
@@ -347,5 +347,52 @@ class CourierShiftService
     public function getAllShifts(array $filters = [])
     {
         return $this->courierShiftRepository->getAll($filters);
+    }
+    /**
+     * Force close a shift (system/scheduled task)
+     */
+    public function forceCloseShift(int $shiftId, float $overtimeRate = 1.5): CouierShift
+    {
+        $shift = $this->courierShiftRepository->find($shiftId);
+
+        if (!$shift) {
+            throw new \Exception('Shift not found');
+        }
+
+        if (!$shift->is_open) {
+            return $shift; // Already closed
+        }
+
+        $now = Carbon::now();
+
+        // Calculate overtime
+        $overtimeMinutes = 0;
+        $overtimePay = 0;
+
+        // Use expected end time as the actual end time for forced closure if it passed
+        // Or if we strictly want to close it at "now", we use now. 
+        // Plan says: "Find all shifts where is_open = true AND expected_end_time < now()"
+        // So we are effectively closing it late. 
+        // Ideally, if it's forced closed, maybe we should cap it at expected_end_time? 
+        // But let's stick to the logic: we close it NOW.
+
+        if ($shift->expected_end_time && $now->greaterThan($shift->expected_end_time)) {
+            $overtimeMinutes = $now->diffInMinutes($shift->expected_end_time);
+
+            // Get courier's hourly rate
+            $courier = \Modules\Couier\Models\Couier::find($shift->couier_id);
+            $hourlyRate = $courier->commission_amount ?? 50;
+            $overtimePay = ($overtimeMinutes / 60) * $hourlyRate * $overtimeRate;
+        }
+
+        $this->courierShiftRepository->update($shiftId, [
+            'end_time' => $now,
+            'is_open' => false,
+            'overtime_minutes' => $overtimeMinutes,
+            'overtime_pay' => $overtimePay,
+            'notes' => $shift->notes . ' [System Auto-Close]',
+        ]);
+
+        return $shift->fresh();
     }
 }

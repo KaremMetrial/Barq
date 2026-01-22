@@ -27,8 +27,8 @@ class OrderCollectionResource extends JsonResource
                 'value' => $this->payment_status?->value,
                 'label' => $this->payment_status?->value ? \App\Enums\PaymentStatusEnum::label($this->payment_status->value) : null,
             ],
-            'total_amount' => (float) $this->total_amount,
-            'final_amount' => (float) ($this->total_amount - $this->discount_amount + $this->delivery_fee + $this->service_fee + $this->tax_amount),
+            'total_amount' => (int) $this->total_amount,
+            'final_amount' => (int) ($this->total_amount - $this->discount_amount + $this->delivery_fee + $this->service_fee + $this->tax_amount),
             'items_count' => $this->orderItems->count() ?? 0,
 
             'store' => [

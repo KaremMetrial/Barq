@@ -13,11 +13,50 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductOptionValue;
 use Modules\AddOn\Models\AddOn;
 use Modules\Store\Models\Store;
+use Modules\Cart\Models\Cart;
+use Illuminate\Support\Facades\Log;
 
 class CreateOrderRequest extends FormRequest
 {
     public function prepareForValidation()
-    {
+{
+        $cartKey = $this->input('cart_key');
+        Log::info('CreateOrderRequest cart key', [
+            'cart_key' => $cartKey,
+            'user_id' => Auth::guard('user')->id(),
+        ]);
+
+        if ($cartKey) {
+            $cart = Cart::where('cart_key', $cartKey)
+                ->with(['items.addOns'])
+                ->first();
+
+            if ($cart) {
+                $cartItems = $cart->items->map(function ($item) {
+                    return [
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'note' => $item->note,
+                        'product_option_value_id' => $item->product_option_value_id,
+                        'add_ons' => $item->addOns->map(function ($addOn) {
+                            $qty = $addOn->pivot->quantity ?: 1;
+                            return [
+                                'id' => $addOn->id,
+                                'quantity' => $qty,
+                            ];
+                        })->toArray(),
+                    ];
+                })->toArray();
+
+                $orderData = $this->input('order', []);
+                $orderData['store_id'] = $cart->store_id;
+
+                $this->merge([
+                    'items' => $cartItems,
+                    'order' => $orderData,
+                ]);
+            }
+        }
         $this->merge([
             "order" => $this->filterArray($this->input("order", [])),
             "items" => $this->filterArray($this->input("items", [])),
@@ -270,7 +309,7 @@ class CreateOrderRequest extends FormRequest
                 'items' => $validated['items'] ?? [],
             ];
         }
-
+        
         return $validated;
     }
 }

@@ -147,7 +147,7 @@ class CourierDashboardController extends Controller
         ];
     }
 
-    private function getTransactionHistory(int $courierId, $startDate, $endDate): array
+    private function getTransactionHistory(int $courierId, $startDate, $endDate)
     {
         $transactions = CourierOrderAssignment::where('courier_id', $courierId)
             ->whereBetween('completed_at', [$startDate, $endDate])

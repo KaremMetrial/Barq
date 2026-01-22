@@ -9,6 +9,9 @@ use App\Jobs\SendFcmNotificationJob;
 use App\Notifications\FirebasePushNotification;
 use Illuminate\Support\Facades\Log;
 
+use Modules\Couier\Models\Couier;
+use Modules\Order\Models\Order;
+
 class OrderNotificationService
 {
     /**
@@ -122,6 +125,51 @@ class OrderNotificationService
         }
     }
 
+    public function sendOrderAssignedNotificationToCourier(Couier $courier, Order $order)
+    {
+        $tokens = $courier->tokens()
+            ->where('notification_active', true)
+            ->whereNotNull('fcm_device')
+            ->get();
+
+        if ($tokens->isEmpty()) {
+            return;
+        }
+
+        $tokensByLanguage = $tokens->groupBy('language_code');
+
+        foreach ($tokensByLanguage as $languageCode => $languageTokens) {
+            $fcmDevices = $languageTokens->pluck('fcm_device');
+            $localizedMessages = $this->getLocalizedCourierMessages($languageCode, $order->order_number);
+
+            $data = [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'notification_type' => 'new_assignment',
+            ];
+
+            SendFcmNotificationJob::dispatch($fcmDevices, $localizedMessages['title'], $localizedMessages['body'], $data);
+        }
+    }
+
+    protected function getLocalizedCourierMessages(?string $languageCode, string $orderNumber): array
+    {
+        $languageCode = $languageCode ?: 'en';
+
+        $messages = [
+            'en' => [
+                'title' => "New Assignment: Order #{$orderNumber}",
+                'body' => "You have been assigned a new order. Please check your active assignments.",
+            ],
+            'ar' => [
+                'title' => "مهمة جديدة: طلب رقم #{$orderNumber}",
+                'body' => "تم تكليفك بطلب جديد. يرجى التحقق من مهامك النشطة.",
+            ],
+        ];
+
+        return $messages[$languageCode] ?? $messages['en'];
+    }
+
     /**
      * Get localized messages based on language code
      */
@@ -143,5 +191,4 @@ class OrderNotificationService
 
         return $messages[$languageCode] ?? $messages['en'];
     }
-
 }

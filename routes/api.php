@@ -8,6 +8,7 @@ use App\Http\Controllers\TokenController;
 use App\Http\Controllers\DeepLinkController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionController;
+use Modules\Admin\Http\Controllers\AdminController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -25,6 +26,8 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum','ability:admin,vendor'])->
     Route::apiResource('transactions', TransactionController::class)->names('admin.transactions');
     Route::get('transactions/stats', [TransactionController::class, 'stats'])->name('admin.transactions.stats');
     Route::post('transactions/pay', [TransactionController::class, 'pay'])->name('admin.transactions.pay');
+
+    Route::get('search', [AdminController::class, 'search'])->name('admin.search');
 });
 
 Route::put('v1/update-token', [TokenController::class, 'updateToken'])->middleware('auth:sanctum')->name('update.token');

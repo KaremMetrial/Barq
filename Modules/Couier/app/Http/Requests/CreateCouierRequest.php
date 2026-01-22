@@ -82,9 +82,9 @@ class CreateCouierRequest extends FormRequest
             "vehicle.car_license" => ['required', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
 
             // Attachment
-            "attachment" => ["required", "array"],
-            "attachment.*.path" => ['required', 'image', 'mimes:jpg,jpeg,png,gif,mp4,mov,avi', 'max:2048'],
-            "attachment.*.name" => ['required', 'string', 'max:255'],
+            "attachment" => ["nullable", "array"],
+            "attachment.*.path" => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,mp4,mov,avi', 'max:2048'],
+            "attachment.*.name" => ['nullable', 'string', 'max:255'],
         ];
     }
 

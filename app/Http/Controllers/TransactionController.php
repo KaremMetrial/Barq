@@ -46,7 +46,7 @@ class TransactionController extends Controller
         // Filter by entity (user, store, courier, etc.)
         if ($request->has('entity_type') && $request->has('entity_id')) {
             $query->where('transactionable_type', $request->entity_type)
-                  ->where('transactionable_id', $request->entity_id);
+                ->where('transactionable_id', $request->entity_id);
         }
 
         // Filter by user
@@ -62,11 +62,37 @@ class TransactionController extends Controller
         // Sort
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
-        $query->orderBy($sortField, $sortDirection);
+        $query->where('transactionable_type', '!=','platform')->orderBy($sortField, $sortDirection);
 
         $transactions = $query->paginate($request->per_page);
 
+        $currencyCode = config('settings.default_currency', 'USD');
+        $currencyFactor = 100;
+        $countryId = null;
+
+        if (auth('sanctum')->check()) {
+            $user = auth('sanctum')->user();
+            if ($user->currentAccessToken() && $user->currentAccessToken()->country_id) {
+                $countryId = $user->currentAccessToken()->country_id;
+            }
+            if (!$countryId) {
+                $countryId = config('settings.default_country', 1);
+            }
+        } else {
+            $countryId = config('settings.default_country', 1);
+        }
+
+        if ($countryId) {
+            $country = \Modules\Country\Models\Country::find($countryId);
+            if ($country) {
+                $currencyCode = $country->currency_name ?? config('settings.default_currency', 'USD');
+                $currencyFactor = $country->currency_factor ?? 100;
+            }
+        }
+
         return $this->successResponse([
+            'currency_code' => $currencyCode,
+            'currency_factor' => $currencyFactor,
             'transactions' => TransactionResource::collection($transactions),
             'pagination' => new PaginationResource($transactions)
         ], 'Transactions retrieved successfully');

@@ -79,6 +79,7 @@ class VendorController extends Controller
     {
         $vendor = $this->vendorService->login($request->validated());
         return $this->successResponse([
+            'support_contact_number'=>Setting::where('key', 'support_contact_number')->first()->value ?? null,
             'vendor' => new VendorResource($vendor['vendor']),
             'token' => $vendor['token'],
         ], __('message.success'));

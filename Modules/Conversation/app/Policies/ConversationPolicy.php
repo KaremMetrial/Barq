@@ -73,9 +73,8 @@ class ConversationPolicy
             if ($conversation->store_id === $user->store_id) return true;
             return false;
         }
-
         // Couriers can view conversations where they're participants or related to their orders
-        if ($user instanceof Couier && $conversation->couier_id === $user->id) {
+        if ($user instanceof Couier && $conversation->couier_id == $user->id) {
             return true;
         }
 

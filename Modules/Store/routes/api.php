@@ -21,7 +21,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/stats', [AdminStoreController::class, 'stats'])->name('status');
             Route::get('delivery', [AdminStoreController::class, 'deliveryStore']);
             Route::get('delivery/stats', [AdminStoreController::class, 'deliveryStoreStats']);
-            Route::get('/vendor/stats', [VendorStoreController::class, 'vendorStats'])->middleware('ability:vendor')->name('vendor.store.stats');
+            Route::get('/vendor/stats', [VendorStoreController::class, 'vendorStats'])->name('vendor.store.stats');
             Route::get('/commission-settings', [AdminStoreController::class, 'commissionSettings'])->name('commission.settings');
 
             Route::get('/{id}/branches', [AdminStoreController::class, 'branches'])->name('branches');

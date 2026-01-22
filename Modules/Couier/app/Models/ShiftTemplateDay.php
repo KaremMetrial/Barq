@@ -13,15 +13,17 @@ class ShiftTemplateDay extends Model
         'start_time',
         'end_time',
         'break_duration',
-        'is_off_day'
+        'is_off_day',
+        'is_flexible'
     ];
 
     protected $casts = [
         'day_of_week' => 'integer',
         'break_duration' => 'integer',
         'is_off_day' => 'boolean',
-        'start_time' => 'datetime:H:i:s',
-        'end_time' => 'datetime:H:i:s'
+        'is_flexible' => 'boolean',
+        'start_time' => 'datetime:H:i',
+        'end_time' => 'datetime:H:i'
     ];
 
     /**

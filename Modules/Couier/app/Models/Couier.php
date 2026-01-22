@@ -43,7 +43,10 @@ class Couier extends Authenticatable
         "commission_type",
         "commission_amount",
         "driving_license",
-        'iban'
+        'iban',
+        'auto_accept_orders',
+        'accept_overtime',
+        'last_login'
     ];
     protected $casts = [
         "avaliable_status" => CouierAvaliableStatusEnum::class,
@@ -206,5 +209,20 @@ class Couier extends Authenticatable
         $location = app(\Modules\Couier\Services\CourierLocationCacheService::class)
             ->getCourierLocation($this->id);
         return $location['lng'] ?? null;
+    }
+
+    /**
+     * Calculate commission for a specific delivery fee
+     */
+    public function calculateCommission($amount)
+    {
+        if ($this->commission_type === PlanTypeEnum::COMMISSION) {
+            // commission_amount is stored as a percentage
+            return ($amount * $this->commission_amount) / 100;
+        } elseif ($this->commission_type === PlanTypeEnum::SUBSCRIPTION) {
+            // commission_amount is stored as minor units
+            return $this->commission_amount;
+        }
+        return 0;
     }
 }

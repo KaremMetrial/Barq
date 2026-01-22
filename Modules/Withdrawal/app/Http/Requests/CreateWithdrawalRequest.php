@@ -26,11 +26,28 @@ class CreateWithdrawalRequest extends FormRequest
                 $this->merge([
                     'currency_code' => $store->getCurrencyCode(),
                     'currency_factor' => $store->getCurrencyFactor(),
-                    'amount' => CurrencyHelper::toMinorUnits($this->amount,$store->getCurrencyFactor())
+                    'amount' => CurrencyHelper::toMinorUnits($this->amount, $store->getCurrencyFactor())
                 ]);
             }
         }
 
+        $user = auth()->user();
+        if ($user instanceof Couier) {
+            $this->merge([
+                'withdrawable_id' => $user->id,
+                'withdrawable_type' => 'courier',
+            ]);
+
+            // Set currency from courier's associated store if available
+            $store = $user->store;
+            if ($store) {
+                $this->merge([
+                    'currency_code' => $store->getCurrencyCode(),
+                    'currency_factor' => $store->getCurrencyFactor(),
+                    'amount' => CurrencyHelper::toMinorUnits($this->amount, $store->getCurrencyFactor())
+                ]);
+            }
+        }
     }
     /**
      * Get the validation rules that apply to the request.
@@ -39,7 +56,7 @@ class CreateWithdrawalRequest extends FormRequest
     {
         return [
             'withdrawable_id' => ['required', 'integer'],
-            'withdrawable_type' => ['required', 'string','in:store,courier'],
+            'withdrawable_type' => ['required', 'string', 'in:store,courier'],
             'amount' => [
                 'required',
                 'numeric',
@@ -73,7 +90,7 @@ class CreateWithdrawalRequest extends FormRequest
     {
         return true;
     }
-        protected function getBalance()
+    protected function getBalance()
     {
         // Determine the model (User, Courier, or Store) based on withdrawable_type and withdrawable_id
         $modelClass = $this->getWithdrawableModelClass();
@@ -100,5 +117,4 @@ class CreateWithdrawalRequest extends FormRequest
                 return null;
         }
     }
-
 }

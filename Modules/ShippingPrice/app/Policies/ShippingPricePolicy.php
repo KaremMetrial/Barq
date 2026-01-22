@@ -94,7 +94,7 @@ class ShippingPricePolicy
      */
     public function update($user, ShippingPrice $shippingPrice): bool
     {
-                        // Super Admin
+        // Super Admin
         if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
             return true;
         }

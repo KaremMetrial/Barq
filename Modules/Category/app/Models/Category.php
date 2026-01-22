@@ -96,7 +96,7 @@ class Category extends Model implements TranslatableContract
             $query->where('is_active', $filters['is_active']);
         }
         if(isset($filters['store_id'])) {
-            $query->where('store_id', $filters['store_id']);
+            $query->where('store_id', $filters['store_id'])->orWhere('store_id', null);
         }
         
         if (!auth('admin')->check()) {

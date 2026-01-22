@@ -15,6 +15,7 @@ use Modules\Vendor\Http\Resources\VendorResource;
 use Modules\Vendor\Http\Requests\CreateVendorRequest;
 use Modules\Vendor\Http\Requests\UpdateVendorRequest;
 use Modules\Vendor\Http\Requests\UpdatePasswordRequest;
+use Modules\Setting\Models\Setting;
 
 class VendorController extends Controller
 {
@@ -48,7 +49,9 @@ class VendorController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $vendor = $this->vendorService->login($request->validated());
+
         return $this->successResponse([
+            'support_contact_number'=>Setting::where('key', 'support_contact_number')->first()->value ?? null,
             'vendor' => new VendorResource($vendor['vendor']),
             'token' => $vendor['token'],
         ], __('message.success'));

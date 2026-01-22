@@ -19,7 +19,7 @@ class Section extends Model implements TranslatableContract
     public $translatedAttributes = ['name', 'description'];
 
     protected $useTranslationFallback = true;
-    protected $with = ['translations'];
+    protected $with = ['translations','categories'];
 
     protected $fillable = [
         'slug',

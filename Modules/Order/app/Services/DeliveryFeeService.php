@@ -47,7 +47,7 @@ class DeliveryFeeService
     /**
      * Calculate delivery fee for cart display
      */
-    public function calculateForCart(Store $store, ?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null): float
+    public function calculateForCart(Store $store, ?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null)
     {
         // Check if free delivery is enabled
         if ($store->storeSetting && $store->storeSetting->free_delivery_enabled) {
@@ -95,7 +95,16 @@ class DeliveryFeeService
             return $this->getStoreDefaultFee($store);
         }
 
-        $shippingPrice = $this->getShippingPrice($zoneId, $vehicleId);
+        $shippingPrice = null;
+        if ($store->address && $store->address->zone && $store->address->zone->relationLoaded('shippingPrices')) {
+            $shippingPrice = $store->address->zone->shippingPrices
+                ->where('vehicle_id', $vehicleId)
+                ->first();
+        } else {
+            $shippingPrice = $this->getShippingPrice($zoneId, $vehicleId);
+        }
+
+
         if (!$shippingPrice) {
             return $this->getStoreDefaultFee($store);
         }

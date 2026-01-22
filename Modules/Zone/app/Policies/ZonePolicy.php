@@ -185,7 +185,7 @@ class ZonePolicy
         }
 
         // Vendors can manage their store's zone assignments
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_zone', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -224,7 +224,7 @@ class ZonePolicy
         }
 
         // Vendors can manage shipping prices for their zones
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_zone', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 

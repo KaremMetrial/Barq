@@ -37,7 +37,7 @@ class StorePolicy
         }
 
         // Vendors can view their own stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_store', 'vendor')) {
+        if ($user instanceof Vendor) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -64,7 +64,7 @@ class StorePolicy
         }
 
         // Vendors can create their own stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_store', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -86,7 +86,7 @@ class StorePolicy
         }
 
         // Vendors can update their own stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -143,7 +143,7 @@ class StorePolicy
         }
 
         // Vendors can manage their own store's products
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -174,7 +174,7 @@ class StorePolicy
         }
 
         // Vendors can manage their own store's orders
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_order', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -196,7 +196,7 @@ class StorePolicy
         }
 
         // Vendors can manage their own store's settings
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -227,7 +227,7 @@ class StorePolicy
         }
 
         // Vendors can manage their own store's delivery zones
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -249,7 +249,7 @@ class StorePolicy
         }
 
         // Store owners can manage their store's vendors
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -280,7 +280,7 @@ class StorePolicy
         }
 
         // Store owners can manage their store's branches
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -302,7 +302,7 @@ class StorePolicy
         }
 
         // Vendors can activate/deactivate their own stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -375,7 +375,7 @@ class StorePolicy
         }
 
         // Vendors can view their own store's balances
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -397,7 +397,7 @@ class StorePolicy
         }
 
         // Vendors can manage their own store's withdrawals
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -428,7 +428,7 @@ class StorePolicy
         }
 
         // Vendors can export their own store data
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return true;
         }
 
@@ -503,7 +503,7 @@ class StorePolicy
         // Vendors can view their own store analytics
         if ($user instanceof Vendor) {
             if ($store->owner && $store->owner->id === $user->id) {
-                return PermissionHelper::hasPermission('view_report', 'vendor');
+                return true;
             }
             return false;
         }
@@ -535,7 +535,7 @@ class StorePolicy
         }
 
         // Vendors can moderate reviews for their own stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -646,7 +646,7 @@ class StorePolicy
         }
 
         // Vendors can close/open their own stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 
@@ -681,7 +681,7 @@ class StorePolicy
         }
 
         // Vendors can view reports for their own stores
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_store', 'vendor')) {
+        if ($user instanceof Vendor ) {
             return $store->owner && $store->owner->id === $user->id;
         }
 

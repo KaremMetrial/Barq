@@ -26,6 +26,7 @@ class FullOrderResource extends JsonResource
 
             // Customer Information
             'customer' => [
+                'id' => $this->order->user->id,
                 'name' => $this->order->user->first_name . ' ' . $this->order->user->last_name ?? 'Unknown Customer',
                 'phone' => $this->order->user->phone ?? null,
                 'email' => $this->order->user->email ?? null,
@@ -44,6 +45,7 @@ class FullOrderResource extends JsonResource
 
             // Order Details
             'order' => [
+                'id' => $this->order->id,
                 'order_number' => $this->order->order_number,
                 'order_type' => $this->order->type->value,
                 'status' => $this->order->status->value,
@@ -96,9 +98,9 @@ class FullOrderResource extends JsonResource
                 ] : null,
                 'payment_status' => $this->order->payment_status?->value,
                 'cash_amount_due' => $this->calculateCashDue(),
-                'amount_courier_pays_to_store' => $this->order->paymentMethod?->is_cod ?
-                $this->order->total_amount - $this->order->store->calculateCommission($this->order->total_amount) :
-                null,
+                'amount_courier_pays_to_store' => $this->order->paymentMethod?->is_cod ? (int)($this->order->total_amount - $this->order->store->calculateCommission($this->order->total_amount)) : 0,
+                'title' => $this->order->paymentMethod?->is_cod ? 'Cash on Delivery' : 'Online Payment',
+                'sub_title' => $this->order->paymentMethod?->is_cod ? 'Pay the store in cash' : 'Pay online',
             ],
 
             // Delivery Information

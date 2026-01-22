@@ -123,7 +123,7 @@ class Coupon extends Model implements TranslatableContract
     {
         return $this->belongsToMany(Store::class, 'coupon_store', 'coupon_id', 'store_id');
     }
-        public function isValid(): bool
+    public function isValid(): bool
     {
         return $this->is_active && $this->start_date <= now() && $this->end_date >= now();
     }
@@ -143,20 +143,20 @@ class Coupon extends Model implements TranslatableContract
             $query->where(function ($q) use ($storeId) {
                 // Include general coupons (apply to all stores)
                 $q->where('object_type', \App\Enums\ObjectTypeEnum::GENERAL)
-                  // Or store-specific coupons that include this store
-                  ->orWhere(function ($sq) use ($storeId) {
-                      $sq->where('object_type', \App\Enums\ObjectTypeEnum::STORE)
-                         ->whereHas('stores', function ($storeQuery) use ($storeId) {
-                             $storeQuery->where('stores.id', $storeId);
-                         });
-                  });
+                    // Or store-specific coupons that include this store
+                    ->orWhere(function ($sq) use ($storeId) {
+                        $sq->where('object_type', \App\Enums\ObjectTypeEnum::STORE)
+                            ->whereHas('stores', function ($storeQuery) use ($storeId) {
+                                $storeQuery->where('stores.id', $storeId);
+                            });
+                    });
             });
 
             // Only show active coupons within date range and with remaining usage
             $query->where('is_active', true)
-                  ->where('start_date', '<=', now())
-                  ->where('end_date', '>=', now())
-                  ->whereColumn('usage_count', '<', 'usage_limit');
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->whereColumn('usage_count', '<', 'usage_limit');
         } elseif (auth('vendor')->check()) {
             // Original vendor filtering logic
             $vendor = auth('vendor')->user();
@@ -166,9 +166,9 @@ class Coupon extends Model implements TranslatableContract
                 $q->whereHas('stores', function ($qs) use ($storeId) {
                     $qs->where('stores.id', $storeId);
                 })
-                ->orWhereHas('products', function ($qp) use ($storeId) {
-                    $qp->where('products.store_id', $storeId);
-                });
+                    ->orWhereHas('products', function ($qp) use ($storeId) {
+                        $qp->where('products.store_id', $storeId);
+                    });
             });
             if (!empty($filters['object_type'])) {
                 if ($filters['object_type'] == 'product') {
@@ -194,13 +194,13 @@ class Coupon extends Model implements TranslatableContract
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('code', 'like', "%$search%")
-                  ->orWhereHas('translations', function ($qt) use ($search) {
-                      $qt->where('name', 'like', "%$search%");
-                  });
+                    ->orWhereHas('translations', function ($qt) use ($search) {
+                        $qt->where('name', 'like', "%$search%");
+                    });
             });
         }
-        if(isset(request()->kart))
-        return $query->latest();
+        if (isset(request()->kart))
+            return $query->latest();
     }
 
     public function usageCount(): int
@@ -217,13 +217,12 @@ class Coupon extends Model implements TranslatableContract
 
         return $couponUsage ? $couponUsage->usage_count : 0;
     }
-   public function rewards()
-   {
-       return $this->hasMany(Reward::class);
-   }
+    public function rewards()
+    {
+        return $this->hasMany(Reward::class);
+    }
     public function couponUsages()
     {
         return $this->hasMany(CouponUsage::class);
     }
-
 }

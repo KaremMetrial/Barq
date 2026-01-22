@@ -29,7 +29,7 @@ class CategoryPolicy
         }
 
         // Vendors with permission
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class CategoryPolicy
         }
 
         // Vendors can view categories from their store or general categories
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return $category->store_id === $user->store_id || !$category->store_id;
         }
 
@@ -85,7 +85,7 @@ class CategoryPolicy
         }
 
         // Vendors with permission can create categories for their store
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('create_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -108,7 +108,7 @@ class CategoryPolicy
         }
 
         // Vendors can only update categories from their store
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return $category->store_id === $user->store_id;
         }
 
@@ -131,7 +131,7 @@ class CategoryPolicy
         }
 
         // Vendors can only delete categories from their store
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return $category->store_id === $user->store_id;
         }
 
@@ -196,7 +196,7 @@ class CategoryPolicy
         }
 
         // Vendors with update permission (limited to their store's categories)
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -276,7 +276,7 @@ class CategoryPolicy
 
         // Vendors can view analytics for their own store's categories
         if ($user instanceof Vendor && $category->store_id === $user->store_id) {
-            return PermissionHelper::hasPermission('view_report', 'vendor');
+            return true;
         }
 
         return false;
@@ -344,7 +344,7 @@ class CategoryPolicy
         }
 
         // Vendors with update permission (limited to their store)
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('update_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -367,7 +367,7 @@ class CategoryPolicy
         }
 
         // Vendors with delete permission (limited to their store)
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('delete_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -390,7 +390,7 @@ class CategoryPolicy
         }
 
         // Vendors with view permission
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 
@@ -459,7 +459,7 @@ class CategoryPolicy
         }
 
         // Vendors with view permission
-        if ($user instanceof Vendor && PermissionHelper::hasPermission('view_category', 'vendor')) {
+        if ($user instanceof Vendor) {
             return true;
         }
 

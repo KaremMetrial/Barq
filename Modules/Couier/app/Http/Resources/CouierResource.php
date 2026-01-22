@@ -41,6 +41,8 @@ class CouierResource extends JsonResource
             "total_order" => $this->total_order ?? 0,
             "total_earning" => $this->total_earning ?? 0,
             "vehicle" => new VehicleResource($this->whenLoaded('vehicle')),
+            'currency_factor' => $this->store->getCurrencyFactor(),
+            'currency_code' => $this->store->getCurrencyCode(),
         ];
     }
 }

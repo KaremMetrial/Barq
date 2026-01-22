@@ -89,6 +89,7 @@ class OrderResource extends JsonResource
                     'name' => $this->store->name ?? $this->store->translations->first()?->name,
                     'phone' => $this->store->phone,
                     'logo' => $this->store->logo ? asset('storage/' . $this->store->logo) : null,
+                    'address' => $this->store->address ? $this->store->address->getFullAddressAttribute() : null,
                 ];
             }),
 

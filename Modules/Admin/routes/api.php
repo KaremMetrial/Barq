@@ -18,6 +18,10 @@ Route::prefix('v1')->group(function () {
             Route::get('profile', 'profile');
 
             Route::get('reports', 'reports');
+
+            Route::get('sales-report', 'salesReport');
+
+            Route::post('couriers/payment', 'addCourierPayment');
         });
     });
 });

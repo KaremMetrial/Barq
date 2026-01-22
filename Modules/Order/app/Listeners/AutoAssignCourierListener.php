@@ -22,7 +22,7 @@ class AutoAssignCourierListener implements ShouldQueue
     public function __construct(
         protected SmartOrderAssignmentService $assignmentService,
         protected RealTimeCourierService $realtimeService
-        ) {}
+    ) {}
 
     /**
      * Handle the order status changed event
@@ -100,7 +100,6 @@ class AutoAssignCourierListener implements ShouldQueue
                 $this->handleAssignmentFailure($event->order);
                 Log::info('Cache-based assignment failed for order: ' . $event->order->id);
             }
-
         } catch (\Exception $e) {
             Log::error('Cache-based assignment failed for order: ' . $event->order->id . ' - ' . $e->getMessage());
             $this->handleAssignmentError($event->order, exception: $e);

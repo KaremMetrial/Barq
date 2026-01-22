@@ -27,7 +27,7 @@ class ConversationController extends Controller
     {
         if (auth('user')->check()) return 'user';
         if (auth('vendor')->check()) return 'vendor';
-        if(auth('courier')->check()) return 'courier';
+        if (auth('courier')->check()) return 'courier';
         if (auth('admin')->check()) return 'admin';
         return null;
     }
@@ -87,32 +87,37 @@ class ConversationController extends Controller
         }
 
 
-        // Check if user already has an active conversation (end_time is null)
+        // Check if matching active conversation exists
+        $criteria = [
+            'type' => $data['type'],
+            'order_id' => $data['order_id'] ?? null,
+            'user_id' => $data['user_id'] ?? null,
+            'couier_id' => $data['couier_id'] ?? null,
+            'vendor_id' => $data['vendor_id'] ?? null,
+            'store_id' => $data['store_id'] ?? null,
+            'admin_id' => $data['admin_id'] ?? null,
+        ];
+
+        // Ensure authenticated Guard ID is enforced in criteria
         if ($guard !== 'admin') {
-            $userId = auth($guard)->id();
-            $existingConversation = $this->conversationService->getConversationsByGuard($userId, $guard, 1)->first();
+            $criteria[$guard . '_id'] = auth($guard)->id();
+        }
 
-            if ($existingConversation && is_null($existingConversation->end_time)) {
+        $existingConversation = $this->conversationService->findExisting($criteria);
+
+        if ($existingConversation) {
             $messagesQuery = $existingConversation->messages()->orderBy('created_at', 'asc');
-
-            // Get the total count of messages in the conversation
             $totalMessages = $messagesQuery->count();
-
-            // Pagination parameters
             $perPage = $request->get('per_page', 15);
 
-            // Check if user wants a specific page or default to last page
             if ($request->has('page')) {
-                // User specified a page, use standard pagination
                 $page = $request->get('page', 1);
                 $messages = $messagesQuery->paginate($perPage, ['*'], 'page', $page);
             } else {
-                // Default behavior: show last page (most recent messages)
                 $lastPage = ceil($totalMessages / $perPage);
                 $skip = max(0, $totalMessages - $perPage);
                 $messages = $messagesQuery->skip($skip)->take($perPage)->get();
 
-                // Create a manual paginator to maintain the response structure
                 $messages = new LengthAwarePaginator(
                     $messages,
                     $totalMessages,
@@ -123,10 +128,9 @@ class ConversationController extends Controller
             }
 
             return $this->successResponse([
-                    'conversation' => new ConversationResource($existingConversation),
-                    'messages' => null
-                ], __('message.success'));
-            }
+                'conversation' => new ConversationResource($existingConversation),
+                'messages' => null // Consistent with previous return logic or null if not needing messages immediately
+            ], __('message.success'));
         }
 
         // Create new conversation if no active one exists
@@ -138,19 +142,18 @@ class ConversationController extends Controller
         ], __('message.success'));
     }
 
+
     public function show($id, Request $request)
     {
         $guard = $this->getAuthenticatedGuard();
 
         $conversation = $this->conversationService->getConversationById($id);
 
-        // For admin, they can view any conversation
-        if ($guard !== 'admin') {
-            // For users/vendors, they can only view their own conversations
-            if (!$conversation || $conversation->{$guard . '_id'} !== auth($guard)->id()) {
-                return $this->errorResponse(__('message.unauthorized'), 403);
-            }
+        if (!$conversation) {
+            return $this->errorResponse(__('message.not_found'), 404);
         }
+
+        $this->authorize('view', $conversation);
 
         $messagesQuery = $conversation->messages()->orderBy('created_at', 'asc');
         $totalMessages = $messagesQuery->count();

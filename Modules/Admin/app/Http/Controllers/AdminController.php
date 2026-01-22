@@ -19,6 +19,15 @@ use Modules\Admin\Http\Requests\UpdateAdminRequest;
 use Modules\Admin\Http\Requests\UpdatePasswordRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Modules\Withdrawal\Http\Resources\WithdrawalResource;
+use App\Models\Transaction;
+use App\Enums\TransactionType;
+use App\Enums\TransactionStatusEnum;
+use Modules\Couier\Models\Couier;
+use Illuminate\Validation\ValidationException;
+use Modules\Product\Http\Resources\ProductResource;
+use Modules\Product\Models\Product;
+use Modules\Store\Http\Resources\StoreResource;
+use Modules\Store\Models\Store;
 
 class AdminController extends Controller
 {
@@ -97,7 +106,7 @@ class AdminController extends Controller
         return $this->successResponse([
             'admin' => new AdminResource($admin['admin']),
             'token' => $admin['token'],
-            'role' => $admin['role'][0],
+            'role' => $admin['role'][0] ?? null,
             'permissions' => $admin['permissions'],
         ], __('message.success'));
     }
@@ -174,10 +183,10 @@ class AdminController extends Controller
 
         // Apply filters
         if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            $query->where('orders.status', $filters['status']);
         }
         if (!empty($filters['store_id'])) {
-            $query->where('store_id', $filters['store_id']);
+            $query->where('orders.store_id', $filters['store_id']);
         }
         if (!empty($filters['category_id'])) {
             $query->whereHas('orderItems.product', function ($q) use ($filters) {
@@ -190,10 +199,10 @@ class AdminController extends Controller
             });
         }
         if (!empty($filters['from_date'])) {
-            $query->whereDate('created_at', '>=', $filters['from_date']);
+            $query->whereDate('orders.created_at', '>=', $filters['from_date']);
         }
         if (!empty($filters['to_date'])) {
-            $query->whereDate('created_at', '<=', $filters['to_date']);
+            $query->whereDate('orders.created_at', '<=', $filters['to_date']);
         }
 
         // Metrics
@@ -209,7 +218,7 @@ class AdminController extends Controller
             $previousPeriodQuery->where('status', $filters['status']);
         }
         if (!empty($filters['store_id'])) {
-            $previousPeriodQuery->where('store_id', $filters['store_id']);
+            $previousPeriodQuery->where('orders.store_id', $filters['store_id']);
         }
         if (!empty($filters['category_id'])) {
             $previousPeriodQuery->whereHas('orderItems.product', function ($q) use ($filters) {
@@ -243,7 +252,7 @@ class AdminController extends Controller
         }
 
         $previousPeriodQuery->whereDate('created_at', '>=', $previousFromDate)
-                           ->whereDate('created_at', '<=', $previousToDate);
+            ->whereDate('created_at', '<=', $previousToDate);
 
         $previousTotalSales = (float) $previousPeriodQuery->sum('total_amount');
         $previousTotalOrders = $previousPeriodQuery->count();
@@ -280,7 +289,7 @@ class AdminController extends Controller
             $commissionQuery->where('status', $filters['status']);
         }
         if (!empty($filters['store_id'])) {
-            $commissionQuery->where('store_id', $filters['store_id']);
+            $commissionQuery->where('orders.store_id', $filters['store_id']);
         }
         if (!empty($filters['category_id'])) {
             $commissionQuery->whereHas('orderItems.product', function ($q) use ($filters) {
@@ -314,7 +323,7 @@ class AdminController extends Controller
             $refundOrderQuery->where('status', $filters['status']);
         }
         if (!empty($filters['store_id'])) {
-            $refundOrderQuery->where('store_id', $filters['store_id']);
+            $refundOrderQuery->where('orders.store_id', $filters['store_id']);
         }
         if (!empty($filters['category_id'])) {
             $refundOrderQuery->whereHas('orderItems.product', function ($q) use ($filters) {
@@ -346,7 +355,7 @@ class AdminController extends Controller
             $previousRefundOrderQuery->where('status', $filters['status']);
         }
         if (!empty($filters['store_id'])) {
-            $previousRefundOrderQuery->where('store_id', $filters['store_id']);
+            $previousRefundOrderQuery->where('orders.store_id', $filters['store_id']);
         }
         if (!empty($filters['category_id'])) {
             $previousRefundOrderQuery->whereHas('orderItems.product', function ($q) use ($filters) {
@@ -359,7 +368,7 @@ class AdminController extends Controller
             });
         }
         $previousRefundOrderQuery->whereDate('created_at', '>=', $previousFromDate)
-                               ->whereDate('created_at', '<=', $previousToDate);
+            ->whereDate('created_at', '<=', $previousToDate);
         $previousRefunds += $previousRefundOrderQuery->whereIn('payment_status', [\App\Enums\PaymentStatusEnum::UNPAID, \App\Enums\PaymentStatusEnum::PARTIALLY_PAID])
             ->sum('total_amount');
 
@@ -369,7 +378,7 @@ class AdminController extends Controller
             $previousCommissionQuery->where('status', $filters['status']);
         }
         if (!empty($filters['store_id'])) {
-            $previousCommissionQuery->where('store_id', $filters['store_id']);
+            $previousCommissionQuery->where('orders.store_id', $filters['store_id']);
         }
         if (!empty($filters['category_id'])) {
             $previousCommissionQuery->whereHas('orderItems.product', function ($q) use ($filters) {
@@ -382,7 +391,7 @@ class AdminController extends Controller
             });
         }
         $previousCommissionQuery->whereDate('orders.created_at', '>=', $previousFromDate)
-                              ->whereDate('orders.created_at', '<=', $previousToDate);
+            ->whereDate('orders.created_at', '<=', $previousToDate);
         $previousCommissionEarned = $previousCommissionQuery->join('stores', 'orders.store_id', '=', 'stores.id')
             ->selectRaw('SUM(CASE
                 WHEN stores.commission_type = "percentage" THEN orders.total_amount * (stores.commission_amount / 100)
@@ -438,10 +447,10 @@ class AdminController extends Controller
             ->map(fn($item) => ['id' => $item->id, 'name' => $item->name, 'order_count' => (int) $item->order_count]);
 
         // Order status distribution
-        $statusDistributionQuery = \Modules\Order\Models\Order::select('status')
+        $statusDistributionQuery = \Modules\Order\Models\Order::select('orders.status')
             ->selectRaw('COUNT(*) as count')
-            ->when(!empty($filters['status']), fn($q) => $q->where('status', $filters['status']))
-            ->when(!empty($filters['store_id']), fn($q) => $q->where('store_id', $filters['store_id']))
+            ->when(!empty($filters['status']), fn($q) => $q->where('orders.status', $filters['status']))
+            ->when(!empty($filters['store_id']), fn($q) => $q->where('orders.store_id', $filters['store_id']))
             ->when(!empty($filters['category_id']), fn($q) => $q->whereHas('orderItems.product', function ($q) use ($filters) {
                 $q->where('category_id', $filters['category_id']);
             }))
@@ -581,7 +590,49 @@ class AdminController extends Controller
         $refundsPercentage = $previousRefunds > 0 ? round(($refundsChange / $previousRefunds) * 100, 2) : ($refunds > 0 ? 100 : 0);
         $refundsIncrement = $refundsChange > 0;
 
+        $storeRegistrationQuery = \Modules\Store\Models\Store::query();
+        if ($countryId) {
+            $storeRegistrationQuery->whereHas('address.zone.city.governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
+        }
+        if (!empty($filters['from_date'])) {
+            $storeRegistrationQuery->whereDate('created_at', '>=', $filters['from_date']);
+        }
+        if (!empty($filters['to_date'])) {
+            $storeRegistrationQuery->whereDate('created_at', '<=', $filters['to_date']);
+        }
 
+        $storeRegistrationTrend = $storeRegistrationQuery
+            ->where('status', \App\Enums\StoreStatusEnum::APPROVED)
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->limit(6)
+            ->get()
+            ->map(function ($item) {
+                $monthNumber = (int) date('m', strtotime($item->month));
+                $arabicMonths = [
+                    1 => 'يناير',
+                    2 => 'فبراير',
+                    3 => 'مارس',
+                    4 => 'أبريل',
+                    5 => 'مايو',
+                    6 => 'يونيو',
+                    7 => 'يوليو',
+                    8 => 'أغسطس',
+                    9 => 'سبتمبر',
+                    10 => 'أكتوبر',
+                    11 => 'نوفمبر',
+                    12 => 'ديسمبر'
+                ];
+
+                return [
+                    'month' => $arabicMonths[$monthNumber],
+                    'month_en' => date('F', strtotime($item->month)),
+                    'count' => (int) $item->count
+                ];
+            });
 
         return $this->successResponse([
             'currency_code' => $currencyCode,
@@ -632,6 +683,108 @@ class AdminController extends Controller
                 'order_status_distribution' => $statusDistribution,
                 'delivery_time_trend' => $deliveryTimeTrend,
                 'payment_methods' => $paymentMethods,
+                'store_registration_trend' => $storeRegistrationTrend,
+                'performance_radar' => [
+                    'orders' => $ordersPerformance,
+                    'rating' => $ratingPerformance,
+                    'profit' => $profitPerformance,
+                    'speed' => $speedPerformance,
+                    'quality' => $qualityPerformance,
+                ],
+                'top_performing_stores' => $query->clone()
+                    ->join('stores', 'orders.store_id', '=', 'stores.id')
+                    ->join('store_translations', 'stores.id', '=', 'store_translations.store_id')
+                    ->where('store_translations.locale', app()->getLocale())
+                    ->selectRaw('stores.id, store_translations.name, SUM(orders.total_amount) as revenue, COUNT(orders.id) as order_count')
+                    ->groupBy('stores.id', 'store_translations.name')
+                    ->reorder()
+                    ->orderByDesc('revenue')
+                    ->limit(3)
+                    ->get()
+                    ->map(fn($item) => [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'revenue' => (float) $item->revenue,
+                        'order_count' => (int) $item->order_count
+                    ]),
+                'low_performing_stores' => \Modules\Store\Models\Store::query()
+                    ->join('store_translations', 'stores.id', '=', 'store_translations.store_id')
+                    ->where('store_translations.locale', app()->getLocale())
+                    ->where('stores.status', \App\Enums\StoreStatusEnum::APPROVED)
+                    ->where('stores.avg_rate', '>=', 0)
+                    ->when($countryId, function ($q) use ($countryId) {
+                        $q->whereHas('address.zone.city.governorate', function ($subQ) use ($countryId) {
+                            $subQ->where('country_id', $countryId);
+                        });
+                    })
+                    ->withCount('orders')
+                    ->orderBy('stores.avg_rate', 'asc')
+                    ->limit(3)
+                    ->select('stores.id', 'stores.avg_rate', 'store_translations.name')
+                    ->get()
+                    ->map(fn($item) => [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'rating' => (float) $item->avg_rate,
+                        'order_count' => (int) $item->orders_count
+                    ]),
+                'top_delivery_companies_by_performance' => \Modules\Store\Models\Store::query()
+                    ->join('store_translations', 'stores.id', '=', 'store_translations.store_id')
+                    ->where('store_translations.locale', app()->getLocale())
+                    ->where('stores.type', 'delivery')
+                    ->where('stores.status', \App\Enums\StoreStatusEnum::APPROVED)
+                    ->join('couiers', 'stores.id', '=', 'couiers.store_id')
+                    ->join('orders', 'couiers.id', '=', 'orders.couier_id')
+                    ->when($countryId, function ($q) use ($countryId) {
+                        $q->whereHas('address.zone.city.governorate', function ($subQ) use ($countryId) {
+                            $subQ->where('country_id', $countryId);
+                        });
+                    })
+                    ->selectRaw('
+                        stores.id, 
+                        stores.logo, 
+                        store_translations.name, 
+                        COUNT(orders.id) as total_orders,
+                        SUM(CASE WHEN orders.status = "delivered" THEN 1 ELSE 0 END) as delivered_orders
+                    ')
+                    ->groupBy('stores.id', 'stores.logo', 'store_translations.name')
+                    ->get()
+                    ->map(function ($item) {
+                        $percentage = $item->total_orders > 0 ? ($item->delivered_orders / $item->total_orders) * 100 : 0;
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->name,
+                            'logo' => $item->logo,
+                            'percentage' => round($percentage, 1)
+                        ];
+                    })
+                    ->sortByDesc('percentage')
+                    ->take(3)
+                    ->values(),
+                'top_delivery_companies_by_revenue' => \Modules\Store\Models\Store::query()
+                    ->join('store_translations', 'stores.id', '=', 'store_translations.store_id')
+                    ->where('store_translations.locale', app()->getLocale())
+                    ->where('stores.type', 'delivery')
+                    ->where('stores.status', \App\Enums\StoreStatusEnum::APPROVED)
+                    ->join('couiers', 'stores.id', '=', 'couiers.store_id')
+                    ->join('orders', 'couiers.id', '=', 'orders.couier_id')
+                    ->where('orders.status', 'delivered')
+                    ->when($countryId, function ($q) use ($countryId) {
+                        $q->whereHas('address.zone.city.governorate', function ($subQ) use ($countryId) {
+                            $subQ->where('country_id', $countryId);
+                        });
+                    })
+                    ->selectRaw('stores.id, stores.logo, store_translations.name, SUM(orders.total_amount) as revenue')
+                    ->groupBy('stores.id', 'stores.logo', 'store_translations.name')
+                    ->orderByDesc('revenue')
+                    ->limit(3)
+                    ->get()
+                    ->map(fn($item) => [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'logo' => $item->logo,
+                        'revenue' => (float) $item->revenue
+                    ]),
             ],
             'customer_analytics' => [
                 'total_customers' => $totalCustomers,
@@ -649,5 +802,156 @@ class AdminController extends Controller
             ],
 
         ], __('message.success'));
+    }
+
+    /**
+     * Get sales report table data with pagination.
+     */
+    public function salesReport(Request $request): JsonResponse
+    {
+        $filters = $request->only(['from_date', 'to_date', 'store_id']);
+        $perPage = $request->input('per_page', 10);
+
+        // Get currency information based on user's country
+        $countryId = null;
+        if (auth('sanctum')->check()) {
+            $user = auth('sanctum')->user();
+            if ($user->currentAccessToken() && $user->currentAccessToken()->country_id) {
+                $countryId = $user->currentAccessToken()->country_id;
+            }
+        }
+        if (!$countryId) {
+            $countryId = config('settings.default_country', 1);
+        }
+
+        $currencyCode = 'USD';
+        $currencyFactor = 100;
+        if ($countryId) {
+            $country = \Modules\Country\Models\Country::find($countryId);
+            if ($country) {
+                $currencyCode = $country->code ?? 'USD';
+                $currencyFactor = $country->currency_factor ?? 100;
+            }
+        }
+
+        // Query orders grouped by store and date
+        $query = \Modules\Order\Models\Order::query()
+            ->select([
+                DB::raw('DATE(orders.created_at) as date'),
+                'orders.store_id',
+                DB::raw('COUNT(orders.id) as order_count'),
+                DB::raw('SUM(orders.total_amount) as total_sales'),
+            ])
+            ->with(['store'])
+            ->groupBy(DB::raw('DATE(orders.created_at)'), 'orders.store_id')
+            ->orderBy('date', 'DESC');
+
+        // Apply country filter
+        if ($countryId) {
+            $query->whereHas('store.address.zone.city.governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
+        }
+
+        // Apply filters
+        if (!empty($filters['from_date'])) {
+            $query->whereDate('orders.created_at', '>=', $filters['from_date']);
+        }
+        if (!empty($filters['to_date'])) {
+            $query->whereDate('orders.created_at', '<=', $filters['to_date']);
+        }
+        if (!empty($filters['store_id'])) {
+            $query->where('orders.store_id', $filters['store_id']);
+        }
+
+        // Paginate results
+        $salesData = $query->paginate($perPage);
+
+        // Calculate refunds for each record
+        $salesData->getCollection()->transform(function ($item) {
+            // Get store name
+            $storeName = $item->store ? $item->store->name : 'N/A';
+
+            // Calculate refunds for this store on this date
+            // Using orders with unpaid/partially paid status as refunds
+            $totalRefunds = \Modules\Order\Models\Order::where('store_id', $item->store_id)
+                ->whereDate('created_at', $item->date)
+                ->whereIn('payment_status', [\App\Enums\PaymentStatusEnum::UNPAID, \App\Enums\PaymentStatusEnum::PARTIALLY_PAID])
+                ->sum('total_amount');
+
+            return [
+                'date' => $item->date,
+                'store_id' => $item->store_id,
+                'store_name' => $storeName,
+                'order_count' => (int) $item->order_count,
+                'total_sales' => (int) $item->total_sales,
+                'refunds' => (int) $totalRefunds,
+            ];
+        });
+
+        return $this->successResponse([
+            'currency_code' => $currencyCode,
+            'currency_factor' => $currencyFactor,
+            'sales' => $salesData->items(),
+            'pagination' => new PaginationResource($salesData),
+        ], __('message.success'));
+    }
+
+    /**
+     * Record a cash payment from a courier to the admin.
+     * This updates the courier's balance (adds funds/pays debt).
+     */
+    public function addCourierPayment(Request $request): JsonResponse
+    {
+        $request->validate([
+            'courier_id' => 'required|integer|exists:couiers,id',
+            'amount' => 'required|numeric|min:0.01',
+            'notes' => 'nullable|string',
+        ]);
+
+        $courier = Couier::findOrFail($request->courier_id);
+        $amount = (float) $request->amount;
+        $admin = auth('sanctum')->user();
+
+        // 1. Update Courier Balance
+        $balance = $courier->balance()->firstOrCreate([], [
+            'available_balance' => 0,
+            'pending_balance' => 0,
+            'total_balance' => 0,
+        ]);
+
+        // Increment balance because they are paying money IN
+        // If they had -100 and pay 100, they become 0.
+        $balance->increment('available_balance', $amount);
+        $balance->increment('total_balance', $amount);
+
+        // 2. Create Transaction for Courier
+        Transaction::create([
+            'transactionable_type' => 'courier',
+            'transactionable_id' => $courier->id,
+            'type' => TransactionType::INCREMENT,
+            'amount' => $amount,
+            'currency' => $courier->store ? $courier->store->getCurrencyCode() : 'USD',
+            'translations' => [
+                'ar' => ['description' => "دفعة نقدية تم استلامها بواسطة المشرف: " . ($admin ? $admin->name : 'N/A') . ($request->notes ? " - " . $request->notes : "")],
+                'en' => ['description' => "Cash payment received by admin: " . ($admin ? $admin->name : 'N/A') . ($request->notes ? " - " . $request->notes : "")],
+            ],
+            'status' => TransactionStatusEnum::SUCCESS->value,
+            'processed_by' => $admin ? $admin->id : null,
+        ]);
+
+        return $this->successResponse([
+            'new_balance' => $balance->refresh()->available_balance,
+        ], __('message.success'));
+    }
+    public function search(Request $request)
+    {
+        $product = Product::search($request->search)->get();
+
+        $store = Store::search($request->search)->get();
+        return $this->successResponse([
+            'product' => ProductResource::collection($product),
+            'store' => StoreResource::collection($store),
+        ]);
     }
 }

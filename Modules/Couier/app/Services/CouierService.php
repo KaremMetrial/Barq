@@ -27,8 +27,7 @@ class CouierService
         protected CouierRepository $CouierRepository,
         protected StoreRepository $storeRepository,
         protected CourierShiftService $courierShiftService
-    ) {
-    }
+    ) {}
 
     public function getAllCouiers($filters = [])
     {
@@ -56,16 +55,14 @@ class CouierService
         }
 
         // Create Couier
-        $courierData = array_filter($data['courier'], fn ($value) => !blank($value));
+        $courierData = array_filter($data['courier'], fn($value) => !blank($value));
 
         if (isset($courierData['commission_amount']) && isset($courierData['store_id'])) {
             $store = $this->storeRepository->find($courierData['store_id']);
-            if ($store) {
-                $factor = $store->getCurrencyFactor();
-                $courierData['commission_amount'] = CurrencyHelper::priceToUnsignedBigInt($courierData['commission_amount'], $factor);
-            } else {
-                // fallback to default factor if store not found
-                $courierData['commission_amount'] = CurrencyHelper::priceToUnsignedBigInt($courierData['commission_amount']);
+            $factor = $store ? $store->getCurrencyFactor() : 100;
+
+            if (($courierData['commission_type'] ?? \App\Enums\PlanTypeEnum::COMMISSION->value) === \App\Enums\PlanTypeEnum::SUBSCRIPTION->value) {
+                $courierData['commission_amount'] = CurrencyHelper::toMinorUnits($courierData['commission_amount'], $factor);
             }
         }
 
@@ -161,25 +158,17 @@ class CouierService
                 'public'
             );
         }
-        $courierData = array_filter($courierData, fn ($value) => !blank($value));
+        $courierData = array_filter($courierData, fn($value) => !blank($value));
 
         if (isset($courierData['commission_amount'])) {
-            $factor = 100; // default
-            $store = null;
-            if (isset($courierData['store_id'])) {
-                $store = $this->storeRepository->find($courierData['store_id']);
-            } else {
-                $couier = $this->CouierRepository->find($id);
-                if ($couier && $couier->store_id) {
-                    $store = $this->storeRepository->find($couier->store_id);
-                }
-            }
+            $currentCourier = $this->CouierRepository->find($id);
+            $storeId = $courierData['store_id'] ?? $currentCourier->store_id;
+            $store = $storeId ? $this->storeRepository->find($storeId) : null;
+            $factor = $store ? $store->getCurrencyFactor() : 100;
 
-            if ($store) {
-                $factor = $store->getCurrencyFactor();
+            if (($courierData['commission_type'] ?? $currentCourier->commission_type->value) === \App\Enums\PlanTypeEnum::SUBSCRIPTION->value) {
+                $courierData['commission_amount'] = CurrencyHelper::toMinorUnits($courierData['commission_amount'], $factor);
             }
-
-            $courierData['commission_amount'] = CurrencyHelper::priceToUnsignedBigInt($courierData['commission_amount'], $factor);
         }
 
         $couier = $this->CouierRepository->update($id, $courierData)->refresh();
@@ -244,36 +233,36 @@ class CouierService
             $couier->zonesToCover()->attach($data['zones_to_cover']);
         }
 
-if (isset($data['address'])) {
-    $addressData = $data['address'];
+        if (isset($data['address'])) {
+            $addressData = $data['address'];
 
-    // Separate translatable fields
-    $translatedFields = [];
-    if (isset($addressData['address_line_1'])) {
-        $translatedFields['address_line_1'] = $addressData['address_line_1'];
-        unset($addressData['address_line_1']);
-    }
-    if (isset($addressData['address_line_2'])) {
-        $translatedFields['address_line_2'] = $addressData['address_line_2'];
-        unset($addressData['address_line_2']);
-    }
+            // Separate translatable fields
+            $translatedFields = [];
+            if (isset($addressData['address_line_1'])) {
+                $translatedFields['address_line_1'] = $addressData['address_line_1'];
+                unset($addressData['address_line_1']);
+            }
+            if (isset($addressData['address_line_2'])) {
+                $translatedFields['address_line_2'] = $addressData['address_line_2'];
+                unset($addressData['address_line_2']);
+            }
 
-    if ($couier->address) {
-        // Update main address table
-        $couier->address()->update($addressData);
+            if ($couier->address) {
+                // Update main address table
+                $couier->address()->update($addressData);
 
-        // Update translations
-        if (!empty($translatedFields)) {
-            $couier->address->update($translatedFields);
+                // Update translations
+                if (!empty($translatedFields)) {
+                    $couier->address->update($translatedFields);
+                }
+            } else {
+                // Create new address with translations
+                $couierAddress = $couier->address()->create($addressData);
+                if (!empty($translatedFields)) {
+                    $couierAddress->update($translatedFields);
+                }
+            }
         }
-    } else {
-        // Create new address with translations
-        $couierAddress = $couier->address()->create($addressData);
-        if (!empty($translatedFields)) {
-            $couierAddress->update($translatedFields);
-        }
-    }
-}
 
         return $couier->refresh();
     }
@@ -310,7 +299,7 @@ if (isset($data['address'])) {
     {
         $courier = auth('sanctum')->user();
         $currentOrder = \Modules\Order\Models\Order::where('couier_id', $courier->id)
-            ->whereHas('courierOrderAssignment', function ($q){
+            ->whereHas('courierOrderAssignment', function ($q) {
                 $q->whereIn('status', ['accepted', 'in_transit']);
             })
             ->with(['store', 'user'])
@@ -347,230 +336,241 @@ if (isset($data['address'])) {
     private function getZoneWithStoresHavingOrders()
     {
         // Get zones that have stores with orders
-        $zones = \Modules\Zone\Models\Zone::with(['stores' => function($query) {
-                $query->withCount('orders')
-                      ->having('orders_count', '>', 0)
-                      ->orderBy('orders_count', 'desc');
-            }])
+        $zones = \Modules\Zone\Models\Zone::with(['stores' => function ($query) {
+            $query->withCount('orders')
+                ->having('orders_count', '>', 0)
+                ->orderBy('orders_count', 'desc');
+        }])
             ->whereHas('stores.orders')
             ->get();
 
         return ZoneResource::collection($zones);
     }
 
-private function getShiftData(): array
-{
-    $courier = auth('sanctum')->user();
-    $current_shift = $courier->activeShifts()->first();
+    private function getShiftData(): array
+    {
+        $courier = auth('sanctum')->user();
+        $current_shift = $courier->activeShifts()->first();
 
-    // Handle location data
-    $location = $this->getLocationData();
+        // Handle location data
+        $location = $this->getLocationData();
 
-    // Get current shift data
-    $currentShiftData = $this->getCurrentShiftData($current_shift);
+        // Get current shift data
+        $currentShiftData = $this->getCurrentShiftData($current_shift);
 
-    // Get next shift data (exclude current shift if it exists)
-    $nextShiftData = $this->getNextShiftData($courier, $current_shift);
+        // Get next shift data (exclude current shift if it exists)
+        $nextShiftData = $this->getNextShiftData($courier, $current_shift);
 
-    // Calculate remaining time
-    $remainingData = $this->calculateRemainingTime($nextShiftData);
+        // Calculate remaining time
+        $remainingData = $this->calculateRemainingTime($nextShiftData);
 
-    return [
-        'location' => $location,
-        'current_shift' => $currentShiftData,
-        'next_shift' => !$currentShiftData ? $nextShiftData : null,
-        'remaining_time' => !$currentShiftData ? $remainingData : null,
-    ];
-}
+        return [
+            'location' => $location,
+            'current_shift' => $currentShiftData,
+            'next_shift' => !$currentShiftData ? $nextShiftData : null,
+            'remaining_time' => !$currentShiftData ? $remainingData : null,
+        ];
+    }
 
-private function getLocationData(): ?string
-{
-    $lat = request()->header('lat');
-    $long = request()->header('long');
-    $location = null;
+    private function getLocationData(): ?string
+    {
+        $lat = request()->header('lat');
+        $long = request()->header('long');
+        $location = null;
 
-    if ($lat && $long) {
-        try {
-            $zone = app(\Modules\Address\Services\AddressService::class)->getAddressByLatLong($lat, $long);
-            $location = $zone?->getFullAddressAttribute();
-        } catch (\Exception $e) {
-            // Fallback to IP-based location if zone lookup fails
+        if ($lat && $long) {
+            try {
+                $zone = app(\Modules\Address\Services\AddressService::class)->getAddressByLatLong($lat, $long);
+                $location = $zone?->getFullAddressAttribute();
+            } catch (\Exception $e) {
+                // Fallback to IP-based location if zone lookup fails
+            }
         }
-    }
 
-    if (!$location) {
-        try {
-            $position = Location::get(request()->ip());
-            $location = $position ? $position->cityName . ', ' . $position->countryName . ', ' . $position->regionName : null;
-        } catch (\Exception $e) {
-            $location = null;
+        if (!$location) {
+            try {
+                $position = Location::get(request()->ip());
+                $location = $position ? $position->cityName . ', ' . $position->countryName . ', ' . $position->regionName : null;
+            } catch (\Exception $e) {
+                $location = null;
+            }
         }
+
+        return $location;
     }
 
-    return $location;
-}
-
-private function getCurrentShiftData($current_shift): ?array
-{
-    if (!$current_shift) {
-        return null;
-    }
-
-    // Get shift template info
-    $shiftTemplate = null;
-    if ($current_shift->shift_template_id) {
-        $template = \Modules\Couier\Models\ShiftTemplate::find($current_shift->shift_template_id);
-        if ($template) {
-            $shiftTemplate = [
-                'id' => $template->id,
-                'name' => $template->name,
-                'is_active' => $template->is_active,
-                'is_flexible' => $template->is_flexible,
-            ];
+    private function getCurrentShiftData($current_shift): ?array
+    {
+        if (!$current_shift) {
+            return null;
         }
+
+        // Get shift template info
+        $shiftTemplate = null;
+        if ($current_shift->shift_template_id) {
+            $template = \Modules\Couier\Models\ShiftTemplate::find($current_shift->shift_template_id);
+            if ($template) {
+                $shiftTemplate = [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'is_active' => $template->is_active,
+                    'is_flexible' => $template->is_flexible,
+                ];
+            }
+        }
+
+        // Calculate total hours if end_time exists
+        $totalHours = 0;
+        if ($current_shift->start_time && $current_shift->end_time) {
+            $totalHours = $current_shift->start_time->diffInHours($current_shift->end_time - $current_shift->break_duration);
+        }
+
+        return [
+            'id' => $current_shift->id,
+            'shift_template_id' => $current_shift->shift_template_id,
+            'day_of_week' => $current_shift->start_time ?  WorkingDayEnum::label($current_shift->start_time->dayOfWeek) : null,
+            'start_time' => $current_shift->start_time?->toDateTimeString(),
+            'end_time' => $current_shift->end_time?->toDateTimeString(),
+            'total_hours' => $totalHours,
+            'break_duration' => $current_shift->break_duration,
+            'formatted_time' => $this->formatShiftTime($current_shift->start_time, $current_shift->end_time),
+            'shift_template' => $shiftTemplate,
+        ];
     }
 
-    // Calculate total hours if end_time exists
-    $totalHours = 0;
-    if ($current_shift->start_time && $current_shift->end_time) {
-        $totalHours = $current_shift->start_time->diffInHours($current_shift->end_time - $current_shift->break_duration);
-    }
+    private function getNextShiftData($courier, $current_shift = null): ?array
+    {
+        $now = now();
 
-    return [
-        'id' => $current_shift->id,
-        'shift_template_id' => $current_shift->shift_template_id,
-        'day_of_week' => $current_shift->start_time ?  WorkingDayEnum::label($current_shift->start_time->dayOfWeek) : null,
-        'start_time' => $current_shift->start_time?->toDateTimeString(),
-        'end_time' => $current_shift->end_time?->toDateTimeString(),
-        'total_hours' => $totalHours,
-        'break_duration' => $current_shift->break_duration,
-        'formatted_time' => $this->formatShiftTime($current_shift->start_time, $current_shift->end_time),
-        'shift_template' => $shiftTemplate,
-    ];
-}
+        // Get active shift templates with shift template data
+        $shiftTemplates = $courier->activeShiftTemplates()
+            ->with('shiftTemplate')
+            ->get();
 
-private function getNextShiftData($courier, $current_shift = null): ?array
-{
-    $now = now();
+        if ($shiftTemplates->isEmpty()) {
+            return null;
+        }
 
-    // Get active shift templates with shift template data
-    $shiftTemplates = $courier->activeShiftTemplates()
-        ->with('shiftTemplate')
-        ->get();
+        // Check for next 7 days
+        for ($i = 0; $i < 7; $i++) {
+            $checkDate = $now->copy()->addDays($i);
+            $dayOfWeek = $checkDate->dayOfWeek;
 
-    if ($shiftTemplates->isEmpty()) {
-        return null;
-    }
+            foreach ($shiftTemplates as $templateAssignment) {
+                $schedule = $templateAssignment->weekly_schedule;
 
-    // Check for next 7 days
-    for ($i = 0; $i < 7; $i++) {
-        $checkDate = $now->copy()->addDays($i);
-        $dayOfWeek = $checkDate->dayOfWeek;
-
-        foreach ($shiftTemplates as $templateAssignment) {
-            $schedule = $templateAssignment->weekly_schedule;
-
-            foreach ($schedule as $daySchedule) {
-                // Skip if this is an off day or has no start/end time
-                if ($daySchedule['is_off_day'] || empty($daySchedule['start_time']) || empty($daySchedule['end_time'])) {
-                    continue;
-                }
-
-                if ($daySchedule['day_of_week'] == $dayOfWeek) {
-                    $startTime = \Carbon\Carbon::parse($daySchedule['start_time']);
-                    $endTime = \Carbon\Carbon::parse($daySchedule['end_time']);
-
-                    // Skip if start and end time are the same
-                    if ($startTime->eq($endTime)) {
+                foreach ($schedule as $daySchedule) {
+                    // Skip if this is an off day or has no start/end time
+                    if ($daySchedule['is_off_day'] || empty($daySchedule['start_time']) || empty($daySchedule['end_time'])) {
                         continue;
                     }
 
-                    // Combine date and time
-                    $shiftStart = $checkDate->copy()->setTime($startTime->hour, $startTime->minute);
-                    $shiftEnd = $checkDate->copy()->setTime($endTime->hour, $endTime->minute);
+                    if ($daySchedule['day_of_week'] == $dayOfWeek) {
+                        $startTime = \Carbon\Carbon::parse($daySchedule['start_time']);
+                        $endTime = \Carbon\Carbon::parse($daySchedule['end_time']);
 
-                    // Skip if this is the current shift
-                    if ($current_shift && $current_shift->start_time && $current_shift->start_time->isSameDay($shiftStart)) {
-                        continue;
-                    }
-
-                    // Check if this shift is in the future (not started yet)
-                    if ($shiftStart->isFuture()) {
-                        // Get shift template details
-                        $shiftTemplate = null;
-                        if ($templateAssignment->shiftTemplate) {
-                            $shiftTemplate = [
-                                'id' => $templateAssignment->shiftTemplate->id,
-                                'name' => $templateAssignment->shiftTemplate->name,
-                                'is_active' => $templateAssignment->shiftTemplate->is_active,
-                                'is_flexible' => $templateAssignment->shiftTemplate->is_flexible,
-                            ];
+                        // Skip if start and end time are the same
+                        if ($startTime->eq($endTime)) {
+                            continue;
                         }
 
-                        return [
-                            'id' => $templateAssignment->id,
-                            'shift_template_id' => $templateAssignment->shift_template_id,
-                            'day_of_week' => WorkingDayEnum::label($dayOfWeek),
-                            'start_time' => $shiftStart->toDateTimeString(),
-                            'end_time' => $shiftEnd->toDateTimeString(),
-                            'total_hours' => $daySchedule['total_hours'] ?? 0,
-                            'break_duration' => $daySchedule['break_duration'] ?? 0,
-                            'formatted_time' => $this->formatShiftTime($shiftStart, $shiftEnd),
-                            'shift_template' => $shiftTemplate,
-                        ];
+                        // Combine date and time
+                        $shiftStart = $checkDate->copy()->setTime($startTime->hour, $startTime->minute);
+                        $shiftEnd = $checkDate->copy()->setTime($endTime->hour, $endTime->minute);
+
+                        // Skip if this is the current shift
+                        if ($current_shift && $current_shift->start_time && $current_shift->start_time->isSameDay($shiftStart)) {
+                            continue;
+                        }
+
+                        // Check if this shift is in the future (not started yet)
+                        // Or if it started within the last 15 minutes (grace period)
+                        if ($shiftStart->gt(now()->subMinutes(15))) {
+                            // Get shift template details
+                            $shiftTemplate = null;
+                            if ($templateAssignment->shiftTemplate) {
+                                $shiftTemplate = [
+                                    'id' => $templateAssignment->shiftTemplate->id,
+                                    'name' => $templateAssignment->shiftTemplate->name,
+                                    'is_active' => $templateAssignment->shiftTemplate->is_active,
+                                    'is_flexible' => $templateAssignment->shiftTemplate->is_flexible,
+                                ];
+                            }
+
+                            return [
+                                'id' => $templateAssignment->id,
+                                'shift_template_id' => $templateAssignment->shift_template_id,
+                                'day_of_week' => WorkingDayEnum::label($dayOfWeek),
+                                'start_time' => $shiftStart->toDateTimeString(),
+                                'end_time' => $shiftEnd->toDateTimeString(),
+                                'total_hours' => $daySchedule['total_hours'] ?? 0,
+                                'break_duration' => $daySchedule['break_duration'] ?? 0,
+                                'formatted_time' => $this->formatShiftTime($shiftStart, $shiftEnd),
+                                'shift_template' => $shiftTemplate,
+                            ];
+                        }
                     }
                 }
             }
         }
-    }
 
-    return null;
-}
-
-private function calculateRemainingTime($nextShiftData)
-{
-    if (!$nextShiftData || empty($nextShiftData['start_time'])) {
         return null;
     }
 
-    $now = now();
-    $shiftStartTime = Carbon::parse($nextShiftData['start_time']);
+    private function calculateRemainingTime($nextShiftData)
+    {
+        if (!$nextShiftData || empty($nextShiftData['start_time'])) {
+            return null;
+        }
 
-    if ($shiftStartTime->isPast()) {
-        return null;
+        $now = now();
+        $shiftStartTime = Carbon::parse($nextShiftData['start_time']);
+
+        if ($shiftStartTime->isPast()) {
+            // If within grace period (15 mins), return 0 time instead of null
+            if ($shiftStartTime->gt(now()->subMinutes(15))) {
+                return [
+                    'hours' => 0,
+                    'minutes' => 0,
+                    'total_minutes' => 0,
+                    'formatted' => '00h 00m'
+                ];
+            }
+            return null;
+        }
+
+        $hours = $now->diffInHours($shiftStartTime);
+        $minutes = $now->copy()->addHours($hours)->diffInMinutes($shiftStartTime);
+
+        return [
+            'hours' => $hours,
+            'minutes' => $minutes,
+            'total_minutes' => $now->diffInMinutes($shiftStartTime),
+            'formatted' => sprintf('%02dh %02dm', $hours, $minutes)
+        ];
     }
 
-    $hours = $now->diffInHours($shiftStartTime);
-    $minutes = $now->copy()->addHours($hours)->diffInMinutes($shiftStartTime);
+    private function formatShiftTime($start, $end): string
+    {
+        if (!$start || !$end) {
+            return '';
+        }
 
-    return [
-        'hours' => $hours,
-        'minutes' => $minutes,
-        'total_minutes' => $now->diffInMinutes($shiftStartTime),
-        'formatted' => sprintf('%02dh %02dm', $hours, $minutes)
-    ];
-}
+        $startTime = $start instanceof \Carbon\Carbon ? $start : \Carbon\Carbon::parse($start);
+        $endTime = $end instanceof \Carbon\Carbon ? $end : \Carbon\Carbon::parse($end);
 
-private function formatShiftTime($start, $end): string
-{
-    if (!$start || !$end) {
-        return '';
+        // Return empty if times are the same
+        if ($startTime->eq($endTime)) {
+            return '';
+        }
+
+        $totalHours = $startTime->diffInHours($endTime);
+
+        return sprintf(
+            "(%dh) %s - %s",
+            $totalHours,
+            $startTime->format('H:i'),
+            $endTime->format('H:i')
+        );
     }
-
-    $startTime = $start instanceof \Carbon\Carbon ? $start : \Carbon\Carbon::parse($start);
-    $endTime = $end instanceof \Carbon\Carbon ? $end : \Carbon\Carbon::parse($end);
-
-    // Return empty if times are the same
-    if ($startTime->eq($endTime)) {
-        return '';
-    }
-
-    $totalHours = $startTime->diffInHours($endTime);
-
-    return sprintf("(%dh) %s - %s",
-        $totalHours,
-        $startTime->format('H:i'),
-        $endTime->format('H:i')
-    );
-}
 }

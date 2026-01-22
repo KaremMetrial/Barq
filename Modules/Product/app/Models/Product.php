@@ -24,10 +24,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Laravel\Scout\Searchable;
 
 class Product extends Model implements TranslatableContract
 {
-    use Translatable;
+    use Translatable, Searchable;
     public $translatedAttributes = ['name', 'description'];
 
     protected $fillable = [
@@ -54,6 +55,16 @@ class Product extends Model implements TranslatableContract
         'is_featured' => 'boolean',
         'weight' => 'decimal:3',
     ];
+    public function toSearchableArray()
+    {
+        return [
+            'id' => (int) $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+        ];
+    }
+
+
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
@@ -150,7 +161,7 @@ class Product extends Model implements TranslatableContract
     public function scopeFilter($query, $filters)
     {
         $query
-        ->with('translations')
+            ->with('translations')
             ->withAvg('reviews', 'rating');
         if (isset($filters['search'])) {
             $searchTerm = $filters['search'];
@@ -171,10 +182,10 @@ class Product extends Model implements TranslatableContract
             $query->where('weight', $filters['weight']);
         }
 
-        if(isset($filters['status'])){
+        if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
         }
-        if(!$admin && !$vendor){
+        if (!$admin && !$vendor) {
             $query->whereIsActive(true);
         }
         if ($admin) {
@@ -189,28 +200,28 @@ class Product extends Model implements TranslatableContract
             $query->whereStatus(ProductStatusEnum::ACTIVE)->whereIsActive(true);
         }
 
-         $addressId = request()->header('address-id') ?? request()->header('AddressId');
-         $lat = request()->header('lat');
-         $lng = request()->header('lng');
+        $addressId = request()->header('address-id') ?? request()->header('AddressId');
+        $lat = request()->header('lat');
+        $lng = request()->header('lng');
 
-         $zone = null;
+        $zone = null;
 
-         if ($addressId) {
-             $zone = Zone::findZoneByAddressId($addressId);
-         } elseif ($lat && $lng) {
-             $zone = Zone::findZoneByCoordinates($lat, $lng);
-         }
-         if ($zone) {
-             $query->whereHas('store', function ($q) use ($zone) {
-                 $q->whereHas('zoneToCover', function ($qz) use ($zone) {
-                     $qz->where('zones.id', $zone->id);
-                 });
-             });
-         } else {
-             if ($addressId || ($lat && $lng)) {
-                 $query->whereRaw('1 = 0');
-             }
-         }
+        if ($addressId) {
+            $zone = Zone::findZoneByAddressId($addressId);
+        } elseif ($lat && $lng) {
+            $zone = Zone::findZoneByCoordinates($lat, $lng);
+        }
+        if ($zone) {
+            $query->whereHas('store', function ($q) use ($zone) {
+                $q->whereHas('zoneToCover', function ($qz) use ($zone) {
+                    $qz->where('zones.id', $zone->id);
+                });
+            });
+        } else {
+            if ($addressId || ($lat && $lng)) {
+                $query->whereRaw('1 = 0');
+            }
+        }
 
 
         return $query->latest();
@@ -271,26 +282,38 @@ class Product extends Model implements TranslatableContract
     }
     public function getRelatedProductsAttribute()
     {
-        return $this->category->products()
-        ->with([
-            'store.translations',
-            'store.storeSetting',
-            'category.translations',
-            'images',
-            'price',
-            'availability',
-            'tags',
-            'units.translations',
-            'ProductNutrition',
-            'productAllergen.translations',
-            'pharmacyInfo.translations',
-            'watermark',
-            'offers',
-            'requiredOptions',
-            'productOptions.option.translations',
-            'productOptions.optionValues.productValue.translations',
-            'addOns'
-        ])
+        $addressId = request()->header('address-id') ?? request()->header('AddressId');
+        $lat = request()->header('lat');
+        $lng = request()->header('lng');
+
+        $zone = null;
+
+        if ($addressId) {
+            $zone = Zone::findZoneByAddressId($addressId);
+        } elseif ($lat && $lng) {
+            $zone = Zone::findZoneByCoordinates($lat, $lng);
+        }
+
+        $query = $this->category->products()
+            ->with([
+                'store.translations',
+                'store.storeSetting',
+                'category.translations',
+                'images',
+                'price',
+                'availability',
+                'tags',
+                'units.translations',
+                'ProductNutrition',
+                'productAllergen.translations',
+                'pharmacyInfo.translations',
+                'watermark',
+                'offers',
+                'requiredOptions',
+                'productOptions.option.translations',
+                'productOptions.optionValues.productValue.translations',
+                'addOns'
+            ])
             ->where('id', '!=', $this->id)
             ->whereHas('store', function ($query) {
                 $query->whereHas('section', function ($query) {
@@ -298,8 +321,21 @@ class Product extends Model implements TranslatableContract
                         ->where('type', '!=', SectionTypeEnum::RESTAURANT);
                 });
             })
-            ->where('status', ProductStatusEnum::ACTIVE)
-            ->inRandomOrder()
+            ->where('status', ProductStatusEnum::ACTIVE);
+
+        if ($zone) {
+            $query->whereHas('store', function ($q) use ($zone) {
+                $q->whereHas('zoneToCover', function ($qz) use ($zone) {
+                    $qz->where('zones.id', $zone->id);
+                });
+            });
+        } else {
+            if ($addressId || ($lat && $lng)) {
+                return collect();
+            }
+        }
+
+        return $query->inRandomOrder()
             ->limit(5)
             ->get();
     }
@@ -315,5 +351,4 @@ class Product extends Model implements TranslatableContract
         };
         static::updating($handleStatusChanges);
     }
-
 }
