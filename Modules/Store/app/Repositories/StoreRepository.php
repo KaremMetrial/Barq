@@ -132,15 +132,34 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
         if (!empty($filters['section_id'])) {
             $section = Section::find($filters['section_id']);
             if ($section && $section->type) {
+                $sectionName = $section->name;
                 $sectionType = $section->type->value;
                 $sectionLabel = SectionTypeEnum::label($section->type->value);
             }
         }
 
         return [
-            'topReviews' => $topReviews,
-            'featured' => $featured,
-            'newStores' => $newStore,
+            'topReviews' => [
+                'stores' => $topReviews,
+                'label' => __(
+                    'enums.section_labels.top_reviews',
+                    ['section' => $sectionName]
+                )
+            ],
+            'featured' => [
+                'stores' => $featured,
+                'label' => __(
+                    'enums.section_labels.featured',
+                    ['section' => $sectionName]
+                )
+            ],
+            'newStores' => [
+                'stores' => $newStore,
+                'label' => __(
+                    'enums.section_labels.new_stores',
+                    ['section' => $sectionName]
+                )
+            ],
             'section_type' => $sectionType,
             'section_label' => $sectionLabel,
         ];

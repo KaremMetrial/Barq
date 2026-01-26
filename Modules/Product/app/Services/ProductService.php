@@ -236,11 +236,14 @@ class ProductService
             if (!empty($option['values'])) {
                 foreach ($option['values'] as $value) {
                     $productValue = $productOption->values()->create(['name' => $value['name']]);
-
+                    $currencyInfo = \App\Helpers\CurrencyHelper::getCurrencyInfoFromStore(store: $product->store);
+                    // Use provided currency_factor or fallback to store's currency_factor or default to 100
+                    $factor = $value['currency_factor'] ?? $currencyInfo['currency_factor'] ?? 100;
+                    \Log::info('currencyFactor', [$factor]);
                     $productValue->optionValues()->create([
                         'product_value_id' => $productValue->id,
                         'product_option_id' => $productOption->id,
-                        'price' => $value['price'] ?? 0,
+                        'price' => $value['price'] ? \App\Helpers\CurrencyHelper::toMinorUnits($value['price'], $factor) : 0,
                         'stock' => $value['stock'] ?? 0,
                         'is_default' => $value['is_default'] ?? false,
                         'is_in_stock' => $value['is_in_stock'] ?? 0,

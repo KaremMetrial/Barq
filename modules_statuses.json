@@ -48,5 +48,6 @@
     "ShippingPrice": true,
     "LoyaltySetting": true,
     "Reward": true,
-    "Withdrawal": true
+    "Withdrawal": true,
+    "Promotion": true
 }

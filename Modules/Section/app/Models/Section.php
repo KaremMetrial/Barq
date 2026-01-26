@@ -19,15 +19,15 @@ class Section extends Model implements TranslatableContract
     public $translatedAttributes = ['name', 'description'];
 
     protected $useTranslationFallback = true;
-    protected $with = ['translations','categories'];
-
+    protected $with = ['translations', 'categories'];
     protected $fillable = [
         'slug',
         'icon',
         'is_restaurant',
         'is_active',
         'type',
-        'is_show_on_home'
+        'is_show_on_home',
+        'sort_order'
     ];
 
     protected $casts = [
@@ -58,8 +58,8 @@ class Section extends Model implements TranslatableContract
     {
         if (!auth('admin')->check()) {
             $query->whereIsActive(true)
-            ->whereIsShowOnHome(true)
-            ->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY);
+                ->whereIsShowOnHome(true)
+                ->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY);
         }
         if(isset($filters['type']) && $filters['type'] == 'store'){
             $query->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY);
@@ -83,7 +83,7 @@ class Section extends Model implements TranslatableContract
         }
 
         if (!$country) {
-           $country = $this->getCountryFromIp();
+            $country = $this->getCountryFromIp();
         }
         if (!$country) {
             $defaultCountryId = config('settings.default_country');
@@ -129,7 +129,7 @@ class Section extends Model implements TranslatableContract
             });
         }
 
-        return $query->with('categories')->latest();
+        return $query->with('categories')->orderBy('sort_order', 'asc');
     }
     public function country()
     {

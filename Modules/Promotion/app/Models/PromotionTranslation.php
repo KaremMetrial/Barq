@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Promotion\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PromotionTranslations extends Model
+class PromotionTranslation extends Model
 {
     public $timestamps = false;
     protected $fillable = [

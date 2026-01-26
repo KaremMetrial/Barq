@@ -18,6 +18,7 @@ use LaravelDaily\Invoices\Invoice;
 use LaravelDaily\Invoices\Classes\Buyer;
 use LaravelDaily\Invoices\Classes\Seller;
 use LaravelDaily\Invoices\Classes\InvoiceItem;
+use PDF;
 
 class AdminOrderController extends Controller
 {
@@ -119,7 +120,8 @@ class AdminOrderController extends Controller
                 'order' => new OrderResource($order)
             ], __('message.success'));
         }
-
-        return view('order::invoice', compact('order'));
+        $pdf = PDF::loadView('order::invoice', compact('order'));
+        // return view('order::invoice', compact('order'));
+        return $pdf->stream();
     }
 }

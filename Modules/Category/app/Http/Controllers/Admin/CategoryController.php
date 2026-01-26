@@ -27,7 +27,7 @@ class CategoryController extends Controller
     {
         $this->authorize('viewAny', Category::class);
         $filters = $request->all();
-        $categories = $this->categoryService->getAllCountries($filters);
+        $categories = $this->categoryService->getAllCategories($filters);
         return $this->successResponse([
             "categories"=> CategoryResource::collection($categories->load('children')),
         ],__("message.success"));

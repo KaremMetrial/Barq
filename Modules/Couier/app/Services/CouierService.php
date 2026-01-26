@@ -61,9 +61,7 @@ class CouierService
             $store = $this->storeRepository->find($courierData['store_id']);
             $factor = $store ? $store->getCurrencyFactor() : 100;
 
-            if (($courierData['commission_type'] ?? \App\Enums\PlanTypeEnum::COMMISSION->value) === \App\Enums\PlanTypeEnum::SUBSCRIPTION->value) {
-                $courierData['commission_amount'] = CurrencyHelper::toMinorUnits($courierData['commission_amount'], $factor);
-            }
+            $courierData['commission_amount'] = CurrencyHelper::toMinorUnits($courierData['commission_amount'], $factor);
         }
 
         $couier = $this->CouierRepository->create($courierData)->refresh();
@@ -166,9 +164,7 @@ class CouierService
             $store = $storeId ? $this->storeRepository->find($storeId) : null;
             $factor = $store ? $store->getCurrencyFactor() : 100;
 
-            if (($courierData['commission_type'] ?? $currentCourier->commission_type->value) === \App\Enums\PlanTypeEnum::SUBSCRIPTION->value) {
-                $courierData['commission_amount'] = CurrencyHelper::toMinorUnits($courierData['commission_amount'], $factor);
-            }
+            $courierData['commission_amount'] = CurrencyHelper::toMinorUnits($courierData['commission_amount'], $factor);
         }
 
         $couier = $this->CouierRepository->update($id, $courierData)->refresh();

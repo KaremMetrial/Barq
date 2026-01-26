@@ -5,4 +5,5 @@ return [
     App\Providers\AuthServiceProvider::class,
     App\Providers\RepositoryServiceProvider::class,
     Modules\Reward\Providers\RewardServiceProvider::class,
+    
 ];

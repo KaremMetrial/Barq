@@ -123,7 +123,7 @@ class UpdateProductRequest extends FormRequest
 
             'productOptions.*.values' => ['nullable', 'array'],
             'productOptions.*.values.*.name' => ['nullable', 'string'],
-            'productOptions.*.values.*.price_modifier' => ['nullable', 'numeric', 'min:0'],
+            'productOptions.*.values.*.price' => ['nullable', 'numeric', 'min:0'],
             'productOptions.*.values.*.stock' => ['nullable', 'integer', 'min:0'],
             'productOptions.*.values.*.is_default' => ['nullable', 'boolean'],
 

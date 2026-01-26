@@ -1,38 +1,65 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Promotion\Services;
 
-use App\Models\Promotion;
-use Illuminate\Support\Facades\Cache;
+use Modules\Promotion\Models\Promotion;
 use Illuminate\Support\Facades\DB;
 use Modules\Store\Models\Store;
 use Modules\User\Models\User;
-use Modules\Order\Models\Order;
 use Modules\Cart\Models\Cart;
 use App\Enums\PromotionSubTypeEnum;
+use App\Helpers\CurrencyHelper;
 
 class PromotionEngineService
 {
     public function evaluatePromotions(Cart $cart, Store $store, User $user = null): array
     {
-        $context = $this->buildOrderContext($cart, $store, $user);
-        
-        $eligiblePromotions = $this->getEligiblePromotions($context);
-        
-        // تقييم الترويجات
-        $evaluatedPromotions = $this->evaluatePromotions($eligiblePromotions, $context);
-        
-        // حل التعارضات
-        $finalPromotions = $this->resolveConflicts($evaluatedPromotions);
-        
-        // حساب النتائج
-        $result = $this->calculateResults($finalPromotions, $context);
-        
-        return $result;
+        // التحقق من صحة المدخلات
+        if (!$cart || !$store) {
+            return [
+                'promotions' => [],
+                'total_savings' => 0,
+                'delivery_cost' => 0,
+                'product_savings' => 0,
+                'new_order_total' => 0,
+                'original_order_total' => 0,
+                'errors' => ['Invalid cart or store provided']
+            ];
+        }
+
+        try {
+            $context = $this->buildOrderContext($cart, $store, $user);
+            
+            $eligiblePromotions = $this->getEligiblePromotions($context);
+            
+            // تقييم الترويجات
+            $evaluatedPromotions = $this->evaluatePromotions($eligiblePromotions, $context);
+            
+            // حل التعارضات
+            $finalPromotions = $this->resolveConflicts($evaluatedPromotions);
+            
+            // حساب النتائج
+            $result = $this->calculateResults($finalPromotions, $context);
+            
+            return $result;
+        } catch (\Exception $e) {
+            return [
+                'promotions' => [],
+                'total_savings' => 0,
+                'delivery_cost' => $cart->getDeliveryCost(),
+                'product_savings' => 0,
+                'new_order_total' => $cart->getTotal() + $cart->getDeliveryCost(),
+                'original_order_total' => $cart->getTotal() + $cart->getDeliveryCost(),
+                'errors' => ['Error evaluating promotions: ' . $e->getMessage()]
+            ];
+        }
     }
 
     private function buildOrderContext(Cart $cart, Store $store, User $user = null): array
     {
+        // الحصول على currency_factor من المتجر أو استخدام القيمة الافتراضية
+        $currencyFactor = $store->currency_factor ?? 100;
+        
         return [
             'user_id' => $user?->id,
             'store_id' => $store->id,
@@ -43,6 +70,7 @@ class PromotionEngineService
             'base_delivery_cost' => $cart->getDeliveryCost(),
             'cart_items' => $cart->items,
             'user_orders_count' => $user?->orders()->count() ?? 0,
+            'currency_factor' => $currencyFactor,
         ];
     }
 
@@ -117,70 +145,15 @@ class PromotionEngineService
     }
     private function evaluateFirstOrder(Promotion $promotion, array $context): array
     {
-        if (!$promotion->isValidForDelivery($context['store_id'], $context['order_amount'])) {
+        // الحصول على كائن Store من السياق
+        $store = Store::find($context['store_id']);
+        if (!$promotion->isValidForDelivery($store, $context['order_amount'])) {
             return ['is_valid' => false, 'promotion' => $promotion];
         }
 
-        return [
-            'is_valid' => true,
-            'promotion' => $promotion,
-            'type' => 'delivery',
-            'savings' => $context['base_delivery_cost'],
-            'new_delivery_cost' => 0,
-            'details' => [
-                'original_delivery_cost' => $context['base_delivery_cost'],
-                'new_delivery_cost' => 0,
-                'savings' => $context['base_delivery_cost']
-            ]
-        ];
-    }
-    private function evaluateFixedDelivery(Promotion $promotion, array $context): array
-    {
-        if (!$promotion->isValidForDelivery($context['store_id'], $context['order_amount'])) {
-            return ['is_valid' => false, 'promotion' => $promotion];
-        }
-
-        return [
-            'is_valid' => true,
-            'promotion' => $promotion,
-            'type' => 'delivery',
-            'savings' => $context['base_delivery_cost'],
-            'new_delivery_cost' => $promotion->fixed_delivery_price ?? 0,
-            'details' => [
-                'original_delivery_cost' => $context['base_delivery_cost'],
-                'new_delivery_cost' => $promotion->fixed_delivery_price ?? 0,
-                'savings' => $context['base_delivery_cost']
-            ]
-        ];
-    }
-    private function evaluateDiscountDelivery(Promotion $promotion, array $context): array
-    {
-        if (!$promotion->isValidForDelivery($context['store_id'], $context['order_amount'])) {
-            return ['is_valid' => false, 'promotion' => $promotion];
-        }
-
-        return [
-            'is_valid' => true,
-            'promotion' => $promotion,
-            'type' => 'delivery',
-            'savings' => $context['base_delivery_cost'],
-            'new_delivery_cost' => $context['base_delivery_cost'] - ($promotion->discount_value ?? 0),
-            'details' => [
-                'original_delivery_cost' => $context['base_delivery_cost'],
-                'new_delivery_cost' => $context['base_delivery_cost'] - ($promotion->discount_value ?? 0),
-                'savings' => $context['base_delivery_cost']
-            ]
-        ];
-    }
-    private function evaluatePercentageDiscount(Promotion $promotion, array $context): array
-    {
-        if (!$promotion->isValidForDelivery($context['store_id'], $context['order_amount'])) {
-            return ['is_valid' => false, 'promotion' => $promotion];
-        }
-
-        $discountPercentage = $promotion->discount_value ?? 0;
-        $savings = ($context['base_delivery_cost'] * $discountPercentage) / 100;
-        $newDeliveryCost = $context['base_delivery_cost'] - $savings;
+        // استخدام دالة calculateDeliveryCost من نموذج Promotion
+        $newDeliveryCost = $promotion->calculateDeliveryCost($store, $context['base_delivery_cost'], $context['order_amount']);
+        $savings = $context['base_delivery_cost'] - $newDeliveryCost;
 
         return [
             'is_valid' => true,
@@ -191,27 +164,107 @@ class PromotionEngineService
             'details' => [
                 'original_delivery_cost' => $context['base_delivery_cost'],
                 'new_delivery_cost' => $newDeliveryCost,
-                'savings' => $savings,
-                'discount_percentage' => $discountPercentage
+                'savings' => $savings
             ]
         ];
     }
-    private function evaluateFreeDelivery(Promotion $promotion, array $context): array
+    private function evaluateFixedDelivery(Promotion $promotion, array $context): array
     {
-        if (!$promotion->isValidForDelivery($context['store_id'], $context['order_amount'])) {
+        // الحصول على كائن Store من السياق
+        $store = Store::find($context['store_id']);
+        if (!$promotion->isValidForDelivery($store, $context['order_amount'])) {
             return ['is_valid' => false, 'promotion' => $promotion];
         }
+
+        // استخدام دالة calculateDeliveryCost من نموذج Promotion
+        $newDeliveryCost = $promotion->calculateDeliveryCost($store, $context['base_delivery_cost'], $context['order_amount']);
+        $savings = $context['base_delivery_cost'] - $newDeliveryCost;
 
         return [
             'is_valid' => true,
             'promotion' => $promotion,
             'type' => 'delivery',
-            'savings' => $context['base_delivery_cost'],
-            'new_delivery_cost' => 0,
+            'savings' => $savings,
+            'new_delivery_cost' => $newDeliveryCost,
             'details' => [
                 'original_delivery_cost' => $context['base_delivery_cost'],
-                'new_delivery_cost' => 0,
-                'savings' => $context['base_delivery_cost']
+                'new_delivery_cost' => $newDeliveryCost,
+                'savings' => $savings
+            ]
+        ];
+    }
+    private function evaluateDiscountDelivery(Promotion $promotion, array $context): array
+    {
+        // الحصول على كائن Store من السياق
+        $store = Store::find($context['store_id']);
+        if (!$promotion->isValidForDelivery($store, $context['order_amount'])) {
+            return ['is_valid' => false, 'promotion' => $promotion];
+        }
+
+        // استخدام دالة calculateDeliveryCost من نموذج Promotion
+        $newDeliveryCost = $promotion->calculateDeliveryCost($store, $context['base_delivery_cost'], $context['order_amount']);
+        $savings = $context['base_delivery_cost'] - $newDeliveryCost;
+
+        return [
+            'is_valid' => true,
+            'promotion' => $promotion,
+            'type' => 'delivery',
+            'savings' => $savings,
+            'new_delivery_cost' => $newDeliveryCost,
+            'details' => [
+                'original_delivery_cost' => $context['base_delivery_cost'],
+                'new_delivery_cost' => $newDeliveryCost,
+                'savings' => $savings
+            ]
+        ];
+    }
+    private function evaluatePercentageDiscount(Promotion $promotion, array $context): array
+    {
+        // الحصول على كائن Store من السياق
+        $store = Store::find($context['store_id']);
+        if (!$promotion->isValidForDelivery($store, $context['order_amount'])) {
+            return ['is_valid' => false, 'promotion' => $promotion];
+        }
+
+        // استخدام دالة calculateDeliveryCost من نموذج Promotion
+        $newDeliveryCost = $promotion->calculateDeliveryCost($store, $context['base_delivery_cost'], $context['order_amount']);
+        $savings = $context['base_delivery_cost'] - $newDeliveryCost;
+
+        return [
+            'is_valid' => true,
+            'promotion' => $promotion,
+            'type' => 'delivery',
+            'savings' => $savings,
+            'new_delivery_cost' => $newDeliveryCost,
+            'details' => [
+                'original_delivery_cost' => $context['base_delivery_cost'],
+                'new_delivery_cost' => $newDeliveryCost,
+                'savings' => $savings
+            ]
+        ];
+    }
+    private function evaluateFreeDelivery(Promotion $promotion, array $context): array
+    {
+        // الحصول على كائن Store من السياق
+        $store = Store::find($context['store_id']);
+        if (!$promotion->isValidForDelivery($store, $context['order_amount'])) {
+            return ['is_valid' => false, 'promotion' => $promotion];
+        }
+
+        // استخدام دالة calculateDeliveryCost من نموذج Promotion
+        $newDeliveryCost = $promotion->calculateDeliveryCost($store, $context['base_delivery_cost'], $context['order_amount']);
+        $savings = $context['base_delivery_cost'] - $newDeliveryCost;
+
+        return [
+            'is_valid' => true,
+            'promotion' => $promotion,
+            'type' => 'delivery',
+            'savings' => $savings,
+            'new_delivery_cost' => $newDeliveryCost,
+            'details' => [
+                'original_delivery_cost' => $context['base_delivery_cost'],
+                'new_delivery_cost' => $newDeliveryCost,
+                'savings' => $savings
             ]
         ];
     }
@@ -220,6 +273,7 @@ class PromotionEngineService
     {
         $savings = 0;
         $fixedPrices = $promotion->promotionFixedPrices;
+        $currencyFactor = $context['currency_factor'];
         
         foreach ($context['cart_items'] as $item) {
             $fixedPrice = $fixedPrices->where('product_id', $item->product_id)
@@ -227,7 +281,12 @@ class PromotionEngineService
                                    ->first();
             
             if ($fixedPrice && $fixedPrice->fixed_price < $item->price) {
-                $savings += ($item->price - $fixedPrice->fixed_price) * $item->quantity;
+                // تحويل الأسعار إلى نفس الوحدة للحسابات الدقيقة
+                $itemPriceInMinor = CurrencyHelper::toMinorUnits($item->price, $currencyFactor);
+                $fixedPriceInMinor = $fixedPrice->fixed_price;
+                $savingsPerItem = $itemPriceInMinor - $fixedPriceInMinor;
+                
+                $savings += $savingsPerItem * $item->quantity;
             }
         }
 
@@ -249,9 +308,13 @@ class PromotionEngineService
 
     private function resolveConflicts(array $promotions): array
     {
-        // ترتيب حسب الأولوية
+        // ترتيب حسب نوع الترويج (لحل التعارضات)
         usort($promotions, function($a, $b) {
-            return $a['promotion']->priority <=> $b['promotion']->priority;
+            // ترتيب أولويات أنواع الترويج: delivery أولاً، ثم product
+            $priorityOrder = ['delivery' => 1, 'product' => 2];
+            $aPriority = $priorityOrder[$a['type']] ?? 999;
+            $bPriority = $priorityOrder[$b['type']] ?? 999;
+            return $aPriority <=> $bPriority;
         });
 
         $finalPromotions = [];
@@ -261,7 +324,7 @@ class PromotionEngineService
             $type = $promotion['type'];
             
             // التحقق من التعارضات
-            if (in_array($type, $usedTypes) && $promotion['promotion']->exclude_other_promotions) {
+            if (in_array($type, $usedTypes)) {
                 continue;
             }
 

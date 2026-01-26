@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace Modules\Promotion\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -10,6 +10,8 @@ class PromotionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
             'type' => $this->type,
             'sub_type' => $this->sub_type,
             'is_active' => $this->is_active,
@@ -27,23 +29,10 @@ class PromotionResource extends JsonResource
             'country_id' => $this->country_id,
             'city_id' => $this->city_id,
             'zone_id' => $this->zone_id,
-            'translations' => PromotionTranslationResource::collection($this->translations),
             'targets' => PromotionTargetResource::collection($this->promotionTargets),
             'fixed_prices' => PromotionFixedPriceResource::collection($this->promotionFixedPrices),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-        ];
-    }
-}
-
-class PromotionTranslationResource extends JsonResource
-{
-    public function toArray($request): array
-    {
-        return [
-            'locale' => $this->locale,
-            'title' => $this->title,
-            'description' => $this->description,
         ];
     }
 }

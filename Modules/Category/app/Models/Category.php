@@ -32,6 +32,13 @@ class Category extends Model implements TranslatableContract
     ];
     protected $with = ['translations'];
 
+    protected static function booted()
+    {
+        static::addGlobalScope('order', function ($builder) {
+            $builder->orderBy('sort_order', 'asc');
+        });
+    }
+
     protected $casts = [
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
@@ -98,7 +105,7 @@ class Category extends Model implements TranslatableContract
         if(isset($filters['store_id'])) {
             $query->where('store_id', $filters['store_id'])->orWhere('store_id', null);
         }
-        
+
         if (!auth('admin')->check()) {
             $query->whereIsActive(true);
             // if (isset($filters['store_id'])) {
@@ -131,6 +138,6 @@ class Category extends Model implements TranslatableContract
             return $query;
         }
 
-        return $query->latest();
+        return $query;
     }
 }

@@ -28,11 +28,6 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum','ability:admin,vendor'])->
     Route::post('transactions/pay', [TransactionController::class, 'pay'])->name('admin.transactions.pay');
 
     Route::get('search', [AdminController::class, 'search'])->name('admin.search');
-    
-    // Promotion routes
-    Route::apiResource('promotions', \App\Http\Controllers\PromotionController::class)->names('admin.promotions');
-    Route::get('promotions/{id}/validate', [\App\Http\Controllers\PromotionController::class, 'validate'])->name('admin.promotions.validate');
-    Route::post('promotions/{id}/apply', [\App\Http\Controllers\PromotionController::class, 'apply'])->name('admin.promotions.apply');
 });
 
 Route::put('v1/update-token', [TokenController::class, 'updateToken'])->middleware('auth:sanctum')->name('update.token');

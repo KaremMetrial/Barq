@@ -31,7 +31,7 @@ class CouponController extends Controller
         $filters = $request->all();
         $coupons = $this->couponService->getAllCoupons($filters);
         return $this->successResponse([
-            "coupons" => CouponResource::collection($coupons),
+            "coupons" => CouponResource::collection($coupons->load('categories', 'products', 'stores')),
             "pagination" => new PaginationResource($coupons),
         ], __("message.success"));
     }

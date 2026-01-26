@@ -34,6 +34,7 @@ class Coupon extends Model implements TranslatableContract
         'object_type',
         'currency_factor',
         'maximum_order_amount',
+        'country_id',
     ];
     protected $casts = [
         'is_active' => 'boolean',
@@ -43,6 +44,7 @@ class Coupon extends Model implements TranslatableContract
         'discount_type' => SaleTypeEnum::class,
         'coupon_type' => CouponTypeEnum::class,
         'object_type' => ObjectTypeEnum::class,
+        'country_id' => 'integer',
     ];
 
     /**
@@ -199,8 +201,14 @@ class Coupon extends Model implements TranslatableContract
                     });
             });
         }
-        if (isset(request()->kart))
-            return $query->latest();
+        if(!auth('admin')->check()) {
+            $query->where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->whereColumn('usage_count', '<', 'usage_limit');
+        }
+
+        return $query->orderBy('discount_amount', 'desc');
     }
 
     public function usageCount(): int

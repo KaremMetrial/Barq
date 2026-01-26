@@ -24,9 +24,9 @@ return new class extends Migration
             $table->integer('usage_limit')->nullable();
             $table->integer('usage_limit_per_user')->default(1);
             $table->integer('current_usage')->default(0);
-            $table->foreignId('country_id')->nullable()->constrained('countries');
-            $table->foreignId('city_id')->nullable()->constrained('cities');
-            $table->foreignId('zone_id')->nullable()->constrained('zones');
+            $table->foreignId('country_id')->nullable();
+            $table->foreignId('city_id')->nullable();
+            $table->foreignId('zone_id')->nullable();
             $table->unsignedBigInteger('min_order_amount')->nullable();
             $table->unsignedBigInteger('max_order_amount')->nullable();
             $table->unsignedBigInteger('discount_value')->nullable();
@@ -36,7 +36,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['is_active', 'start_date', 'end_date']);
-            $table->index(['type', 'subtype', 'is_active']);
+            $table->index(['type', 'sub_type', 'is_active']);
 
         });
         Schema::create('promotion_translations', function (Blueprint $table) {
@@ -55,26 +55,31 @@ return new class extends Migration
             $table->boolean('is_excluded')->default(false);
             
             $table->unique(['promotion_id', 'target_type', 'target_id']);
+            $table->index(['target_type', 'target_id']);
+            $table->index(['promotion_id', 'is_excluded']);
         });
         Schema::create('promotion_fixed_prices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('promotion_id')->constrained('promotions')->cascadeOnDelete();
-            $table->foreignId('store_id')->nullable()->constrained('stores');
-            $table->foreignId('product_id')->nullable()->constrained('products');
+            $table->foreignId('store_id')->nullable();
+            $table->foreignId('product_id')->nullable();
             $table->unsignedBigInteger('fixed_price')->nullable();
             
             $table->index(['promotion_id', 'store_id']);
             $table->index(['promotion_id', 'product_id']);
+            $table->index(['store_id', 'product_id']);
         });
 
         Schema::create('user_promotion_usage', function (Blueprint $table) {
             $table->id();
             $table->foreignId('promotion_id')->constrained('promotions')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id');
             $table->integer('usage_count')->default(1);
             $table->timestamp('last_used_at')->default(now());
             
             $table->unique(['promotion_id', 'user_id']);
+            $table->index(['user_id', 'last_used_at']);
+            $table->index(['promotion_id', 'usage_count']);
         });
 
     }

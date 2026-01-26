@@ -1,13 +1,16 @@
 <?php
 
-namespace App\Http\Requests;
+namespace Modules\Promotion\Http\Requests;
+
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\PromotionTypeEnum;
 use App\Enums\PromotionSubTypeEnum;
 use App\Enums\PromotionTargetTypeEnum;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cache;
 
-class CreatePromotionRequest extends FormRequest
+class UpdatePromotionRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,13 +20,13 @@ class CreatePromotionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', 'string', 'in:' . implode(',', PromotionTypeEnum::values())],
-            'sub_type' => ['required', 'string', 'in:' . implode(',', PromotionSubTypeEnum::values())],
+            'type' => ['sometimes', 'string', 'in:' . implode(',', PromotionTypeEnum::values())],
+            'sub_type' => ['sometimes', 'string', 'in:' . implode(',', PromotionSubTypeEnum::values())],
             'is_active' => ['boolean'],
-            'start_date' => ['required', 'date'],
+            'start_date' => ['sometimes', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'usage_limit' => ['nullable', 'integer', 'min:1'],
-            'usage_limit_per_user' => ['required', 'integer', 'min:1'],
+            'usage_limit_per_user' => ['sometimes', 'integer', 'min:1'],
             'current_usage' => ['integer', 'min:0'],
             'country_id' => ['nullable', 'exists:countries,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
@@ -34,37 +37,49 @@ class CreatePromotionRequest extends FormRequest
             'fixed_delivery_price' => ['nullable', 'integer', 'min:0'],
             'currency_factor' => ['integer', 'min:1'],
             'first_order_only' => ['boolean'],
-            'translations' => ['required', 'array'],
-            'translations.*.locale' => ['required', 'string', 'in:ar,en'],
-            'translations.*.title' => ['required', 'string', 'max:255'],
-            'translations.*.description' => ['nullable', 'string'],
-            'targets' => ['array'],
-            'targets.*.target_type' => ['required', 'string', 'in:' . implode(',', PromotionTargetTypeEnum::values())],
-            'targets.*.target_id' => ['required', 'integer', 'min:1'],
+            'title' => ['required_with:title', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'targets' => ['sometimes', 'array'],
+            'targets.*.target_type' => ['required_with:targets', 'string', 'in:' . implode(',', PromotionTargetTypeEnum::values())],
+            'targets.*.target_id' => ['required_with:targets', 'integer', 'min:1'],
             'targets.*.is_excluded' => ['boolean'],
-            'fixed_prices' => ['array'],
+            'fixed_prices' => ['sometimes', 'array'],
             'fixed_prices.*.store_id' => ['nullable', 'exists:stores,id'],
             'fixed_prices.*.product_id' => ['nullable', 'exists:products,id'],
-            'fixed_prices.*.fixed_price' => ['required', 'integer', 'min:0'],
+            'fixed_prices.*.fixed_price' => ['required_with:fixed_prices', 'integer', 'min:0'],
+            'lang' => ['required', 'string', Rule::in(Cache::get("languages.codes"))],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'type.required' => __('validation.required', ['attribute' => __('promotion.type')]),
             'type.in' => __('validation.in', ['attribute' => __('promotion.type')]),
-            'sub_type.required' => __('validation.required', ['attribute' => __('promotion.sub_type')]),
             'sub_type.in' => __('validation.in', ['attribute' => __('promotion.sub_type')]),
-            'start_date.required' => __('validation.required', ['attribute' => __('promotion.start_date')]),
             'end_date.after_or_equal' => __('validation.after_or_equal', ['attribute' => __('promotion.end_date'), 'date' => __('promotion.start_date')]),
-            'usage_limit_per_user.required' => __('validation.required', ['attribute' => __('promotion.usage_limit_per_user')]),
             'usage_limit_per_user.min' => __('validation.min.numeric', ['attribute' => __('promotion.usage_limit_per_user'), 'min' => 1]),
-            'translations.required' => __('validation.required', ['attribute' => __('promotion.translations')]),
-            'translations.*.locale.in' => __('validation.in', ['attribute' => __('promotion.locale')]),
-            'translations.*.title.required' => __('validation.required', ['attribute' => __('promotion.title')]),
+            'title.required_with' => __('validation.required', ['attribute' => __('promotion.title')]),
             'targets.*.target_type.in' => __('validation.in', ['attribute' => __('promotion.target_type')]),
-            'fixed_prices.*.fixed_price.required' => __('validation.required', ['attribute' => __('promotion.fixed_price')]),
+            'targets.*.target_id.required_with' => __('validation.required', ['attribute' => __('promotion.target_id')]),
+            'fixed_prices.*.fixed_price.required_with' => __('validation.required', ['attribute' => __('promotion.fixed_price')]),
         ];
     }
+    protected function passedValidation(): void
+    {
+        $validated = $this->validated();
+
+        $fields = ['title', 'description'];
+
+        foreach ($fields as $field) {
+            if (isset($validated[$field], $validated['lang'])) {
+                $validated["{$field}:{$validated['lang']}"] = $validated[$field];
+                unset($validated[$field]);
+            }
+        }
+
+        unset($validated['lang']);
+
+        $this->replace($validated);
+    }
+
 }

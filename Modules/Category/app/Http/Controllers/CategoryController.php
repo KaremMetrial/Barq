@@ -22,7 +22,7 @@ class CategoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $filters = $request->all();
-        $categories = $this->categoryService->getAllCountries();
+        $categories = $this->categoryService->getAllCategories($filters);
         return $this->successResponse([
             "categories" => CategoryResource::collection($categories->load('children')),
         ], __("message.success"));

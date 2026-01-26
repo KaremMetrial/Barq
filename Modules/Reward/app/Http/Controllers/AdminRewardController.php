@@ -122,8 +122,6 @@ class AdminRewardController extends Controller
     }
     public function resetLoyality()
     {
-        // Only super admin can reset loyalty points - this is a critical operation
-        $this->authorize('delete', Reward::class);
         $this->rewardService->resetAllLoyaltyPoints();
         return $this->successResponse();
     }

@@ -118,10 +118,7 @@ class StoreService
 
             // Convert commission amount to minor units using the correct currency factor ONLY if it's a fixed amount (subscription)
             $currentStore = $this->StoreRepository->find($id);
-            if (
-                isset($data['store']['commission_amount']) &&
-                ($data['store']['commission_type'] ?? $currentStore->commission_type->value) === \App\Enums\PlanTypeEnum::SUBSCRIPTION->value
-            ) {
+            if (isset($data['store']['commission_amount'])) {
                 $data['store']['commission_amount'] = CurrencyHelper::toMinorUnits($data['store']['commission_amount'], $currencyFactor);
             }
 
@@ -326,10 +323,7 @@ class StoreService
             }
 
             // Convert commission amount to minor units using the correct currency factor ONLY if it's a fixed amount (subscription)
-            if (
-                isset($data['store']['commission_amount']) &&
-                ($data['store']['commission_type'] ?? \App\Enums\PlanTypeEnum::COMMISSION->value) === \App\Enums\PlanTypeEnum::SUBSCRIPTION->value
-            ) {
+            if (isset($data['store']['commission_amount'])) {
                 $data['store']['commission_amount'] = CurrencyHelper::toMinorUnits($data['store']['commission_amount'], $currencyFactor);
             }
 

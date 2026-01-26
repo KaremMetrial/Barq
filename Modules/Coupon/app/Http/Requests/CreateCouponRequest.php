@@ -25,6 +25,7 @@ class CreateCouponRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:255', 'unique:coupons,code'],
             'discount_amount' => ['required', 'numeric', 'min:0'],
             'discount_type' => ['required', Rule::in(SaleTypeEnum::values())],
@@ -71,6 +72,7 @@ class CreateCouponRequest extends FormRequest
                     }
                 },
             ],
+            'country_id' => ['required', 'integer', 'exists:countries,id'],
         ];
     }
 

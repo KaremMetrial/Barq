@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models;
-
+namespace Modules\Promotion\Models;
 use App\Enums\PromotionTargetTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class PromotionTarget extends Model
 {
+    public $timestamps = false;
     protected $fillable = [
         'promotion_id',
         'target_type',
@@ -16,7 +16,6 @@ class PromotionTarget extends Model
     protected $casts = [
         'target_type' => PromotionTargetTypeEnum::class,
         'is_excluded' => 'boolean',
-        'target_id' => 'bigint',
     ];
     public function promotion()
     {

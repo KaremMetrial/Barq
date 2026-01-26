@@ -34,9 +34,24 @@ class StoreController extends Controller
             'rating'
         ]);
         $Stores = $this->StoreService->getAllStores($filters);
+
+        $label = null;
+        if (!empty($filters['section_id'])) {
+            $section = \Modules\Section\Models\Section::find($filters['section_id']);
+            if ($section) {
+                $label = __('enums.section_labels.all', ['section' => $section->name]);
+            }else{
+                $section = \Modules\Section\Models\Section::where('type', '!=', 'delivery_company')->latest()->first();
+                $label = __('enums.section_labels.all', ['section' => $section->name]);
+            }
+        }
+
         return $this->successResponse([
-            "Stores" => StoreResource::collection($Stores),
-            "pagination" => new PaginationResource($Stores)
+            "Stores" => [
+                'stores' => StoreResource::collection($Stores),
+                'label' => $label,
+                "pagination" => new PaginationResource($Stores)
+            ]
         ], __('message.success'));
     }
 
@@ -64,9 +79,18 @@ class StoreController extends Controller
         ]);
         $stores = $this->StoreService->getHomeStores($filters);
         return $this->successResponse([
-            "topReviews" => StoreResource::collection($stores['topReviews']),
-            "featured" => StoreResource::collection($stores['featured']),
-            "new" => StoreResource::collection($stores['newStores']),
+            "topReviews" => [
+                "stores" => StoreResource::collection($stores['topReviews']['stores']),
+                "label" => $stores['topReviews']['label']
+            ],
+            "featured" => [
+                "stores" => StoreResource::collection($stores['featured']['stores']),
+                "label" => $stores['featured']['label']
+            ],
+            "new" => [
+                "stores" => StoreResource::collection($stores['newStores']['stores']),
+                "label" => $stores['newStores']['label']
+            ],
             "section_type" => $stores['section_type'],
             "section_label" => $stores['section_label'],
         ], __("message.success"));

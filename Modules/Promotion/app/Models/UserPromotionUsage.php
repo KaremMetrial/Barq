@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models;
-
+namespace Modules\Promotion\Models;
 use Illuminate\Database\Eloquent\Model;
 use Modules\User\Models\User;
 
 class UserPromotionUsage extends Model
 {
+    public $timestamps = false;
     protected $fillable = [
         'promotion_id',
         'user_id',

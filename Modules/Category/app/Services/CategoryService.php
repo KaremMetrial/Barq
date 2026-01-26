@@ -15,7 +15,7 @@ class CategoryService
         protected CategoryRepository $CategoryRepository
     ) {}
 
-    public function getAllCountries($filters = []): Collection
+    public function getAllCategories($filters = []): Collection
     {
         return $this->CategoryRepository->allWithTranslations($filters);
     }

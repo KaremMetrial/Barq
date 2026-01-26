@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Promotion\Models;
 use App\Models\Promotion;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Store\Models\Store;
@@ -8,6 +8,7 @@ use Modules\Product\Models\Product;
 
 class PromotionFixedPrice extends Model
 {
+    public $timestamps = false;
     protected $fillable = [
         'promotion_id',
         'store_id',

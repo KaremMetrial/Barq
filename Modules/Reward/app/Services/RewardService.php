@@ -231,41 +231,79 @@ class RewardService
 
     public function stats()
     {
+        $currencyCode = config('settings.default_currency', 'USD');
+        $currencyFactor = 100;
+        $countryId = null;
+
+        if (auth('sanctum')->check()) {
+            $user = auth('sanctum')->user();
+            if ($user->currentAccessToken() && $user->currentAccessToken()->country_id) {
+                $countryId = $user->currentAccessToken()->country_id;
+            }
+            if (!$countryId) {
+                $countryId = config('settings.default_country', 1);
+            }
+        } else {
+            $countryId = config('settings.default_country', 1);
+        }
+
+        if ($countryId) {
+            $country = \Modules\Country\Models\Country::find($countryId);
+            if ($country) {
+                $currencyCode = $country->code ?? config('settings.default_currency', 'USD');
+                $currencyFactor = $country->currency_factor ?? 100;
+            }
+        }
+
         // System rewards count
-        $systemRewards = Reward::count();
+        $systemRewardsQuery = Reward::query();
+        if ($countryId) {
+            $systemRewardsQuery->where('country_id', $countryId);
+        }
+        $systemRewards = $systemRewardsQuery->count();
 
-        // Redemption operations count
-        $redemptionOperations = \Modules\Reward\Models\RewardRedemption::count();
+        $redemptionOperationsQuery = \Modules\Reward\Models\RewardRedemption::query();
+        if ($countryId) {
+            $redemptionOperationsQuery->whereHas('reward', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
+        }
+        $redemptionOperations = $redemptionOperationsQuery->count();
 
-        // Total points spent
-        $pointsSpent = \Modules\Reward\Models\RewardRedemption::sum('points_spent');
+        $pointsSpent = (clone $redemptionOperationsQuery)->sum('points_spent');
 
-        // Total order value (from delivered orders)
-        $totalOrderValue = \Modules\Order\Models\Order::where('status', OrderStatus::DELIVERED)
-            ->sum('total_amount');
+        $totalOrderValueQuery = \Modules\Order\Models\Order::where('status', OrderStatus::DELIVERED);
+        if ($countryId) {
+            $totalOrderValueQuery->whereHas('store.address.zone.city.governorate', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
+        }
+        $totalOrderValue = $totalOrderValueQuery->sum('total_amount');
 
-        // Number of customers (users with orders)
-        $customersCount = \Modules\User\Models\User::whereHas('orders', function ($query) {
+        $customersCountQuery = \Modules\User\Models\User::whereHas('orders', function ($query) use ($countryId) {
             $query->where('status', OrderStatus::DELIVERED);
-        })->count();
+            if ($countryId) {
+                $query->whereHas('store.address.zone.city.governorate', function ($q) use ($countryId) {
+                    $q->where('country_id', $countryId);
+                });
+            }
+        });
+        $customersCount = $customersCountQuery->count();
 
-        // Last withdrawal on points (latest loyalty transaction with negative points)
-        $lastPointsWithdrawal = LoyaltyTransaction::where('points', '<', 0)
-            ->latest('created_at')
-            ->first();
+        $lastPointsWithdrawalQuery = LoyaltyTransaction::where('points', '>', 0);
+        $lastPointsWithdrawal = $lastPointsWithdrawalQuery->latest('created_at')->first();
 
-        // Total points (sum of all user loyalty points)
-        $totalPoints = \Modules\User\Models\User::sum('loyalty_points');
+        $totalPointsQuery = \Modules\User\Models\User::query();
+        $totalPoints = $totalPointsQuery->sum('loyalty_points');
 
-        // Number of customers with points
-        $customersWithPoints = \Modules\User\Models\User::where('loyalty_points', '>', 0)->count();
+        $customersWithPoints = (clone $totalPointsQuery)->where('loyalty_points', '>', 0)->count();
 
 
         return [
             'system_rewards' => $systemRewards,
             'redemption_operations' => $redemptionOperations,
             'points_spent' => $pointsSpent,
-            'total_order_value' => $totalOrderValue,
+            'total_order_value' => round($totalOrderValue, 2),
             'customers_count' => $customersCount,
             'last_points_withdrawal' => $lastPointsWithdrawal ? [
                 'amount' => abs($lastPointsWithdrawal->points),
@@ -274,6 +312,8 @@ class RewardService
             ] : null,
             'total_points' => $totalPoints,
             'customers_with_points' => $customersWithPoints,
+            'currency_code' => $currencyCode,
+            'currency_factor' => $currencyFactor,
         ];
     }
     public function resetAllLoyaltyPoints()
@@ -282,5 +322,4 @@ class RewardService
             '--confirm' => true,
         ]);
     }
-
 }

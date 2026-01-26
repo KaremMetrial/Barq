@@ -46,6 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'abilities' => CheckAbilities::class,
                 'ability' => CheckForAnyAbility::class,
                 'permission' => CheckPermission::class,
+                
             ]);
         // $middleware->statefulApi();
     })

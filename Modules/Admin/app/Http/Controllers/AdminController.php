@@ -754,7 +754,7 @@ class AdminController extends Controller
                         return [
                             'id' => $item->id,
                             'name' => $item->name,
-                            'logo' => $item->logo,
+                            'logo' => $item->logo ? asset('storage/' . $item->logo) : null,
                             'percentage' => round($percentage, 1)
                         ];
                     })
@@ -782,7 +782,7 @@ class AdminController extends Controller
                     ->map(fn($item) => [
                         'id' => $item->id,
                         'name' => $item->name,
-                        'logo' => $item->logo,
+                        'logo' => $item->logo ? asset('storage/' . $item->logo) : null,
                         'revenue' => (float) $item->revenue
                     ]),
             ],
@@ -946,9 +946,14 @@ class AdminController extends Controller
     }
     public function search(Request $request)
     {
-        $product = Product::search($request->search)->get();
+        $product = Product::whereHas('translations', function ($query) use ($request) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('description', 'like', '%' . $request->search . '%');
+        })->get();
 
-        $store = Store::search($request->search)->get();
+        $store = Store::whereHas('translations', function ($query) use ($request) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        })->get();
         return $this->successResponse([
             'product' => ProductResource::collection($product),
             'store' => StoreResource::collection($store),

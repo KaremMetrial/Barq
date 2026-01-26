@@ -27,6 +27,7 @@ class UpdateCouponRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['nullable', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:255', 'unique:coupons,code,' . $this->route('coupon')],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'currency_factor' => ['nullable', 'integer', 'min:1'],
@@ -46,6 +47,8 @@ class UpdateCouponRequest extends FormRequest
             'product_ids.*' => ['integer', 'exists:products,id'],
             'store_ids' => ['nullable', 'array'],
             'store_ids.*' => ['integer', 'exists:stores,id'],
+            'country_id' => ['nullable', 'integer', 'exists:countries,id'],
+            "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }
 
@@ -56,4 +59,21 @@ class UpdateCouponRequest extends FormRequest
     {
         return true;
     }
+    protected function passedValidation(): void
+    {
+        $validated = $this->validated();
+
+        $fields = ['name'];
+
+        foreach ($fields as $field) {
+            if (isset($validated[$field], $validated['lang'])) {
+                $validated["{$field}:{$validated['lang']}"] = $validated[$field];
+                unset($validated[$field]);
+            }
+        }
+        unset($validated['lang']);
+
+        $this->replace($validated);
+    }
+
 }

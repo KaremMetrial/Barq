@@ -23,6 +23,7 @@ class CreateSectionRequest extends FormRequest
             'categories.*' => ['integer', Rule::exists('categories', 'id')],
             'countries' => ['required', 'array'],
             'countries.*' => ['integer', Rule::exists('countries', 'id')],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
 
         // Make categories required if type is not delivery_company

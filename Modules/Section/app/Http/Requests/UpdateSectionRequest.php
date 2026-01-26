@@ -37,6 +37,7 @@ class UpdateSectionRequest extends FormRequest
             'categories.*' => ['integer', Rule::exists('categories', 'id')],
             'countries' => ['required', 'array'],
             'countries.*' => ['integer', Rule::exists('countries', 'id')],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }

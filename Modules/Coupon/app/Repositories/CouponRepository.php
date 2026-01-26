@@ -1,6 +1,7 @@
 <?php
 
 namespace Modules\Coupon\Repositories;
+
 use Modules\Coupon\Models\Coupon;
 use Modules\Coupon\Repositories\Contracts\CouponRepositoryInterface;
 use App\Repositories\BaseRepository;
@@ -20,7 +21,6 @@ class CouponRepository extends BaseRepository implements CouponRepositoryInterfa
         return $this->model
             ->with($relations)
             ->filter($filters)
-            ->latest()
             ->paginate($perPage, $columns);
     }
 

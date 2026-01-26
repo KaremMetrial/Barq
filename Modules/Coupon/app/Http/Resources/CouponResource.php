@@ -24,6 +24,7 @@ class CouponResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'name' => $this->name,
             'code' => $this->code,
             'discount_amount' => (int) $this->discount_amount,
             'discount_type' => $this->discount_type->value,
@@ -53,7 +54,7 @@ class CouponResource extends JsonResource
             'stores' => $this->whenLoaded('stores',function() {
                 return StoreResource::collection($this->stores);
             }),
-
+            'country_id' => $this->country_id,
         ];
     }
 }
