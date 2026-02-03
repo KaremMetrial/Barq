@@ -53,7 +53,7 @@ class CategoryController extends Controller
         $category = $this->categoryService->getCategoryById($id);
         $this->authorize('view', $category);
         return $this->successResponse([
-            "category"=> new CategoryResource($category),
+            "category"=> new CategoryResource($category->load('sections')),
             // 'subcategories' => CategoryResource::collection($category->children),
         ], __("message.success"));
     }

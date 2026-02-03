@@ -87,6 +87,7 @@ class CreateProductRequest extends FormRequest
             'images' => ['required', 'array'],
             'images.*.image_path' => ['required', 'image', 'mimes:jpeg,png,jpg,gif'],
             'images.*.is_primary' => ['nullable', 'boolean'],
+            'images.*.resize' => ['nullable', 'array', 'min:2', 'max:2'],
 
 
             // Product Nutrition table

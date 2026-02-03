@@ -10,5 +10,6 @@ class PromotionTranslation extends Model
     protected $fillable = [
         'title',
         'description',
+        'locale',
     ];
 }

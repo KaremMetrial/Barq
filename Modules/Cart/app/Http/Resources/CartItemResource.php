@@ -8,7 +8,10 @@ use Modules\AddOn\Http\Resources\AddOnResource;
 use Modules\Product\Http\Resources\ProductResource;
 use Modules\Product\Http\Resources\ProductOptionValueResource;
 
-class CartItemResource extends JsonResource
+class 
+
+
+CartItemResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

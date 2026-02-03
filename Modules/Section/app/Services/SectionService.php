@@ -87,7 +87,8 @@ class SectionService
                 $request,
                 $fileKey,
                 'uploads/icons',
-                'public'
+                'public',
+               [512, 512]
             );
         }
         return null;

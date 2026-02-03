@@ -28,7 +28,7 @@ class MessageController extends Controller
         if (auth('user')->check()) return 'user';
         if (auth('vendor')->check()) return 'vendor';
         if (auth('admin')->check()) return 'admin';
-        if(auth('courier')->check()) return 'courier';
+        if (auth('courier')->check()) return 'courier';
         return null;
     }
 
@@ -44,7 +44,7 @@ class MessageController extends Controller
     {
         $guard = $this->getAuthenticatedGuard();
         if (!$guard) {
-            return $this->errorResponse('Unauthorized', 401);
+            return $this->errorResponse(__('message.unauthorized'), 401);
         }
 
         $data = $request->validated();
@@ -76,11 +76,12 @@ class MessageController extends Controller
             'message' => new MessageResource($message),
         ], __('message.success'));
     }
-    private function markMessagesAsRead($conversation, $guard){
+    private function markMessagesAsRead($conversation, $guard)
+    {
         $currentUserId = auth($guard)->id();
         $conversation->messages()
-        ->where('is_read', false)
-        ->where('messageable_type', '!=', $guard)
+            ->where('is_read', false)
+            ->where('messageable_type', '!=', $guard)
             ->where('messageable_id', '!=', $currentUserId)
             ->update([
                 'is_read' => true,
@@ -112,13 +113,13 @@ class MessageController extends Controller
     {
         $guard = $this->getAuthenticatedGuard();
         if (!$guard) {
-            return $this->errorResponse('Unauthorized', 401);
+            return $this->errorResponse(__('message.unauthorized'), 401);
         }
 
         try {
             $message = $this->messageService->getMessageById($messageId);
             if (!$message) {
-                return $this->errorResponse('Message not found', 404);
+                return $this->errorResponse(__('message.message_not_found'), 404);
             }
 
             // Use the Pusher service to mark as read and broadcast
@@ -131,7 +132,7 @@ class MessageController extends Controller
             ], __('message.success'));
         } catch (\Exception $e) {
             Log::error('Mark as read failed: ' . $e->getMessage());
-            return $this->errorResponse('Failed to mark message as read', 500);
+            return $this->errorResponse(__('message.failed_to_mark_message_read'), 500);
         }
     }
 
@@ -142,7 +143,7 @@ class MessageController extends Controller
     {
         $guard = $this->getAuthenticatedGuard();
         if (!$guard) {
-            return $this->errorResponse('Unauthorized', 401);
+            return $this->errorResponse(__('message.unauthorized'), 401);
         }
 
         try {
@@ -162,7 +163,7 @@ class MessageController extends Controller
             ], __('message.success'));
         } catch (\Exception $e) {
             Log::error('Typing indicator failed: ' . $e->getMessage());
-            return $this->errorResponse('Failed to send typing indicator', 500);
+            return $this->errorResponse(__('message.typing_indicator_failed'), 500);
         }
     }
 
@@ -173,7 +174,7 @@ class MessageController extends Controller
     {
         $guard = $this->getAuthenticatedGuard();
         if (!$guard) {
-            return $this->errorResponse('Unauthorized', 401);
+            return $this->errorResponse(__('message.unauthorized'), 401);
         }
 
         try {
@@ -181,7 +182,7 @@ class MessageController extends Controller
             $socketId = $request->input('socket_id');
 
             if (!$channelName || !$socketId) {
-                return $this->errorResponse('Channel name and socket ID are required', 400);
+                return $this->errorResponse(__('message.channel_socket_required'), 400);
             }
 
             $auth = $this->pusherService->getPusherAuth(
@@ -194,7 +195,7 @@ class MessageController extends Controller
             return response()->json($auth);
         } catch (\Exception $e) {
             Log::error('Pusher auth failed: ' . $e->getMessage());
-            return $this->errorResponse('Failed to authenticate with Pusher', 500);
+            return $this->errorResponse(__('message.pusher_auth_failed'), 500);
         }
     }
 }

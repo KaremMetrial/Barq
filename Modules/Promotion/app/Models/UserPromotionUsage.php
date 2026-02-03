@@ -6,6 +6,7 @@ use Modules\User\Models\User;
 
 class UserPromotionUsage extends Model
 {
+    protected $table = 'user_promotion_usage';
     public $timestamps = false;
     protected $fillable = [
         'promotion_id',

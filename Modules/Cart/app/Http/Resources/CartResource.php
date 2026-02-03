@@ -34,14 +34,21 @@ class CartResource extends JsonResource
         } else {
             $deliveryFee = $this->getDeliveryFeeForDisplay($deliveryAddressId);
         }
-
         $taxRate = $store ? $store->getTaxAmount() : 0;
         $serviceFeePercentage = $store ? $store->getServiceFeePercentage() : 0;
+
+        // Evaluate Promotions
+        $promotionEngine = app(\Modules\Promotion\Services\PromotionEngineService::class);
+        $user = auth('sanctum')->user();
+        $promotionResult = $promotionEngine->evaluatePromotions($this->resource, $store, $user);
+
+        // Adjust subtotal and delivery fee based on promotions
+        $subtotal = $subtotal - ($promotionResult['product_savings'] ?? 0);
+        $deliveryFee = $promotionResult['delivery_cost'] ?? $deliveryFee;
 
         // Calculate actual amounts like in OrderResource
         $taxAmount = $subtotal * ($taxRate / 100);
         $serviceFeeAmount = $subtotal * ($serviceFeePercentage / 100);
-
 
         return [
             "id" => $this->id,
@@ -75,17 +82,12 @@ class CartResource extends JsonResource
             }, []),
             "items" => CartItemResource::collection($this->whenLoaded('items')),
             'price_summary' => [
-                // 'subtotal' => (int) \App\Helpers\CurrencyHelper::formatPrice($subtotal, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
-                // 'delivery_fee' => (int) \App\Helpers\CurrencyHelper::formatPrice($deliveryFee, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
-                // 'tax' => (int) \App\Helpers\CurrencyHelper::formatPrice($taxAmount, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
-                // 'service_fee' => (int) \App\Helpers\CurrencyHelper::formatPrice($serviceFeeAmount, $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP', $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP'),
-                // 'symbol_currency' => $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? $store ? null : null : null : null : null : null : null : null : null : null : null : null : null : null : null,
                 'subtotal' => (int) $subtotal,
                 'delivery_fee' => (int) $deliveryFee,
                 'tax' => (int) $taxAmount,
                 'service_fee' => (int) $serviceFeeAmount,
-                'symbol_currency' => $store?->currency_code ?? $store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
-                'currency_factor' => $store?->currency_factor ?? $store?->address?->zone?->city?->governorate?->country?->currency_factor
+                'symbol_currency' => $store?->getCurrencyCode() ?? $store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
+                'currency_factor' => $store?->getCurrencyFactor() ?? $store?->address?->zone?->city?->governorate?->country?->currency_factor
             ],
             'user_status' => auth('sanctum')->check() ? auth('sanctum')->user()->status->value : null,
         ];

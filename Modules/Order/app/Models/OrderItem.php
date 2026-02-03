@@ -1,13 +1,14 @@
 <?php
 
 namespace Modules\Order\Models;
+
 use Modules\AddOn\Models\AddOn;
 use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Product\Models\ProductOptionValue;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-
+use Modules\Product\Models\ProductOption;
 class OrderItem extends Model
 {
     protected $fillable = [
@@ -50,5 +51,9 @@ class OrderItem extends Model
     {
         return $this->belongsToMany(AddOn::class, 'add_on_order_item')
             ->withPivot('quantity', 'price_modifier');
+    }
+    public function option(): BelongsTo
+    {
+        return $this->belongsTo(ProductOption::class);
     }
 }

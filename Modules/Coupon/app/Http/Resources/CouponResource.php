@@ -42,9 +42,9 @@ class CouponResource extends JsonResource
             'object_type_label' => ObjectTypeEnum::label($this->object_type->value),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'symbol_currency' => $this->getCurrencySymbol(),
+            'symbol_currency' => $this->getCurrencySymbol() ?? 'EGP',
             'used_count' => (int) $this->usageCount(),
-            'currency_factor' => $this->getCurrencyFactor(),
+            'currency_factor' => $this->getCurrencyFactor() ?? 100,
             'categories' => $this->whenLoaded('categories',function() {
                 return CategoryResource::collection($this->categories);
             }),

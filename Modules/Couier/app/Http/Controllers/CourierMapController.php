@@ -80,7 +80,6 @@ class CourierMapController extends Controller
                 // 'status_summary' => $statusSummary,
                 'last_location_update' => now()->toISOString(),
             ], __('Map data retrieved successfully'));
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -113,7 +112,6 @@ class CourierMapController extends Controller
                 'action' => $request->action,
                 'success' => $success,
             ], $message, $statusCode);
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -145,12 +143,12 @@ class CourierMapController extends Controller
                 ->first();
 
             if (!$assignment) {
-                return $this->errorResponse(__('Assignment not found or access denied'), 404);
+                return $this->errorResponse(__('message.assignment_not_found'), 404);
             }
 
             // Validate status transition
             if (!$this->isValidStatusTransition($assignment->status, $request->status)) {
-                return $this->errorResponse(__('Invalid status transition'), 422);
+                return $this->errorResponse(__('message.invalid_status_transition', ['current' => 'unknown', 'allowed' => 'check logic']), 422);
             }
 
             // Validate receipt type for current status if receipt is being uploaded
@@ -175,7 +173,7 @@ class CourierMapController extends Controller
             );
 
             if (!$success) {
-                return $this->errorResponse(__('Failed to update order status'), 400);
+                return $this->errorResponse(__('message.failed_to_update_status'), 400);
             }
 
             // Handle receipt upload if file is provided
@@ -208,7 +206,6 @@ class CourierMapController extends Controller
             }
 
             return $this->successResponse($responseData, __('Order status updated successfully'));
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -272,7 +269,6 @@ class CourierMapController extends Controller
             ];
 
             return $this->successResponse($details, __('Order details retrieved successfully'));
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -317,7 +313,6 @@ class CourierMapController extends Controller
             ];
 
             return $this->successResponse($summary, __('Earnings summary retrieved successfully'));
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -353,7 +348,6 @@ class CourierMapController extends Controller
             return $this->successResponse([
                 'order' => new FullOrderResource($assignment)
             ], __('Order details retrieved successfully'));
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -392,7 +386,6 @@ class CourierMapController extends Controller
                     'uploaded_at' => $receipt->created_at->toISOString(),
                 ]
             ], __('Receipt uploaded successfully'), 201);
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
         }
@@ -431,7 +424,6 @@ class CourierMapController extends Controller
                     'uploaded_at' => $receipt->created_at->toISOString(),
                 ]
             ], __('Delivery proof uploaded successfully'), 201);
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
         }
@@ -469,7 +461,6 @@ class CourierMapController extends Controller
                 'receipt_id' => $receiptId,
                 'deleted_at' => now()->toISOString(),
             ], __('Receipt deleted successfully'));
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
         }
@@ -575,7 +566,7 @@ class CourierMapController extends Controller
 
     private function getAssignmentColor(string $status): string
     {
-        return match($status) {
+        return match ($status) {
             'assigned' => 'blue',
             'accepted' => 'orange',
             'in_transit' => 'yellow',
@@ -598,7 +589,7 @@ class CourierMapController extends Controller
 
     private function validateReceiptTypeForStatus(string $type, string $status): void
     {
-        $allowedTypes = match($status) {
+        $allowedTypes = match ($status) {
             'accepted' => ['pickup_product', 'pickup_receipt'],
             'in_transit' => ['pickup_product', 'pickup_receipt', 'delivery_proof', 'customer_signature'],
             'delivered', 'failed' => ['pickup_product', 'pickup_receipt', 'delivery_proof', 'customer_signature'],
@@ -612,7 +603,7 @@ class CourierMapController extends Controller
 
     private function applyPeriodFilter($query, string $period)
     {
-        return match($period) {
+        return match ($period) {
             'today' => $query->whereDate('completed_at', today()),
             'week' => $query->whereBetween('completed_at', [now()->startOfWeek(), now()->endOfWeek()]),
             'month' => $query->whereMonth('completed_at', now()->month)->whereYear('completed_at', now()->year),
@@ -687,7 +678,6 @@ class CourierMapController extends Controller
                     'steps' => $this->getProgressSteps($assignment),
                 ],
             ], __('Order details retrieved successfully'));
-
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -704,7 +694,7 @@ class CourierMapController extends Controller
         }
 
         // Return status based on assignment status
-        return match($assignment->status) {
+        return match ($assignment->status) {
             'assigned' => 'تم تعيين الطلب',
             'accepted' => 'في الطريق للمتجر',
             'in_transit' => 'في الطريق للعميل',
@@ -716,7 +706,7 @@ class CourierMapController extends Controller
 
     private function getCourierStatusDescription(CourierOrderAssignment $assignment): string
     {
-        return match($assignment->status) {
+        return match ($assignment->status) {
             'assigned' => 'بانتظار قبول الطلب',
             'accepted' => 'جاري استلام الطلب من المتجر',
             'in_transit' => 'في الطريق لتسليم الطلب',

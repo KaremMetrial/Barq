@@ -22,7 +22,7 @@ class VendorService
 
     public function getAllVendors($filters = [])
     {
-        return $this->VendorRepository->paginate($filters, $perPage = 10,[
+        return $this->VendorRepository->paginate($filters, $perPage = 10, [
             'store.translations',
             'store.address.translations',
             'store.address.zone.translations',
@@ -96,13 +96,13 @@ class VendorService
         ]);
         if (! $vendor || ! Hash::check($data['password'], $vendor->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => [__('message.credentials_incorrect')],
             ]);
         }
         $vendor->update([
             'last_login' => now(),
         ]);
-        $newToken = $vendor->createToken('token',['vendor']);
+        $newToken = $vendor->createToken('token', ['vendor']);
         $newToken->accessToken->fcm_device = request()->input('fcm_device');
         $newToken->accessToken->save();
         $token = $newToken->plainTextToken;

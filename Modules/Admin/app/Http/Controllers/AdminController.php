@@ -28,6 +28,10 @@ use Modules\Product\Http\Resources\ProductResource;
 use Modules\Product\Models\Product;
 use Modules\Store\Http\Resources\StoreResource;
 use Modules\Store\Models\Store;
+use App\Services\AdminNotificationService;
+use App\Http\Requests\SendNotificationRequest;
+use App\Models\AdminNotification;
+use App\Http\Resources\AdminNotificationResource;
 
 class AdminController extends Controller
 {
@@ -167,7 +171,7 @@ class AdminController extends Controller
         if ($countryId) {
             $country = \Modules\Country\Models\Country::find($countryId);
             if ($country) {
-                $currencyCode = $country->currency_name ?? config('settings.default_currency', 'USD');
+                $currencyCode = $country->currency_symbol ?? config('settings.default_currency', 'USD');
                 $currencyFactor = $country->currency_factor ?? 100;
             }
         }
@@ -829,7 +833,7 @@ class AdminController extends Controller
         if ($countryId) {
             $country = \Modules\Country\Models\Country::find($countryId);
             if ($country) {
-                $currencyCode = $country->code ?? 'USD';
+                $currencyCode = $country->currency_symbol ?? 'USD';
                 $currencyFactor = $country->currency_factor ?? 100;
             }
         }
@@ -958,5 +962,152 @@ class AdminController extends Controller
             'product' => ProductResource::collection($product),
             'store' => StoreResource::collection($store),
         ]);
+    }
+
+    /**
+     * Send notification (unified endpoint for all targeting types).
+     */
+    public function sendNotification(SendNotificationRequest $request): JsonResponse
+    {
+        $service = app(AdminNotificationService::class);
+        $translations = $request->translations;
+        $data = $request->data ?? [];
+        $isScheduled = $request->is_scheduled ?? false;
+        $scheduledAt = $request->scheduled_at;
+
+        switch ($request->target_type) {
+            case 'all_users':
+                $notification = $service->sendToAllUsers(
+                    $translations,
+                    $data,
+                    $isScheduled,
+                    $scheduledAt
+                );
+                break;
+
+            case 'specific_users':
+                $notification = $service->sendToSpecificUsers(
+                    $request->target_data['user_ids'] ?? [],
+                    $translations,
+                    $data,
+                    $isScheduled,
+                    $scheduledAt
+                );
+                break;
+
+            case 'top_users':
+                $notification = $service->sendToTopUsers(
+                    $request->top_users_count,
+                    $request->performance_metric,
+                    $translations,
+                    $data,
+                    $isScheduled,
+                    $scheduledAt
+                );
+                break;
+
+            default:
+                return $this->errorResponse(__('message.invalid_target_type'), 422);
+        }
+
+        return $this->successResponse([
+            'notification' => $notification,
+        ], __('message.notification_sent'));
+    }
+
+    /**
+     * Send notification to all users (legacy endpoint - alias to unified method).
+     */
+    public function sendNotificationToAll(SendNotificationRequest $request): JsonResponse
+    {
+        // Convert old format to new format
+        $request->merge([
+            'translations' => [
+                'en' => [
+                    'title' => $request->title,
+                    'body' => $request->body,
+                ],
+            ],
+        ]);
+
+        return $this->sendNotification($request);
+    }
+
+    /**
+     * Send notification to specific users (legacy endpoint - alias to unified method).
+     */
+    public function sendNotificationToUsers(SendNotificationRequest $request): JsonResponse
+    {
+        // Convert old format to new format
+        $request->merge([
+            'translations' => [
+                'en' => [
+                    'title' => $request->title,
+                    'body' => $request->body,
+                ],
+            ],
+        ]);
+
+        return $this->sendNotification($request);
+    }
+
+    /**
+     * Send notification to top performing users (legacy endpoint - alias to unified method).
+     */
+    public function sendNotificationToTopUsers(SendNotificationRequest $request): JsonResponse
+    {
+        // Convert old format to new format
+        $request->merge([
+            'translations' => [
+                'en' => [
+                    'title' => $request->title,
+                    'body' => $request->body,
+                ],
+            ],
+        ]);
+
+        return $this->sendNotification($request);
+    }
+
+    /**
+     * Get notification history for the authenticated admin.
+     */
+    public function getNotificationHistory(Request $request): JsonResponse
+    {
+
+        $perPage = $request->input('per_page', 10);
+        $notifications = app(AdminNotificationService::class)->getNotificationHistory(
+            auth('sanctum')->id(),
+            $perPage
+        );
+
+        return $this->successResponse([
+            'notifications' => AdminNotificationResource::collection($notifications),
+            'pagination' => new PaginationResource($notifications),
+        ], __('message.success'));
+    }
+
+    /**
+     * Get notification statistics.
+     */
+    public function getNotificationStatistics(): JsonResponse
+    {
+
+        $statistics = app(AdminNotificationService::class)->getStatistics();
+
+        return $this->successResponse([
+            'statistics' => $statistics,
+        ], __('message.success'));
+    }
+
+    /**
+     * Process scheduled notifications (for cron job).
+     */
+    public function processScheduledNotifications(): JsonResponse
+    {
+
+        app(AdminNotificationService::class)->processScheduledNotifications();
+
+        return $this->successResponse(null, __('message.scheduled_notifications_processed'));
     }
 }

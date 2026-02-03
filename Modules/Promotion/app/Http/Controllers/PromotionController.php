@@ -161,8 +161,12 @@ class PromotionController extends Controller
         }
 
         if ($promotion['type'] === 'product') {
-            foreach ($cart->items as $item) {
-            }
+            // In a manual apply, we could mark items as discounted or adjust their total_price
+            // However, since we now have automatic evaluation in Resources,
+            // we'll just ensure the cart metadata records the applied promotion.
+            $cart->update([
+                'applied_promotions' => array_unique(array_merge($cart->applied_promotions ?? [], [$promotion['promotion']['id']]))
+            ]);
         }
 
         $cart->save();

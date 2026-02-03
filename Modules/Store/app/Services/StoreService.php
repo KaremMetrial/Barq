@@ -53,13 +53,15 @@ class StoreService
                 request(),
                 'store.logo',
                 'uploads/logos',
-                'public'
+                'public',
+                [512,512]
             );
             $data['store']['cover_image'] = $this->upload(
                 request(),
                 'store.cover_image',
                 'uploads/cover_images',
-                'public'
+                'public',
+                [512,512]
             );
             $data = array_filter($data, fn($value) => !blank($value));
             return $this->StoreRepository->create($data['store']);
@@ -84,13 +86,15 @@ class StoreService
                 request(),
                 'store.logo',
                 'uploads/logos',
-                'public'
+                'public',
+                [512,512]
             );
             $data['store']['cover_image'] = $this->upload(
                 request(),
                 'store.cover_image',
                 'uploads/cover_images',
-                'public'
+                'public',
+                [512,512]
             );
             $data['store'] = array_filter($data['store'], fn($value) => !blank($value));
 
@@ -296,13 +300,15 @@ class StoreService
                 request(),
                 'store.logo',
                 'uploads/logos',
-                'public'
+                'public',
+                [512,512]
             );
             $data['store']['cover_image'] = $this->upload(
                 request(),
                 'store.cover_image',
                 'uploads/cover_images',
-                'public'
+                'public',
+                [512,512]
             );
             $data = array_filter($data, fn($value) => !blank($value));
 
@@ -479,7 +485,7 @@ class StoreService
         $successRate = $totalOrders > 0 ? round(($successfulOrders / $totalOrders) * 100, 2) : 0;
         $ongoingPercentage = $totalOrders > 0 ? round(($ongoingOrders / $totalOrders) * 100, 2) : 0;
 
-        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP';
+        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP';
         $currencySymbol = $store->store_setting?->currency_symbol ?? $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? $currencyCode;
         $totalRevenueFormatted = number_format($totalRevenue) . ' ' . $currencyCode;
 
@@ -605,7 +611,7 @@ class StoreService
             });
         })->avg('rating');
 
-        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP';
+        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP';
 
         return [
             'success_rate' => $successRate,
@@ -688,7 +694,7 @@ class StoreService
         $monthlyRevenue = (clone $monthQuery)->where('payment_status', 'paid')->sum('total_amount');
         $cancelledOrders = (clone $monthQuery)->where('status', OrderStatus::CANCELLED)->count();
 
-        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP';
+        $currencyCode = $store->store_setting?->currency_code ?? $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP';
 
         return [
             'monthly_deliveries' => $monthlyDeliveries,

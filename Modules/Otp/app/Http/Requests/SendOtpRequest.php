@@ -33,7 +33,7 @@ class SendOtpRequest extends FormRequest
             'phone_code' => [
                 'nullable',
                 'string',
-                Rule::requiredIf(fn() => $this->input('model_type') != 'vendor')
+                Rule::requiredIf(fn() => $this->input('model_type') != 'vendor' && $this->input('model_type') != 'couier')
             ],
             'model_type' => ['required','string'],
         ];

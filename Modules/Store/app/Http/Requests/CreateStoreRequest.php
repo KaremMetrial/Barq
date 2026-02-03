@@ -65,7 +65,10 @@ class CreateStoreRequest extends FormRequest
                     return data_get($this->input('store'), 'type') === 'store'
                         && data_get($this->input('store'), 'branch_type') === 'main';
                 }),
-                'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048'],
+                'image',
+                'mimes:jpg,png,jpeg,gif,svg',
+                'max:2048'
+            ],
             'store.cover_image' => [
                 Rule::requiredIf(function () {
                     return data_get($this->input('store'), 'type') === 'store'
@@ -102,6 +105,7 @@ class CreateStoreRequest extends FormRequest
             'store.type' => ['nullable', 'string', 'in:delivery,store'],
             'store.currency_factor' => ['nullable', 'integer', 'min:1'],
             'store.iban' => ['nullable', 'string', 'max:255'],
+            'store.resize' => ['nullable', 'array', 'min:2', 'max:2'],
 
             'address' => ['required', 'array'],
             'address.zone_id' => ['required', 'integer', 'exists:zones,id'],
@@ -158,7 +162,7 @@ class CreateStoreRequest extends FormRequest
             if ($zoneId && $latitude && $longitude) {
                 $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates((float) $latitude, (float) $longitude);
                 if (!$zone || $zone->id != $zoneId) {
-                    $validator->errors()->add('address.latitude', 'The provided latitude and longitude are not within the specified zone.');
+                    $validator->errors()->add('address.latitude', __('message.latitude_longitude_not_in_zone'));
                 }
             }
 
@@ -167,7 +171,7 @@ class CreateStoreRequest extends FormRequest
             if (data_get($store, 'type') == 'delivery') {
                 $deliverySection = \Modules\Section\Models\Section::where('type', SectionTypeEnum::DELIVERY_COMPANY)->first();
                 if (!$deliverySection) {
-                    $validator->errors()->add('store.section_id', 'Please create a section of type "delivery_company" before creating a delivery store.');
+                    $validator->errors()->add('store.section_id', __('message.delivery_company_section_required'));
                 }
             }
         });

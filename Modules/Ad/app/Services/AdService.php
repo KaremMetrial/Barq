@@ -27,7 +27,8 @@ class AdService
                 request(),
                 'media_path',
                 'uploads/ads',
-                'public'
+                'public',
+               [512, 512]
             );
         }
         $data['ad_number'] = 'AD' . strtoupper(uniqid());

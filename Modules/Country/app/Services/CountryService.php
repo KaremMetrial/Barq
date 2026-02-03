@@ -43,7 +43,7 @@ class CountryService
     {
         $this->clearCache();
         if (request()->has('flag')) {
-            $data['flag'] = $this->upload(request(), 'flag', 'upload/countries');
+            $data['flag'] = $this->upload(request(), 'flag', 'upload/countries','public',[512,512]);
         }
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->countryRepository->create($data);
@@ -58,7 +58,7 @@ class CountryService
     {
         $this->clearCache();
         if (request()->has('flag')) {
-            $data['flag'] = $this->upload(request(), 'flag', 'upload/countries');
+            $data['flag'] = $this->upload(request(), 'flag', 'upload/countries','public',[512,512]);
         }
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->countryRepository->update($id, $data);

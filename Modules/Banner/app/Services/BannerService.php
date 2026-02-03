@@ -24,7 +24,7 @@ class BannerService
     public function createBanner(array $data): ?Banner
     {
         if (request()->hasFile('image')) {
-            $data['image'] = $this->upload(request(), 'image', 'uploads/image/banners','public');
+            $data['image'] = $this->upload(request(), 'image', 'uploads/image/banners','public',[512,512]);
         }
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->BannerRepository->create($data);
@@ -38,7 +38,7 @@ class BannerService
     public function updateBanner(int $id, array $data): ?Banner
     {
         if (request()->hasFile('image')) {
-            $data['image'] = $this->upload(request(), 'image', 'uploads/image/banners','public');
+            $data['image'] = $this->upload(request(), 'image', 'uploads/image/banners','public',[512,512]);
         }
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->BannerRepository->update($id, $data);

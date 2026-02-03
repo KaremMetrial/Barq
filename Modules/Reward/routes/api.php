@@ -16,6 +16,7 @@ Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('v1/admin')->group(
 // User routes
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::get('rewards/dashboard', [RewardController::class, 'dashboard']);
+    Route::get('rewards/wallet', [RewardController::class, 'wallet']);
     Route::get('rewards', [RewardController::class, 'index']);
     Route::get('rewards/{id}', [RewardController::class, 'show']);
     Route::post('rewards/{id}/redeem', [RewardController::class, 'redeem']);

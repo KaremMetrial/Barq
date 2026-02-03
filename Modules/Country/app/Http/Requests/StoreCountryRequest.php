@@ -22,6 +22,8 @@ class StoreCountryRequest extends FormRequest
             'currency_factor' => ['required', 'integer', 'min:1'],
             'service_fee_percentage' => ['required', 'integer', 'min:0', 'max:100'],
             'tax_rate' => ['required', 'integer', 'min:0', 'max:100'],
+            'timezone' => ['required', 'string', 'max:255'],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
         ];
     }
 

@@ -93,7 +93,7 @@ class CourierAuthController extends Controller
             unset($data['password']);
         }
         if($request->hasFile('avatar')) {
-            $data['avatar'] = $this->upload($request,'avatar','couriers');
+            $data['avatar'] = $this->upload($request,'avatar','couriers','public');
         }
         $courier->update($data);
 

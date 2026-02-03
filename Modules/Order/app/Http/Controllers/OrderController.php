@@ -58,7 +58,7 @@ class OrderController extends Controller
      */
     public function store(CreateOrderRequest $request): JsonResponse
     {
-        $order = $this->orderService->createOrder($request());
+        $order = $this->orderService->createOrder($request->all());
         return $this->successResponse([
             'order' => new OrderResource($order),
         ], __('message.success'));

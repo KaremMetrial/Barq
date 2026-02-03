@@ -29,12 +29,13 @@ class UpdatePromotionRequest extends FormRequest
             'usage_limit_per_user' => ['sometimes', 'integer', 'min:1'],
             'current_usage' => ['integer', 'min:0'],
             'country_id' => ['nullable', 'exists:countries,id'],
+            'governorate_id' => ['nullable', 'exists:governorates,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
             'zone_id' => ['nullable', 'exists:zones,id'],
-            'min_order_amount' => ['nullable', 'integer', 'min:0'],
-            'max_order_amount' => ['nullable', 'integer', 'min:0'],
-            'discount_value' => ['nullable', 'integer', 'min:0'],
-            'fixed_delivery_price' => ['nullable', 'integer', 'min:0'],
+            'min_order_amount' => ['nullable', 'numeric', 'min:0'],
+            'max_order_amount' => ['nullable', 'numeric', 'min:0'],
+            'discount_value' => ['nullable', 'numeric', 'min:0'],
+            'fixed_delivery_price' => ['nullable', 'numeric', 'min:0'],
             'currency_factor' => ['integer', 'min:1'],
             'first_order_only' => ['boolean'],
             'title' => ['required_with:title', 'string', 'max:255'],
@@ -46,8 +47,9 @@ class UpdatePromotionRequest extends FormRequest
             'fixed_prices' => ['sometimes', 'array'],
             'fixed_prices.*.store_id' => ['nullable', 'exists:stores,id'],
             'fixed_prices.*.product_id' => ['nullable', 'exists:products,id'],
-            'fixed_prices.*.fixed_price' => ['required_with:fixed_prices', 'integer', 'min:0'],
+            'fixed_prices.*.fixed_price' => ['required_with:fixed_prices', 'numeric', 'min:0'],
             'lang' => ['required', 'string', Rule::in(Cache::get("languages.codes"))],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
         ];
     }
 

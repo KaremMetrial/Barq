@@ -25,6 +25,7 @@ class Promotion extends Model implements TranslatableContract
         'usage_limit_per_user',
         'current_usage',
         'country_id',
+        'governorate_id',
         'city_id',
         'zone_id',
         'min_order_amount',
@@ -33,6 +34,7 @@ class Promotion extends Model implements TranslatableContract
         'fixed_delivery_price',
         'currency_factor',
         'first_order_only',
+        'image'
     ];
     protected $with = ['translations'];
     protected $casts = [
@@ -50,17 +52,17 @@ class Promotion extends Model implements TranslatableContract
     {
         return $this->hasMany(PromotionTarget::class, 'promotion_id');
     }
-    
+
     public function promotionTargets()
     {
         return $this->hasMany(PromotionTarget::class, 'promotion_id');
     }
-    
+
     public function fixedPrices()
     {
         return $this->hasMany(PromotionFixedPrice::class, 'promotion_id');
     }
-    
+
     public function promotionFixedPrices()
     {
         return $this->hasMany(PromotionFixedPrice::class, 'promotion_id');
@@ -86,8 +88,11 @@ class Promotion extends Model implements TranslatableContract
         if ($this->city_id && $store->city_id !== $this->city_id) return false;
         if ($this->zone_id && $store->zone_id !== $this->zone_id) return false;
 
-        if ($this->min_order_amount && $orderAmount < $this->min_order_amount) return false;
-        if ($this->max_order_amount && $orderAmount > $this->max_order_amount) return false;
+        // Use store's currency factor if available, otherwise use promotion's currency factor
+        $factor = $store->currency_factor ?? $this->currency_factor ?? 100;
+
+        if ($this->min_order_amount && $orderAmount < ($this->min_order_amount / $factor)) return false;
+        if ($this->max_order_amount && $orderAmount > ($this->max_order_amount / $factor)) return false;
 
         if ($this->first_order_only && $user && !$this->isUserFirstOrder($user)) return false;
 
@@ -107,15 +112,25 @@ class Promotion extends Model implements TranslatableContract
             return $baseDeliveryCost;
         }
 
-        switch ($this->sub_type) {
-            case 'FREE_DELIVERY':
+        // Use store's currency factor if available, otherwise use promotion's currency factor
+        $factor = $store->currency_factor ?? $this->currency_factor ?? 100;
+
+        switch ($this->sub_type->value ?? $this->sub_type) {
+            case PromotionSubTypeEnum::FREE_DELIVERY->value:
+            case PromotionSubTypeEnum::FREE_DELIVERY:
                 return 0;
-            case 'DISCOUNT_DELIVERY':
-                return max(0, $baseDeliveryCost - ($this->discount_value ?? 0));
-            case 'FIXED_DELIVERY':
-                return $this->fixed_delivery_price ?? 0;
+            case PromotionSubTypeEnum::DISCOUNT_DELIVERY->value:
+            case PromotionSubTypeEnum::DISCOUNT_DELIVERY:
+                return max(0, $baseDeliveryCost - (($this->discount_value ?? 0) / $factor));
+            case PromotionSubTypeEnum::FIXED_DELIVERY->value:
+            case PromotionSubTypeEnum::FIXED_DELIVERY:
+                return ($this->fixed_delivery_price ?? 0) / $factor;
             default:
                 return $baseDeliveryCost;
         }
+    }
+    public function scopeFilter($query, $filters)
+    {
+        return $query->latest();
     }
 }

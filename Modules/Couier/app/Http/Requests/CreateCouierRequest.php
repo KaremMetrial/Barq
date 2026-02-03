@@ -18,6 +18,13 @@ class CreateCouierRequest extends FormRequest
      */
     public function prepareForValidation()
     {
+        $phone = $this->input('courier.phone');
+
+        if (strpos($phone, '0') === 0) {
+            $this->merge([
+                'courier.phone' => ltrim($phone, '0'),
+            ]);
+        }
         $this->merge([
             'courier' => $this->filterArray($this->input('courier', [])),
             'address' => $this->filterArray($this->input('address', [])),
@@ -41,20 +48,21 @@ class CreateCouierRequest extends FormRequest
             "courier" => ["required", "array"],
             "courier.first_name" => ["required", "string", "max:255"],
             "courier.last_name" => ["required", "string", "max:255"],
-            "courier.email" => ["required", "email", "unique:couiers,email", "max:255"],
+            "courier.email" => ["nullable", "email", "unique:couiers,email", "max:255"],
             "courier.phone" => ["required", "string", "unique:couiers,phone", "max:255"],
-            "courier.password" => ["required", "string", "max:255"],
+            "courier.password" => ["nullable", "string", "max:255"],
             "courier.avatar" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
             "courier.license_number" => ["required", "string", "unique:couiers,license_number"],
             "courier.available_status" => ["nullable", "string", Rule::in(CouierAvaliableStatusEnum::values())],
             "courier.avg_rate" => ["nullable", "numeric"],
             "courier.status" => ["nullable", "string", Rule::in(UserStatusEnum::values())],
-            "courier.store_id" => ["required", "integer","exists:stores,id"],
+            "courier.store_id" => ["required", "integer", "exists:stores,id"],
             "courier.birthday" => ["required", "date", "date_format:Y-m-d"],
             "courier.commission_type" => ["required", "string", Rule::in(PlanTypeEnum::values())],
             "courier.commission_amount" => ["required", "numeric"],
             "courier.driving_license" => ["required", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
             'courier.iban' => ['nullable', 'string', 'max:255'],
+            'courier.phone_code' => ['required', 'string', 'max:255'],
 
             // Address
             'address' => ['required', 'array'],
@@ -105,10 +113,9 @@ class CreateCouierRequest extends FormRequest
             if ($zoneId && $latitude && $longitude) {
                 $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($latitude, $longitude);
                 if (!$zone || $zone->id != $zoneId) {
-                    $validator->errors()->add('address.latitude', 'The provided latitude and longitude are not within the specified zone.');
+                    $validator->errors()->add('address.latitude', __('message.latitude_longitude_not_in_zone'));
                 }
             }
         });
     }
-
 }

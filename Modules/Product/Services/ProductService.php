@@ -98,7 +98,7 @@ class ProductService
     {
         foreach ($images as $index => $image) {
             if (isset($image['image_path']) && request()->hasFile("images.$index.image_path")) {
-                $imagePath = $this->upload(request(), "images.$index.image_path", 'products/images');
+                $imagePath = $this->upload(request(), "images.$index.image_path", 'products/images','public',[512,512]);
 
                 $product->images()->create([
                     'image_path' => $imagePath,
@@ -111,7 +111,7 @@ class ProductService
     {
         if (isset($watermarkData['image_url']) && request()->hasFile('watermarks.image_url')) {
             $watermarkFile = request()->file('watermarks.image_url');
-            $watermarkImagePath = $this->upload(request(), 'watermarks.image_url', 'products/watermarks');
+            $watermarkImagePath = $this->upload(request(), 'watermarks.image_url', 'products/watermarks','public',[512,512]);
 
             $product->watermark()->create([
                 'image_url' => $watermarkImagePath,

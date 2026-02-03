@@ -25,14 +25,44 @@ class SettingController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * Accepts an array of settings to update in bulk.
+     * 
+     * Request format:
+     * {
+     *   "settings": [
+     *     {"key": "app_name", "value": "New App Name"},
+     *     {"key": "app_email", "value": "newemail@example.com"}
+     *   ]
+     * }
      */
-    public function update(Request $request, $id) {
-        $setting = \Modules\Setting\Models\Setting::findOrFail($id);
-        $this->authorize('update', $setting);
-        $setting->update($request->only(['value', 'type']));
-        return $this->successResponse([
-            'setting' => $setting,
-        ], 'Setting updated successfully');
-    }
+    public function update(Request $request)
+    {
+        $request->validate([
+            'settings' => 'required|array',
+            'settings.*.key' => 'required|string',
+            'settings.*.value' => 'required',
+        ]);
 
+        $updatedSettings = [];
+
+        foreach ($request->settings as $settingData) {
+            $setting = \Modules\Setting\Models\Setting::where('key', $settingData['key'])->first();
+
+            if (!$setting) {
+                continue; // Skip if setting key doesn't exist
+            }
+
+            $this->authorize('update', $setting);
+
+            $setting->update([
+                'value' => $settingData['value'],
+            ]);
+
+            $updatedSettings[] = $setting;
+        }
+
+        return $this->successResponse([
+            'settings' => $updatedSettings,
+        ], count($updatedSettings) . ' setting(s) updated successfully');
+    }
 }

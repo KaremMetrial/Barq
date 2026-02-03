@@ -5,7 +5,7 @@ namespace Modules\Order\Listeners;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Order\Events\OrderStatusChanged;
 use App\Enums\OrderStatus;
-use Modules\Couier\Services\SmartOrderAssignmentService;
+use Modules\Couier\Services\CacheBasedOrderAssignmentService;
 use Modules\Couier\Services\RealTimeCourierService;
 use Illuminate\Support\Facades\Log;
 
@@ -20,7 +20,7 @@ class AutoAssignCourierListener implements ShouldQueue
 
 
     public function __construct(
-        protected SmartOrderAssignmentService $assignmentService,
+        protected CacheBasedOrderAssignmentService $assignmentService,
         protected RealTimeCourierService $realtimeService
     ) {}
 
@@ -62,8 +62,16 @@ class AutoAssignCourierListener implements ShouldQueue
         }
 
         // Check if order has required location data
-        $hasPickupLocation = $order->store->address && $order->store->address->latitude;
-        $hasDeliveryLocation = $order->deliveryAddress && $order->deliveryAddress->latitude;
+        // Check relationships first to avoid null property access
+        if (!$order->store || !$order->store->address || !$order->deliveryAddress) {
+            Log::warning('Order missing relationship data for auto-assignment', [
+                'order_id' => $order->id,
+            ]);
+            return false;
+        }
+
+        $hasPickupLocation = $order->store->address->latitude;
+        $hasDeliveryLocation = $order->deliveryAddress->latitude;
 
         if (!$hasPickupLocation || !$hasDeliveryLocation) {
             Log::warning('Order missing required location data for auto-assignment', [
@@ -87,9 +95,8 @@ class AutoAssignCourierListener implements ShouldQueue
     {
         try {
             $orderData = $this->prepareOrderDataForAssignment($event->order);
-            // Use new cache-based assignment service
-            $assignmentService = app(\Modules\Couier\Services\CacheBasedOrderAssignmentService::class);
-            $assignment = $assignmentService->assignOrderToNearestCourier($orderData);
+            // Use injected assignment service
+            $assignment = $this->assignmentService->assignOrderToNearestCourier($orderData, $event->order);
 
             if ($assignment) {
                 Log::info("handleSuccessfulAssignment");
@@ -134,8 +141,8 @@ class AutoAssignCourierListener implements ShouldQueue
      */
     private function handleSuccessfulAssignment($order, $assignment): void
     {
-        // Update order with assigned courier - use correct column name 'couier_id'
-        $order->update(['couier_id' => $assignment->courier_id]);
+        // Order update is now handled atomically within the service
+        // $order->update(['couier_id' => $assignment->courier_id]);
 
         // Log successful assignment
         Log::info('Courier automatically assigned to order', [

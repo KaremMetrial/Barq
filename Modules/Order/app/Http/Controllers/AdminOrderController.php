@@ -14,11 +14,7 @@ use Modules\Order\Http\Requests\CreateOrderRequest;
 use Modules\Order\Http\Requests\UpdateOrderRequest;
 use Modules\Order\Http\Resources\OrderCollectionResource;
 use Modules\Order\Models\Order;
-use LaravelDaily\Invoices\Invoice;
-use LaravelDaily\Invoices\Classes\Buyer;
-use LaravelDaily\Invoices\Classes\Seller;
-use LaravelDaily\Invoices\Classes\InvoiceItem;
-use PDF;
+use Mpdf\Mpdf;
 
 class AdminOrderController extends Controller
 {
@@ -63,7 +59,7 @@ class AdminOrderController extends Controller
         // $order->load('items.product', 'items.productOptionValue', 'items.addOns', 'store', 'user', 'courier', 'statusHistories');
 
         return $this->successResponse([
-            'order' => new OrderResource($order->load('statusHistories', 'paymentMethod', 'items.product', 'items.productOptionValue')),
+            'order' => new OrderResource($order->load('statusHistories', 'paymentMethod', 'items.product', 'items')),
         ], __('message.success'));
     }
 
@@ -115,13 +111,28 @@ class AdminOrderController extends Controller
 
         $this->authorize('view', $order);
 
-        if (request()->wantsJson() || request()->get('format') === 'json') {
-            return $this->successResponse([
-                'order' => new OrderResource($order)
-            ], __('message.success'));
-        }
-        $pdf = PDF::loadView('order::invoice', compact('order'));
-        // return view('order::invoice', compact('order'));
-        return $pdf->stream();
+        $html = view('order::invoice', compact('order'))->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => [80, 297],
+            'margin_left' => 0,
+            'margin_right' => 0,
+            'margin_top' => 0,
+            'margin_bottom' => 0,
+            'margin_header' => 0,
+            'margin_footer' => 0,
+            'autoArabic' => true,
+            'autoLangToFont' => true,
+            'default_font' => 'dejavusans',
+        ]);
+
+        $mpdf->SetDirectionality(app()->getLocale() == 'ar' ? 'rtl' : 'ltr');
+        $mpdf->WriteHTML($html);
+
+        return response($mpdf->Output('', 'S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="invoice-' . $order->order_number . '.pdf"',
+        ]);
     }
 }

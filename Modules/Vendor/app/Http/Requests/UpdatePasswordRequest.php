@@ -36,7 +36,7 @@ class UpdatePasswordRequest extends FormRequest
             $vendor = $this->user('vendor');
 
             if (!Hash::check($this->old_password, $vendor->password)) {
-                $validator->errors()->add('old_password', __('The old password is incorrect.'));
+                $validator->errors()->add('old_password', __('message.old_password_incorrect'));
             }
         });
     }

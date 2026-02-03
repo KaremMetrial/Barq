@@ -21,6 +21,7 @@ class UpdateVehicleRequest extends FormRequest
             "is_active" => ["nullable", "boolean"],
             'icon' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,mp4,mov,avi', 'max:2048'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
         ];
     }
 

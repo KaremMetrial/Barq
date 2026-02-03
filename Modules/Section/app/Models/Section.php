@@ -5,11 +5,16 @@ namespace Modules\Section\Models;
 use App\Enums\SectionTypeEnum;
 use Modules\Country\Models\Country;
 use Modules\Category\Models\Category;
+use Modules\Store\Models\Store;
+use Modules\Order\Models\Order;
+use App\Enums\OrderStatus;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 use Astrotomic\Translatable\Translatable;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Stevebauman\Location\Facades\Location;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 
 class Section extends Model implements TranslatableContract
@@ -61,7 +66,7 @@ class Section extends Model implements TranslatableContract
                 ->whereIsShowOnHome(true)
                 ->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY);
         }
-        if(isset($filters['type']) && $filters['type'] == 'store'){
+        if (isset($filters['type']) && $filters['type'] == 'store') {
             $query->where('type', '!=', SectionTypeEnum::DELIVERY_COMPANY);
         }
         // Filter by country if address-id is provided in header
@@ -75,7 +80,7 @@ class Section extends Model implements TranslatableContract
             if ($address && $address->country_id) {
                 $country = Country::find($address->country_id);
             }
-        }elseif ($lat && $lng) {
+        } elseif ($lat && $lng) {
             $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($lat, $lng);
             if ($zone) {
                 $country = $zone->country;
@@ -135,11 +140,21 @@ class Section extends Model implements TranslatableContract
     {
         return $this->belongsToMany(Country::class, 'country_section', 'section_id', 'country_id');
     }
+    public function stores(): HasMany
+    {
+        return $this->hasMany(Store::class);
+    }
+
+    public function orders(): HasManyThrough
+    {
+        return $this->hasManyThrough(Order::class, Store::class);
+    }
+
     public function getCountryFromIp()
     {
         $position = Location::get(request()->ip());
         if ($position && isset($position->countryName)) {
-            return Country::whereTranslationLike('name','%' . $position->countryName . '%')->first();
+            return Country::whereTranslationLike('name', '%' . $position->countryName . '%')->first();
         }
 
         return null;

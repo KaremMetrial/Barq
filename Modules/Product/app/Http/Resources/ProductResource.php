@@ -105,7 +105,7 @@ class ProductResource extends JsonResource
                 // Compute using minor units when possible for safer cross-currency calculations
                 $priceMinor = $this->price->price ?? $this->price->priceMinorValue() ?? 0;
                 $priceFactor = $this->price->getCurrencyFactor();
-                $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP');
+                $currencyCode = $this->price->currency_code ?? ($this->store?->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP');
 
                 if (!$offer) {
                     return [

@@ -15,6 +15,13 @@ class UpdateVendorRequest extends FormRequest
      */
     public function prepareForValidation()
     {
+        $phone = $this->input('phone');
+
+        if (strpos($phone, '0') === 0) {
+            $this->merge([
+                'phone' => ltrim($phone, '0'),
+            ]);
+        }
         return $this->merge([
             'store_id' => auth('vendor')->user()->store_id ?? $this->store_id,
         ]);
@@ -38,6 +45,7 @@ class UpdateVendorRequest extends FormRequest
             'is_owner' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'store_id' => ['nullable', 'numeric', 'exists:stores,id'],
+            'phone_code' => ['nullable', 'string', 'max:255'],
         ];
     }
 

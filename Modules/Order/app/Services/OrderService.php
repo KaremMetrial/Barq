@@ -223,11 +223,16 @@ class OrderService
             }
         }
 
-        $orderData['total_amount'] = $totalAmount;
-        $orderData['discount_amount'] = round($discountAmount, 3);
+        // Apply Promotions
+        $promotionResult = $this->evaluatePromotions($orderData, $orderItems);
+        $promotionSavings = $promotionResult['product_savings'] ?? 0;
+        $orderData['delivery_fee'] = (int) ($promotionResult['delivery_cost'] ?? $this->calculateDeliveryFee($orderData));
+        $orderData['applied_promotions'] = $promotionResult['promotions'] ? collect($promotionResult['promotions'])->pluck('id')->toArray() : null;
+
+        $orderData['total_amount'] = $totalAmount - $promotionSavings;
+        $orderData['discount_amount'] = ($discountAmount + $promotionSavings);
 
         // Calculate fees based on store settings
-        $orderData['delivery_fee'] = (int) $this->calculateDeliveryFee($orderData);
         $orderData['service_fee'] = (int) $this->calculateServiceFee($orderData);
         $orderData['tax_amount'] = (int) $this->calculateTaxAmount($orderData);
 
@@ -246,6 +251,61 @@ class OrderService
         $orderData['_coupon'] = $coupon;
 
         return $orderData;
+    }
+
+    /**
+     * Evaluate eligible promotions for the order
+     */
+    private function evaluatePromotions(array $orderData, array $orderItems): array
+    {
+        $promotionEngine = app(\Modules\Promotion\Services\PromotionEngineService::class);
+        $user = auth('user')->user() ?? (\Modules\User\Models\User::find($orderData['user_id'] ?? null));
+        $store = Store::find($orderData['store_id']);
+
+        // Try to find the cart if cart_id is provided
+        $cart = null;
+        if (!empty($orderData['cart_id'])) {
+            $cart = \Modules\Cart\Models\Cart::with('items')->find($orderData['cart_id']);
+        }
+
+        // If no cart found, create a virtual one to satisfy the PromotionEngine requirements
+        if (!$cart) {
+            $cart = new \Modules\Cart\Models\Cart([
+                'store_id' => $orderData['store_id'],
+                'user_id' => $user?->id,
+            ]);
+            $cart->setRelation('store', $store);
+
+            $cartItems = collect($orderItems)->map(function ($item) {
+                // Determine item total price for accurate evaluation
+                $product = \Modules\Product\Models\Product::with('price')->find($item['product_id']);
+                $quantity = $item['quantity'] ?? 1;
+                $productPrice = $this->getProductEffectivePrice($product);
+
+                $optionPrice = 0;
+                $optionIds = $item['product_option_value_id'] ?? [];
+                if (!is_array($optionIds)) $optionIds = $optionIds ? [$optionIds] : [];
+                foreach ($optionIds as $optionId) {
+                    $opt = \Modules\Product\Models\ProductOptionValue::find($optionId);
+                    if ($opt) $optionPrice += (int) $opt->price;
+                }
+
+                $addOnTotal = collect($item['add_ons'] ?? [])->sum(function ($ao) {
+                    return ($ao['price'] ?? 0) * ($ao['quantity'] ?? 1);
+                });
+
+                $totalPrice = ($productPrice + $optionPrice + $addOnTotal) * $quantity;
+
+                return new \Modules\Cart\Models\CartItem([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $quantity,
+                    'total_price' => $totalPrice,
+                ]);
+            });
+            $cart->setRelation('items', $cartItems);
+        }
+
+        return $promotionEngine->evaluatePromotions($cart, $store, $user);
     }
 
     /**
@@ -269,6 +329,23 @@ class OrderService
         // Update coupon usage if applicable
         if ($coupon) {
             $this->incrementCouponUsage($coupon, $orderData['user_id']);
+        }
+
+        // Update Promotion usage if applicable
+        if (!empty($orderData['applied_promotions'])) {
+            foreach ($orderData['applied_promotions'] as $promotionId) {
+                $promotion = \Modules\Promotion\Models\Promotion::find($promotionId);
+                if ($promotion) {
+                    $promotion->increment('current_usage');
+                    if ($orderData['user_id']) {
+                        \Illuminate\Support\Facades\DB::table('user_promotion_usage')->insert([
+                            'user_id' => $orderData['user_id'],
+                            'promotion_id' => $promotion->id,
+                            'used_at' => now(),
+                        ]);
+                    }
+                }
+            }
         }
 
         // Decrease product stock (wrapped in transaction for safety)

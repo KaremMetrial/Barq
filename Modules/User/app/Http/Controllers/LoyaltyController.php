@@ -99,7 +99,7 @@ class LoyaltyController extends Controller
         $success = $this->loyaltyService->redeemPoints($userId, $points, $description);
 
         if (!$success) {
-            return $this->errorResponse('Failed to redeem points', [], 500);
+            return $this->errorResponse(__('message.loyalty_redemption_failed'), [], 500);
         }
 
         return $this->successResponse([

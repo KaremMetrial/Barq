@@ -46,22 +46,15 @@ class UpdateBalanceOnOrderDelivered implements ShouldQueue
                 return;
             }
 
-            // Calculate amounts using fixed model methods to avoid unit errors
+            // Calculate amounts
             $platformCommissionFromOrder = $store->calculateCommission($order->total_amount);
-            $storeAmount = $order->total_amount - $platformCommissionFromOrder;
-
             $deliveryFee = $order->delivery_fee ?? 0;
             $courierCommissionFromDelivery = $courier->calculateCommission($deliveryFee);
             $courierProfit = $deliveryFee - $courierCommissionFromDelivery;
+            $totalCollectedFromCustomer = $order->total_amount + $deliveryFee;
 
             // Get balances
             $courierBalance = $courier->balance()->firstOrCreate([], [
-                'available_balance' => 0,
-                'pending_balance' => 0,
-                'total_balance' => 0,
-            ]);
-
-            $storeBalance = $store->balance()->firstOrCreate([], [
                 'available_balance' => 0,
                 'pending_balance' => 0,
                 'total_balance' => 0,
@@ -73,57 +66,28 @@ class UpdateBalanceOnOrderDelivered implements ShouldQueue
             );
 
             // ============================================
-            // 1. SETTLE STORE EARNINGS
-            // ============================================
-            // We assume the courier already paid the store cash (at OnTheWay pickup)
-            // or the store is paid electronically. In either case, we credit their wallet
-            // for the earning, and if they got cash, we'd debit it (done via Courier wallet decrement).
-            $storeBalance->increment('available_balance', $storeAmount);
-            $storeBalance->increment('total_balance', $storeAmount);
-
-            Transaction::create([
-                'transactionable_type' => 'store',
-                'transactionable_id' => $store->id,
-                'type' => TransactionType::EARNING,
-                'amount' => $storeAmount,
-                'currency' => $store->getCurrencyCode() ?? 'USD',
-                'translations' => [
-                    'ar' => ['description' => "أرباح من الطلب رقم #{$order->order_number}"],
-                    'en' => ['description' => "Earnings from order #{$order->order_number}"],
-                ],
-                'status' => TransactionStatusEnum::SUCCESS->value,
-                'order_id' => $order->id
-            ]);
-
-            // ============================================
             // 2. SETTLE COURIER DEBT/PROFIT
             // ============================================
-            // Courier collected cash (Total + Delivery Fee) = 1000 + 50 = 1050
-            // Courier paid Store cash = 900
-            // Courier owes Platform = 100 (Store Commission) + 5 (Courier Commission) = 105
+            // Courier outcome calculation:
+            // Current balance has +(Total - StoreComm) from OnTheWay
+            // We now subtract the cash they collected from customer
+            // And add their net profit from delivery
 
-            // To reflect this in wallet:
-            // Debit courier for Store Amount (because they "collected" it or paid it from pocket)
-            // Debit courier for Platform Commissions
-            // Credit courier for Delivery Fee (their gross pay)
+            $courierBalance->decrement('available_balance', $totalCollectedFromCustomer);
+            $courierBalance->decrement('total_balance', $totalCollectedFromCustomer);
 
-            $totalDebitToCourier = $storeAmount + $platformCommissionFromOrder + $courierCommissionFromDelivery;
-            $courierBalance->decrement('available_balance', $totalDebitToCourier);
-            $courierBalance->decrement('total_balance', $totalDebitToCourier);
-
-            // Credit net delivery fee? No, credit gross then debit commission is clearer.
-            $courierBalance->increment('available_balance', $deliveryFee);
-            $courierBalance->increment('total_balance', $deliveryFee);
+            $courierBalance->increment('available_balance', $courierProfit);
+            $courierBalance->increment('total_balance', $courierProfit);
 
             Transaction::create([
                 'transactionable_type' => 'courier',
                 'transactionable_id' => $courier->id,
                 'type' => TransactionType::DECREMENT,
-                'amount' => $totalDebitToCourier,
+                'amount' => $totalCollectedFromCustomer,
                 'currency' => $store->getCurrencyCode() ?? 'USD',
                 'translations' => [
-                    'ar' => ['description' => "تسوية مستحقات الطلب رقم #{$order->order_number} (مبلغ المتجر + عمولة المنصة)"],
-                    'en' => ['description' => "Order settlement for #{$order->order_number} (Store amount + Platform commission)"],
+                    'ar' => ['description' => "تحصيل مبلغ الطلب رقم #{$order->order_number} من العميل"],
+                    'en' => ['description' => "Order amount collection for #{$order->order_number} from customer"],
                 ],
                 'status' => TransactionStatusEnum::SUCCESS->value,
                 'order_id' => $order->id
@@ -133,11 +97,11 @@ class UpdateBalanceOnOrderDelivered implements ShouldQueue
                 'transactionable_type' => 'courier',
                 'transactionable_id' => $courier->id,
                 'type' => TransactionType::INCREMENT,
-                'amount' => $deliveryFee,
+                'amount' => $courierProfit,
                 'currency' => $store->getCurrencyCode() ?? 'USD',
                 'translations' => [
-                    'ar' => ['description' => "رسوم التوصيل للطلب رقم #{$order->order_number}"],
-                    'en' => ['description' => "Delivery fee for order #{$order->order_number}"],
+                    'ar' => ['description' => "صافي ربح التوصيل للطلب رقم #{$order->order_number}"],
+                    'en' => ['description' => "Net delivery profit for order #{$order->order_number}"],
                 ],
                 'status' => TransactionStatusEnum::SUCCESS->value,
                 'order_id' => $order->id

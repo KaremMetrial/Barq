@@ -32,7 +32,10 @@ class UpdateOrderStatusRequest extends FormRequest
                 $order = \Modules\Order\Models\Order::find($orderId);
                 $currentStatus = $order ? $order->status->value : 'unknown';
                 $allowedTransitions = $this->getAllowedTransitions($currentStatus);
-                $validator->errors()->add('status', "Invalid status transition. Current status: {$currentStatus}. Allowed transitions: " . implode(', ', $allowedTransitions));
+                $validator->errors()->add('status', __('message.invalid_status_transition', [
+                    'current' => $currentStatus,
+                    'allowed' => implode(', ', $allowedTransitions)
+                ]));
             }
         });
     }
@@ -56,8 +59,10 @@ class UpdateOrderStatusRequest extends FormRequest
         }
 
         // Cannot cancel after certain stages (e.g., after on the way)
-        if ($newStatus === OrderStatus::CANCELLED->value &&
-            in_array($currentStatus, [OrderStatus::ON_THE_WAY->value, OrderStatus::DELIVERED->value])) {
+        if (
+            $newStatus === OrderStatus::CANCELLED->value &&
+            in_array($currentStatus, [OrderStatus::ON_THE_WAY->value, OrderStatus::DELIVERED->value])
+        ) {
             return false;
         }
 

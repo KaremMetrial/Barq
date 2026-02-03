@@ -21,5 +21,8 @@ class PromotionTarget extends Model
     {
         return $this->belongsTo(Promotion::class);
     }
-
+    public function target()
+    {
+        return $this->morphTo('target_type', 'target_id');
+    }
 }

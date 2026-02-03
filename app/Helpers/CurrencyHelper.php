@@ -182,7 +182,7 @@ class CurrencyHelper
 
         // If not set on store, fall back to country-based resolution
         if (empty($currencyCode) || empty($currencySymbol)) {
-            $currencyCode = $store->address?->zone?->city?->governorate?->country?->code ?? 'EGP';
+            $currencyCode = $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP';
             $currencySymbol = $store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'ج.م';
         }
 

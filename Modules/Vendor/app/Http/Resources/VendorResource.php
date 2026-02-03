@@ -25,6 +25,7 @@ class VendorResource extends JsonResource
             "last_name" => $this->last_name,
             "email" => $this->email,
             "phone" => $this->phone,
+            "phone_code" => $this->phone_code,
             "avatar" => $this->avatar ? asset("storage/" . $this->avatar) : null,
             "is_owner" => (bool) $this->is_owner,
             "is_active" => (bool) $this->is_active,

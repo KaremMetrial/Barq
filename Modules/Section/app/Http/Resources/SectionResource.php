@@ -5,6 +5,7 @@ namespace Modules\Section\Http\Resources;
 use Illuminate\Http\Request;
 use App\Enums\SectionTypeEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Order\Http\Resources\OrderResource;
 use Modules\Category\Http\Resources\CategoryResource;
 
 class SectionResource extends JsonResource
@@ -30,6 +31,16 @@ class SectionResource extends JsonResource
             'is_restaurant' => (bool) $this->is_restaurant,
             'countries' => $this->whenLoaded('country', function () {
                 return $this->country->pluck('id');
+            }),
+            'last_orders' => $this->when(auth('sanctum')->check(), function () {
+                return OrderResource::collection(
+                    $this->orders()
+                    ->with(['store','items.product'])
+                        ->where('user_id', auth('sanctum')->id())
+                        ->latest()
+                        ->take(2)
+                        ->get()
+                );
             }),
         ];
     }

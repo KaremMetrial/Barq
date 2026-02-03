@@ -52,4 +52,13 @@ class CartItem extends Model
     {
         return $this->belongsTo(User::class, 'added_by_user_id');
     }
+
+    /**
+     * Get unit price (total_price / quantity)
+     */
+    public function getPriceAttribute(): int
+    {
+        if ($this->quantity <= 0) return 0;
+        return (int) ($this->total_price / $this->quantity);
+    }
 }

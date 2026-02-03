@@ -7,9 +7,11 @@ use Modules\Promotion\Models\Promotion;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Promotion\Repositories\PromotionRepository;
 use App\Helpers\CurrencyHelper;
+use App\Traits\FileUploadTrait;
 
 class PromotionService
 {
+    use FileUploadTrait;
     public function __construct(
         protected PromotionRepository $promotionRepository
     ) {}
@@ -40,8 +42,12 @@ class PromotionService
                 }
             }
 
+            if (isset($data['image'])) {
+                $data['image'] = $this->upload(request(), 'image', 'promotions','public',[512,512]);
+            }
+
             $promotion = $this->promotionRepository->create($data);
-            
+
             if (isset($data['targets']) && is_array($data['targets'])) {
                 foreach ($data['targets'] as $target) {
                     $promotion->targets()->create([
@@ -90,6 +96,10 @@ class PromotionService
                 }
             }
 
+            if (isset($data['image'])) {
+                $data['image'] = $this->upload(request(), 'image', 'promotions','public',[512,512]);
+            }
+
             $promotion = $this->promotionRepository->update($id, $data);
 
             // Update promotion targets
@@ -130,45 +140,45 @@ class PromotionService
         return [
             'delivery' => [
                 'free_delivery' => [
-                    'label' => 'Free Delivery',
-                    'description' => 'Free delivery for eligible orders',
+                    'label' => __('message.promotion_types.delivery.free_delivery.label'),
+                    'description' => __('message.promotion_types.delivery.free_delivery.description'),
                     'fields' => ['min_order_amount', 'max_order_amount', 'currency_factor']
                 ],
                 'discount_delivery' => [
-                    'label' => 'Discount Delivery',
-                    'description' => 'Percentage discount on delivery fees',
+                    'label' => __('message.promotion_types.delivery.discount_delivery.label'),
+                    'description' => __('message.promotion_types.delivery.discount_delivery.description'),
                     'fields' => ['discount_value', 'currency_factor']
                 ],
                 'fixed_delivery' => [
-                    'label' => 'Fixed Delivery',
-                    'description' => 'Fixed delivery price for eligible orders',
+                    'label' => __('message.promotion_types.delivery.fixed_delivery.label'),
+                    'description' => __('message.promotion_types.delivery.fixed_delivery.description'),
                     'fields' => ['fixed_delivery_price', 'currency_factor']
                 ]
             ],
             'product' => [
                 'fixed_price' => [
-                    'label' => 'Fixed Price',
-                    'description' => 'Fixed price for selected products',
+                    'label' => __('message.promotion_types.product.fixed_price.label'),
+                    'description' => __('message.promotion_types.product.fixed_price.description'),
                     'fields' => ['fixed_prices']
                 ],
                 'percentage_discount' => [
-                    'label' => 'Percentage Discount',
-                    'description' => 'Percentage discount on selected products',
+                    'label' => __('message.promotion_types.product.percentage_discount.label'),
+                    'description' => __('message.promotion_types.product.percentage_discount.description'),
                     'fields' => ['discount_value']
                 ],
                 'first_order' => [
-                    'label' => 'First Order',
-                    'description' => 'Special offer for first-time customers',
+                    'label' => __('message.promotion_types.product.first_order.label'),
+                    'description' => __('message.promotion_types.product.first_order.description'),
                     'fields' => ['discount_value', 'currency_factor']
                 ],
                 'bundle' => [
-                    'label' => 'Bundle',
-                    'description' => 'Buy one get one free or bundle offers',
+                    'label' => __('message.promotion_types.product.bundle.label'),
+                    'description' => __('message.promotion_types.product.bundle.description'),
                     'fields' => ['discount_value', 'currency_factor']
                 ],
                 'buy_one_get_one' => [
-                    'label' => 'Buy One Get One',
-                    'description' => 'Buy one get one free offer',
+                    'label' => __('message.promotion_types.product.buy_one_get_one.label'),
+                    'description' => __('message.promotion_types.product.buy_one_get_one.description'),
                     'fields' => []
                 ]
             ]
@@ -178,24 +188,24 @@ class PromotionService
     public function validatePromotion(Promotion $promotion, array $context = []): array
     {
         $errors = [];
-        
+
         // Check if promotion is active
         if (!$promotion->is_active) {
-            $errors[] = 'Promotion is not active';
+            $errors[] = __('message.promotion_not_active');
         }
 
         // Check date validity
         $now = now();
         if ($promotion->start_date && $now->lt($promotion->start_date)) {
-            $errors[] = 'Promotion has not started yet';
+            $errors[] = __('message.promotion_not_started');
         }
         if ($promotion->end_date && $now->gt($promotion->end_date)) {
-            $errors[] = 'Promotion has expired';
+            $errors[] = __('message.promotion_expired');
         }
 
         // Check usage limits
         if ($promotion->usage_limit && $promotion->current_usage >= $promotion->usage_limit) {
-            $errors[] = 'Promotion usage limit reached';
+            $errors[] = __('message.promotion_usage_limit_reached');
         }
 
         // Check user-specific usage limits if user is provided
@@ -203,21 +213,21 @@ class PromotionService
             $userUsage = $promotion->userUsages()
                 ->where('user_id', $context['user']->id)
                 ->count();
-            
+
             if ($promotion->usage_limit_per_user && $userUsage >= $promotion->usage_limit_per_user) {
-                $errors[] = 'User promotion usage limit reached';
+                $errors[] = __('message.promotion_user_usage_limit_reached');
             }
         }
 
         // Check geographic restrictions
         if (isset($context['country_id']) && $promotion->country_id && $promotion->country_id !== $context['country_id']) {
-            $errors[] = 'Promotion not available in this country';
+            $errors[] = __('message.promotion_not_available_country');
         }
         if (isset($context['city_id']) && $promotion->city_id && $promotion->city_id !== $context['city_id']) {
-            $errors[] = 'Promotion not available in this city';
+            $errors[] = __('message.promotion_not_available_city');
         }
         if (isset($context['zone_id']) && $promotion->zone_id && $promotion->zone_id !== $context['zone_id']) {
-            $errors[] = 'Promotion not available in this zone';
+            $errors[] = __('message.promotion_not_available_zone');
         }
 
         return [

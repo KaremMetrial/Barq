@@ -23,6 +23,7 @@ class UpdateBannerRequest extends FormRequest
             "bannerable_type" => ["nullable", "string"],
             "bannerable_id" => ['nullable', 'integer'],
             "city_id" => ["nullable", "exists:cities,id"],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }

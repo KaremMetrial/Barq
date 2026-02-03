@@ -78,7 +78,10 @@ class RolePermissionSeeder extends Seeder
             'working_day',
             'zone',
             'admin',
-            'delivery_company'
+            'delivery_company',
+            'promotion',
+            'slider',
+            'admin_notification'
         ];
 
         // Generate CRUD permissions for each model

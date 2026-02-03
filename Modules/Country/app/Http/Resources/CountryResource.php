@@ -24,6 +24,7 @@ class CountryResource extends JsonResource
             'currency_factor' => (int) $this->currency_factor,
             'tax' => (int) $this->tax_rate,
             'service_fee' => (int) $this->service_fee_percentage,
+            'timezone' => $this->timezone,
         ];
     }
 }

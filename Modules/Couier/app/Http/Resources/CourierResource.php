@@ -38,6 +38,7 @@ class CourierResource extends JsonResource
             "name" => $this->first_name . " " . $this->last_name,
             "email" => $this->email,
             "phone" => $this->phone,
+            "phone_code" => $this->phone_code,
             "avatar" => $this->avatar ? asset('storage/' . $this->avatar) : null,
 
             // Status & Availability

@@ -30,6 +30,7 @@ class UpdateRewardRequest extends FormRequest
             'is_it_for_loyalty_points' => ['nullable', 'boolean', 'required_if:type,' . RewardType::PRIZE->value],
             'is_it_for_spendings' => ['nullable', 'boolean', 'required_if:type,' . RewardType::PRIZE->value],
             'currency_factor' => ['nullable', 'numeric', 'min:0'],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
         ];
     }
 

@@ -23,6 +23,8 @@ class UpdateCountryRequest extends FormRequest
             'currency_factor' => ['nullable', 'integer', 'min:1'],
             'service_fee_percentage' => ['nullable', 'integer', 'min:0', 'max:100'],
             'tax_rate' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'timezone' => ['nullable', 'string', 'max:255'],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
             "lang" => ["required", "string", Rule::in(Cache::get("languages.codes"))],
         ];
     }

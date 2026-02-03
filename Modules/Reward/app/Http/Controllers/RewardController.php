@@ -10,6 +10,7 @@ use Modules\Reward\Http\Resources\RewardResource;
 use Modules\Reward\Http\Resources\RewardRedemptionResource;
 use Modules\User\Http\Resources\UserResource;
 use App\Http\Resources\PaginationResource;
+use Illuminate\Http\Request;
 class RewardController extends Controller
 {
     use ApiResponse;
@@ -116,6 +117,30 @@ class RewardController extends Controller
             'user_spending_value' => (int) auth()->user()->spending_value ?? 0,
             'currency_symbol' => auth()->user()->getCurrencySymbol(),
             'currency_factor' => auth()->user()->getCurrencyFactor(),
+        ], __('message.success'));
+    }
+    public function wallet(Request $request)
+    {
+        // Add user's country if available
+        if (auth('sanctum')->check() && auth('sanctum')->user()->country_id) {
+            $filters['country_id'] = auth('sanctum')->user()->country_id;
+        }
+
+        // Add user's points as max filter
+        if (auth('sanctum')->check()) {
+            $filters['max_points'] = auth('sanctum')->user()->loyalty_points;
+        }
+        $dataWallet = $filters;
+        $dataWallet['type'] = 'wallet';
+        $rewardWallet = $this->rewardService->getAvailableRewards($dataWallet);
+
+        $dataCoupon = $filters;
+        $dataCoupon['type'] = 'coupon';
+        $rewardCoupon = $this->rewardService->getAvailableRewards($dataCoupon);
+
+        return $this->successResponse([
+            'wallet_rewards' => RewardResource::collection($rewardWallet),
+            'coupon_rewards' => RewardResource::collection($rewardCoupon),
         ], __('message.success'));
     }
 }

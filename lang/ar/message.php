@@ -49,4 +49,98 @@ return [
 
     'review_count' => ':count تقييم',
     'review_count_above_1000' => '1,000+ تقييم',
+
+    // Vendor
+    'vendor_no_store' => 'البائع ليس لديه متجر.',
+    'old_password_incorrect' => 'كلمة المرور القديمة غير صحيحة.',
+
+    // Promotion Validation
+    'promotion_not_active' => 'العرض الترويجي غير نشط.',
+    'promotion_not_started' => 'العرض الترويجي لم يبدأ بعد.',
+    'promotion_expired' => 'انتهت صلاحية العرض الترويجي.',
+    'promotion_usage_limit_reached' => 'تم الوصول إلى الحد الأقصى لاستخدام العرض الترويجي.',
+    'promotion_user_usage_limit_reached' => 'تم الوصول إلى الحد الأقصى لاستخدام العرض الترويجي للمستخدم.',
+    'promotion_not_available_country' => 'العرض الترويجي غير متاح في هذه الدولة.',
+    'promotion_not_available_city' => 'العرض الترويجي غير متاح في هذه المدينة.',
+    'promotion_not_available_zone' => 'العرض الترويجي غير متاح في هذه المنطقة.',
+
+    // Promotion Type Labels
+    'promotion_types' => [
+        'delivery' => [
+            'free_delivery' => [
+                'label' => 'توصيل مجاني',
+                'description' => 'توصيل مجاني للطلبات المؤهلة',
+            ],
+            'discount_delivery' => [
+                'label' => 'خصم على التوصيل',
+                'description' => 'خصم بالنسبة المئوية على رسوم التوصيل',
+            ],
+            'fixed_delivery' => [
+                'label' => 'توصيل بسعر ثابت',
+                'description' => 'سعر توصيل ثابت للطلبات المؤهلة',
+            ],
+        ],
+        'product' => [
+            'fixed_price' => [
+                'label' => 'سعر ثابت',
+                'description' => 'سعر ثابت للمنتجات المحددة',
+            ],
+            'percentage_discount' => [
+                'label' => 'خصم بالنسبة المئوية',
+                'description' => 'خصم بالنسبة المئوية على المنتجات المحددة',
+            ],
+            'first_order' => [
+                'label' => 'الطلب الأول',
+                'description' => 'عرض خاص للعملاء الجدد',
+            ],
+            'bundle' => [
+                'label' => 'مجموعة',
+                'description' => 'اشتري واحد واحصل على واحد مجاناً أو عروض مجموعة',
+            ],
+            'buy_one_get_one' => [
+                'label' => 'اشتري واحد واحصل على واحد',
+                'description' => 'عرض اشتري واحد واحصل على واحد مجاناً',
+            ],
+        ],
+    ],
+    // Authentication
+    'credentials_incorrect' => 'البيانات المدخلة غير صحيحة.',
+
+    // Store & Courier Validation
+    'latitude_longitude_not_in_zone' => 'الإحداثيات المدخلة ليست ضمن النطاق الجغرافي المحدد.',
+    'delivery_company_section_required' => 'يرجى إنشاء قسم من نوع "شركة توصيل" قبل إنشاء متجر توصيل.',
+    'phone_not_validated_otp' => 'لم يتم التحقق من رقم الهاتف.',
+
+    // Order Validation
+    'invalid_status_transition' => 'يعذر تغيير الحالة. الحالة الحالية: :current. التحويلات المسموحة: :allowed.',
+
+    // Cart Validation
+    'different_stores_in_cart' => 'لا يمكن إضافة منتجات من متاجر مختلفة إلى نفس السلة.',
+    'shift_time_required' => 'وقت البدء والانتهاء مطلوبان لأيام العمل غير المرنة.',
+
+    // Generic Errors
+    'not_found' => 'غير موجود.',
+    'unauthorized' => 'غير مصرح.',
+    'internal_server_error' => 'خطأ داخلي في الخادم.',
+    'authentication_required' => 'يجب تسجيل الدخول.',
+    'access_denied_or_not_found' => 'الوصول مرفوض أو السجل غير موجود.',
+
+    // Module Specific Errors
+    'cart_not_found' => 'السلة غير موجودة.',
+    'promotion_not_found' => 'العرض الترويجي غير موجود.',
+    'promotion_not_applicable' => 'العرض الترويجي غير قابل للتطبيق.',
+
+    'courier_not_found' => 'المندوب غير موجود.',
+    'shift_schedule_error' => 'فشل في استرجاع جدول الورديات.',
+    'location_update_failed' => 'فشل في تحديث الموقع.',
+    'assignment_not_found' => 'التعيين غير موجود أو الوصول مرفوض.',
+    'failed_to_update_status' => 'فشل في تحديث حالة الطلب.',
+
+    'loyalty_redemption_failed' => 'فشل في استبدال النقاط.',
+
+    'message_not_found' => 'الرسالة غير موجودة.',
+    'failed_to_mark_message_read' => 'فشل في تحديد الرسالة كمقروءة.',
+    'channel_socket_required' => 'اسم القناة ومعرف المقبس مطلوبان.',
+    'pusher_auth_failed' => 'فشل في المصادقة مع Pusher.',
+    'typing_indicator_failed' => 'فشل في إرسال مؤشر الكتابة.',
 ];

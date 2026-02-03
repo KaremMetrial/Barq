@@ -17,6 +17,7 @@ class CreateOptionRequest extends FormRequest
            "name"=> ["required", 'string', 'unique:option_translations,name'],
            "input_type"=> ["required", Rule::in(OptionInputTypeEnum::values())],
            "is_food_option"=> ["nullable", "boolean"],
+           
         ];
     }
 

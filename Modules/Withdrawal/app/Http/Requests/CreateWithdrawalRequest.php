@@ -48,6 +48,12 @@ class CreateWithdrawalRequest extends FormRequest
                 ]);
             }
         }
+        if ($user instanceof User) {
+            $this->merge([
+                'withdrawable_id' => $user->id,
+                'withdrawable_type' => 'user',
+            ]);
+        }
     }
     /**
      * Get the validation rules that apply to the request.
@@ -56,7 +62,7 @@ class CreateWithdrawalRequest extends FormRequest
     {
         return [
             'withdrawable_id' => ['required', 'integer'],
-            'withdrawable_type' => ['required', 'string', 'in:store,courier'],
+            'withdrawable_type' => ['required', 'string', 'in:store,courier,user'],
             'amount' => [
                 'required',
                 'numeric',
@@ -64,13 +70,30 @@ class CreateWithdrawalRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     $balance = $this->getBalance();
 
-                    if ($balance === null || $value > $balance->available_balance) {
-                        $fail('The withdrawal amount exceeds the available balance.');
+                    // التحقق من أن $balance ليس null
+                    if ($balance === null) {
+                        $fail('Unable to retrieve balance information.');
+                        return;
+                    }
+
+                    // إذا كانت $balance قيمة رقمية
+                    if (is_numeric($balance)) {
+                        if ($value > $balance) {
+                            $fail('The withdrawal amount exceeds the available balance.');
+                        }
+                    }
+                    // إذا كانت $balance كائن Balance
+                    elseif (is_object($balance) && isset($balance->available_balance)) {
+                        if ($value > $balance->available_balance) {
+                            $fail('The withdrawal amount exceeds the available balance.');
+                        }
+                    } else {
+                        $fail('Invalid balance format.');
                     }
                 }
             ],
-            'currency_code' => ['required', 'string', 'size:3'],
-            'currency_factor' => ['required', 'numeric', 'min:0'],
+            'currency_code' => ['nullable', 'string', 'size:3'],
+            'currency_factor' => ['nullable', 'numeric', 'min:0'],
             'status' => ['nullable', 'string', Rule::in(WithdrawalStatusEnum::values())],
             'notes' => ['nullable', 'string'],
             'bank_name' => ['nullable', 'string'],

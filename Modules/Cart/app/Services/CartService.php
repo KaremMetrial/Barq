@@ -18,8 +18,7 @@ class CartService
     public function __construct(
         protected CartRepository $cartRepository,
         protected StoreRepository $storeRepository
-    ) {
-    }
+    ) {}
 
     private function validateStoreConsistency(Cart $cart, array $items): void
     {
@@ -61,7 +60,7 @@ class CartService
 
     public function getCart()
     {
-        $cartKey = request()->header('Cart-Key') ?? request('cart_key');
+        $cartKey = request()->header('Cart-Key') ?? request()->input('cart_key');
 
         if ($cartKey) {
             return $this->getCartByCartKey($cartKey);
@@ -74,9 +73,23 @@ class CartService
     public function createCart(array $data): ?Cart
     {
         return DB::transaction(function () use ($data) {
+            // Extract cart key from header or input
+            $cartKey = request()->header('Cart-Key') ?? request()->input('cart_key');
+
+            // Check if cart already exists with this key
+            if ($cartKey) {
+                $existingCart = $this->getCartByCartKey($cartKey);
+                if ($existingCart) {
+                    // Update existing cart instead of creating new one
+                    return $this->updateCart($cartKey, $data, true);
+                }
+            }
+
+            // Create new cart if no existing cart found
             $cartData = $data['cart'] ?? [];
-            $cartData['cart_key'] = Str::uuid()->toString();
+            $cartData['cart_key'] = $cartKey ?? Str::uuid()->toString();
             $cartData['user_id'] = auth('user')->id();
+
             if (empty($cartData['store_id']) && !empty($data['items'])) {
                 $firstProductId = collect($data['items'])->pluck('product_id')->first();
                 if ($firstProductId) {
@@ -87,14 +100,14 @@ class CartService
                 }
             }
 
-            $filteredCartData = array_filter($cartData, fn ($value) => !blank($value));
+            $filteredCartData = array_filter($cartData, fn($value) => !blank($value));
             $cart = $this->cartRepository->create($filteredCartData);
 
             if (!empty($data['items'] ?? [])) {
                 $this->validateStoreConsistency($cart, $data['items']);
             }
 
-            $this->syncCartItems($cart, $data['items'] ?? []);
+            $this->syncCartItems($cart, $data['items'] ?? [], true);
             return $cart->refresh();
         });
     }
@@ -123,12 +136,12 @@ class CartService
         );
     }
 
-    public function updateCart(string $key, array $data): ?Cart
+    public function updateCart(string $key, array $data, bool $isIncrement = false): ?Cart
     {
-        return DB::transaction(function () use ($key, $data) {
+        return DB::transaction(function () use ($key, $data, $isIncrement) {
             $cart = $this->getCartByCartKey($key);
             if (!$cart) {
-                $requestCartKey = request()->header('Cart-Key') ?? request('cart_key');
+                $requestCartKey = request()->header('Cart-Key') ?? request()->header('cart_key') ?? request('cart_key');
                 if ($requestCartKey != null) {
                     $cart = $this->getCartByCartKey($requestCartKey);
                 }
@@ -140,11 +153,11 @@ class CartService
                 $this->validateStoreConsistency($cart, $data['items']);
             }
 
-            $filteredCartData = array_filter($data['cart'] ?? [], fn ($value) => !blank($value));
+            $filteredCartData = array_filter($data['cart'] ?? [], fn($value) => !blank($value));
 
             $this->cartRepository->update($cart->id, $filteredCartData);
 
-            $this->syncCartItems($cart, $data['items'] ?? []);
+            $this->syncCartItems($cart, $data['items'] ?? [], $isIncrement);
 
             return $cart->refresh();
         });
@@ -154,20 +167,40 @@ class CartService
     {
         return $this->cartRepository->delete($id);
     }
-    private function syncCartItems(Cart $cart, array $items): void
+    private function syncCartItems(Cart $cart, array $items, bool $isIncrement = false): void
     {
         if (empty($items)) {
             return;
         }
 
         // Deduplicate items based on product_id, product_option_value_id, and add_ons
-        $items = collect($items)->groupBy(function ($item) {
+        $items = collect($items)->map(function ($item) {
+            // Normalize option values for consistent comparison
+            $optionValueId = $item['product_option_value_id'] ?? null;
+            if (is_array($optionValueId)) {
+                sort($optionValueId);
+            }
+
+            // Normalize add-ons for consistent comparison
+            $addOns = $item['add_ons'] ?? [];
+            if (!empty($addOns)) {
+                usort($addOns, function ($a, $b) {
+                    return $a['id'] <=> $b['id'];
+                });
+            }
+
+            return $item;
+        })->groupBy(function ($item) {
+            // Create a unique key for each item combination
             $optionKey = is_array($item['product_option_value_id'] ?? null)
                 ? json_encode($item['product_option_value_id'])
                 : ($item['product_option_value_id'] ?? 'null');
-            $addOnKey = json_encode(collect($item['add_ons'] ?? [])->sortBy('id')->pluck('id')->values()->all());
-            return $item['product_id'] . '-' . $optionKey . '-' . $addOnKey;
+
+            $addOnKey = json_encode($item['add_ons'] ?? []);
+
+            return $item['product_id'] . '|' . $optionKey . '|' . $addOnKey;
         })->map(function ($group) {
+            // Sum quantities for identical items
             $first = $group->first();
             $totalQuantity = $group->sum('quantity');
             return $first + ['quantity' => $totalQuantity];
@@ -175,27 +208,32 @@ class CartService
 
         $this->validateStoreConsistency($cart, $items);
 
-        // Validate and collect IDs
+        // Validate and load existing items
+        $existingItems = $cart->items()->with('addOns')->get()->keyBy(function ($item) {
+            $optionKey = is_array($item->product_option_value_id) ? json_encode($item->product_option_value_id) : ($item->product_option_value_id ?? 'null');
+            return $item->product_id . '-' . $optionKey;
+        });
+
+        // Collect IDs from both request items and existing items that might be updated
         $productIds = collect($items)->pluck('product_id')->unique()->filter()->values()->all();
+
         $optionValueIds = collect($items)->pluck('product_option_value_id')->filter(function ($value) {
             return !is_null($value) && $value !== '';
-        })->flatten()->unique()->values()->all();
+        })->flatten()->merge($existingItems->pluck('product_option_value_id')->flatten())->unique()->filter()->values()->all();
+
         $addOnIds = collect($items)
-            ->flatMap(fn ($item) => $item['add_ons'] ?? [])
+            ->flatMap(fn($item) => $item['add_ons'] ?? [])
             ->pluck('id')
+            ->merge($existingItems->flatMap(fn($item) => $item->addOns->pluck('id')))
             ->unique()
             ->filter()
             ->values()
             ->all();
+
         // Load models with validation
-        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        $products = Product::whereIn('id', $productIds)->with('offers', 'price')->get()->keyBy('id');
         $options = ProductOptionValue::whereIn('id', $optionValueIds)->get()->keyBy('id');
         $addOnModels = AddOn::whereIn('id', $addOnIds)->get()->keyBy('id');
-
-        $existingItems = $cart->items()->get()->keyBy(function ($item) {
-            $optionKey = is_array($item->product_option_value_id) ? json_encode($item->product_option_value_id) : ($item->product_option_value_id ?? 'null');
-            return $item->product_id . '-' . $optionKey;
-        });
         foreach ($items as $item) {
             $optionValueId = $item['product_option_value_id'] ?? null;
             $key = $item['product_id'] . '-' . (is_array($optionValueId) ? json_encode($optionValueId) : ($optionValueId ?? 'null'));
@@ -242,7 +280,7 @@ class CartService
             if ($existingItems->has($key)) {
                 // Update existing item - keep existing options if not provided
                 $existingItem = $existingItems->get($key);
-                $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels, $existingItem);
+                $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels, $existingItem, $isIncrement);
                 $existingItem->update($cartItemData);
 
                 // Only update add-ons if explicitly provided in the request
@@ -267,7 +305,7 @@ class CartService
 
                 if ($existingItemWithProduct) {
                     // Update the existing item with the same product (regardless of options) - keep existing options
-                    $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels, $existingItemWithProduct);
+                    $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels, $existingItemWithProduct, $isIncrement);
                     $existingItemWithProduct->update($cartItemData);
 
                     // Only update add-ons if explicitly provided in the request
@@ -282,7 +320,7 @@ class CartService
                     // If add_ons not provided, keep existing add-ons (like options)
                 } else {
                     // Create new item
-                    $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels);
+                    $cartItemData = $this->prepareCartItemData($cart, $item, $products, $options, $addOnModels, null, $isIncrement);
                     $cartItemData['added_by_user_id'] = auth('user')->id();
                     $newCartItem = $cart->items()->create($cartItemData);
 
@@ -318,7 +356,8 @@ class CartService
         Collection $products,
         Collection $options,
         Collection $addOnModels,
-        $existingItem = null
+        $existingItem = null,
+        bool $isIncrement = false
     ): array {
         // Validate required fields
         if (!isset($item['product_id'])) {
@@ -326,6 +365,9 @@ class CartService
         }
 
         $quantity = max(1, (int) ($item['quantity'] ?? 1)); // Ensure positive quantity
+        if ($isIncrement && $existingItem) {
+            $quantity += $existingItem->quantity;
+        }
         $product = $products[$item['product_id']] ?? null;
         $option = null; // Since it's now an array, we can't directly assign a single option
         // Note: If multiple options are selected, pricing logic needs to be updated accordingly
@@ -350,6 +392,7 @@ class CartService
         if ($product->price && $product->price->sale_price) {
             $productPrice = $product->price->sale_price;
         }
+        \Log::info('sale_price', [$product->price->sale_price]);
         // Use existing item's options if no options provided in update
         $optionValueId = $item['product_option_value_id'] ?? ($existingItem ? $existingItem->product_option_value_id : null);
 
@@ -389,16 +432,19 @@ class CartService
 
         // Apply product offers
         $offers = $product->offers()->where('is_active', true)->where('start_date', '<=', now())->where('end_date', '>=', now())->get();
+        \Log::info('cartservices $offers', [$offers]);
         if ($offers->count() > 0) {
-            $offer = $offers->first(); // Take the first active offer
+            $offer = $offers->first();
+            \Log::info('cartservices $offer', [$offer]);
             if ($offer->discount_type->value === 'percentage') {
+                \Log::info('cartservices $offer percentage', [$offer]);
                 $totalPrice = $totalPrice * (1 - $offer->discount_amount / 100);
             } else {
+                \Log::info('cartservices $offer amount', [$offer]);
                 $totalPrice = max(0, $totalPrice - $offer->discount_amount);
             }
         }
-
-
+        \Log::info('cartservices $totalPrice', [$totalPrice]);
 
         return [
             'product_id' => $item['product_id'],

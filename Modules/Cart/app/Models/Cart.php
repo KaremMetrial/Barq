@@ -65,6 +65,24 @@ class Cart extends Model
     }
 
     /**
+     * Get total amount of items in the cart
+     */
+    public function getTotal(): int
+    {
+        return (int) $this->items->sum('total_price');
+    }
+
+    /**
+     * Get base delivery cost for the cart
+     */
+    public function getDeliveryCost(): int
+    {
+        // This could be cached or calculated based on request headers if available
+        // For the engine, we often pass a base cost if it's already calculated
+        return (int) $this->getDeliveryFeeForDisplay(request()->header('address-id'));
+    }
+
+    /**
      * Get delivery fee for cart display - ensures non-null return for UI consistency
      */
     public function getDeliveryFeeForDisplay(?int $deliveryAddressId = null, ?int $vehicleId = null, ?float $userLat = null, ?float $userLng = null): float
@@ -84,8 +102,8 @@ class Cart extends Model
         $lonDelta = deg2rad($lon2 - $lon1);
 
         $a = sin($latDelta / 2) * sin($latDelta / 2) +
-             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-             sin($lonDelta / 2) * sin($lonDelta / 2);
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($lonDelta / 2) * sin($lonDelta / 2);
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
@@ -97,7 +115,7 @@ class Cart extends Model
      */
     public function scopeActive($query)
     {
-        return $query->whereHas('items', function($q) {
+        return $query->whereHas('items', function ($q) {
             $q->where('quantity', '>', 0);
         });
     }

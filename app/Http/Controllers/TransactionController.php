@@ -85,7 +85,7 @@ class TransactionController extends Controller
         if ($countryId) {
             $country = \Modules\Country\Models\Country::find($countryId);
             if ($country) {
-                $currencyCode = $country->currency_name ?? config('settings.default_currency', 'USD');
+                $currencyCode = $country->currency_symbol ?? config('settings.default_currency', 'USD');
                 $currencyFactor = $country->currency_factor ?? 100;
             }
         }

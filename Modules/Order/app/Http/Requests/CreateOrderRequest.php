@@ -20,7 +20,7 @@ class CreateOrderRequest extends FormRequest
 {
     public function prepareForValidation()
 {
-        $cartKey = $this->input('cart_key');
+        $cartKey = $this->input('cart_key') ?? $this->header('Cart-Key');
         Log::info('CreateOrderRequest cart key', [
             'cart_key' => $cartKey,
             'user_id' => Auth::guard('user')->id(),

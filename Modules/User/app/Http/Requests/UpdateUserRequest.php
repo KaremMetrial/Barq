@@ -32,7 +32,25 @@ class UpdateUserRequest extends FormRequest
             "first_name" => ["nullable", "string", "max:255"],
             "last_name" => ["nullable", "string", "max:255"],
             "email" => ["nullable", "string", "email", Rule::unique("users")->ignore($userId)],
-            "phone" => ["nullable", "string", "regex:/^\+?[1-9]\d{1,14}$/","max:255", Rule::unique("users")->ignore($userId)],
+            "phone" => [
+                "nullable", 
+                "string", 
+                "regex:/^\+?[1-9]\d{1,14}$/",
+                "max:255", 
+                function ($attribute, $value, $fail) use ($userId) {
+                    if ($value) {
+                        // Check if phone is already used by another user
+                        $existingUser = \Modules\User\Models\User::where('phone', $value)
+                            ->where('phone_code', $this->phone_code)
+                            ->where('id', '!=', $userId)
+                            ->first();
+                        
+                        if ($existingUser) {
+                            $fail('حقل phone تم استخدامه مسبقًا.');
+                        }
+                    }
+                }
+            ],
             "phone_code" => ["nullable", "string", "max:255"],
             "password" => ["nullable", "string", "min:8"],
             "avatar" => ["nullable", "image", "mimes:jpeg,png,jpg,gif,svg", "max:2048"],

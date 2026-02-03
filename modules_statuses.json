@@ -49,5 +49,6 @@
     "LoyaltySetting": true,
     "Reward": true,
     "Withdrawal": true,
-    "Promotion": true
+    "Promotion": true,
+    "Slider": true
 }

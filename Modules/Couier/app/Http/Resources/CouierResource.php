@@ -25,6 +25,7 @@ class CouierResource extends JsonResource
             "name" => $this->first_name . " " . $this->last_name,
             "email" => $this->email,
             "phone" => $this->phone,
+            "phone_code" => $this->phone_code,
             "avatar" => $this->avatar ? asset('storage/' . $this->avatar) : null,
             "license_number" => $this->license_number,
             "avaliable_status" => $this->avaliable_status?->value,

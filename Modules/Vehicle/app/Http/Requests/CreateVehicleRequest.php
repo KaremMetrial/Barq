@@ -18,7 +18,8 @@ class CreateVehicleRequest extends FormRequest
             "name" => ["required", "string", "max:255"],
             "description" => ["nullable", "string"],
             "is_active" => ["nullable", "boolean"],
-            'icon' => ['required', 'image', 'mimes:jpg,jpeg,png,gif,mp4,mov,avi', 'max:2048']
+            'icon' => ['required', 'image', 'mimes:jpg,jpeg,png,gif,mp4,mov,avi', 'max:2048'],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
         ];
     }
 

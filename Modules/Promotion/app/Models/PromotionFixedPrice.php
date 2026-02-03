@@ -1,7 +1,8 @@
 <?php
 
 namespace Modules\Promotion\Models;
-use App\Models\Promotion;
+
+use Modules\Promotion\Models\Promotion;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Store\Models\Store;
 use Modules\Product\Models\Product;

@@ -36,7 +36,7 @@ class CourierLocationController extends Controller
 
         if (!$courierId) {
             Log::error('Courier location update failed: Not authenticated');
-            return $this->errorResponse('Authentication required', 401);
+            return $this->errorResponse(__('message.authentication_required'), 401);
         }
 
         try {
@@ -72,14 +72,14 @@ class CourierLocationController extends Controller
                 'lat' => $request->latitude,
                 'lng' => $request->longitude
             ]);
-            return $this->errorResponse('Failed to update location', 500);
+            return $this->errorResponse(__('message.location_update_failed'), 500);
         } catch (\Exception $e) {
             Log::error('Courier location update exception', [
                 'courier_id' => $courierId,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Internal server error', 500);
+            return $this->errorResponse(__('message.internal_server_error'), 500);
         }
     }
 }

@@ -41,7 +41,8 @@ class RewardService
                 request(),
                 'image',
                 'uploads/rewards',
-                'public'
+                'public',
+                $data['resize'] ?? [300,300]
             );
         }
         $data['value_amount'] = CurrencyHelper::toMinorUnits($data['value_amount'], $data['currency_factor']);
@@ -61,7 +62,8 @@ class RewardService
                 request(),
                 'image',
                 'uploads/rewards',
-                'public'
+                'public',
+                $data['resize'] ?? [300,300]
             );
         }
         if (isset($data['currency_factor'])) {
@@ -121,7 +123,7 @@ class RewardService
             $couponCode = null;
             if ($reward->type === RewardType::WALLET) {
                 // Add to wallet balance
-                $user->wallet()->firstOrCreate([])->increment('balance', $reward->value_amount);
+                $user->increment('balance', $reward->value_amount);
             } elseif ($reward->type === RewardType::COUPON && $reward->coupon) {
                 // Assign coupon to user
                 $couponCode = $reward->coupon->code;
@@ -250,7 +252,7 @@ class RewardService
         if ($countryId) {
             $country = \Modules\Country\Models\Country::find($countryId);
             if ($country) {
-                $currencyCode = $country->code ?? config('settings.default_currency', 'USD');
+                $currencyCode = $country->currency_symbol ?? config('settings.default_currency', 'USD');
                 $currencyFactor = $country->currency_factor ?? 100;
             }
         }

@@ -56,17 +56,19 @@ class CourierShiftController extends Controller
             $courier->avaliable_status = CouierAvaliableStatusEnum::AVAILABLE;
             $courier->save();
 
-            // Update courier location
-            $this->locationCache->updateCourierLocation(
-                $courier->id,
-                request()->header('lat'),
-                request()->header('lng'),
-                [
-                    'accuracy' => $request->accuracy,
-                    'speed' => $request->speed,
-                    'heading' => $request->heading,
-                ]
-            );
+            if($request->header('lat') && $request->header('lng')) {
+                // Update courier location
+                $this->locationCache->updateCourierLocation(
+                    $courier->id,
+                    request()->header('lat'),
+                    request()->header('lng'),
+                    [
+                        'accuracy' => $request->accuracy,
+                        'speed' => $request->speed,
+                        'heading' => $request->heading,
+                    ]
+                );
+            }
 
             return $this->successResponse([
                 'shift' => new CourierShiftResource($shift)
@@ -659,7 +661,7 @@ class CourierShiftController extends Controller
             $courier = \Modules\Couier\Models\Couier::with('activeShiftTemplates')->find($courierId);
 
             if (!$courier) {
-                return $this->errorResponse(__('Courier not found'), 404);
+                return $this->errorResponse(__('message.courier_not_found'), 404);
             }
 
             $weeklySchedule = $courier->weekly_schedule;
@@ -701,7 +703,7 @@ class CourierShiftController extends Controller
         try {
             $courier = $this->findCourierWithRelations($courierId);
             if (!$courier) {
-                return $this->errorResponse(__('Courier not found'), 404);
+                return $this->errorResponse(__('message.courier_not_found'), 404);
             }
 
             $shiftsForDate = $this->getShiftsForDate($courier, $targetDate);
@@ -723,7 +725,7 @@ class CourierShiftController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return $this->errorResponse(__('Failed to retrieve shift schedule'), 500);
+            return $this->errorResponse(__('message.shift_schedule_error'), 500);
         }
     }
 
@@ -742,7 +744,7 @@ class CourierShiftController extends Controller
             $courier = \Modules\Couier\Models\Couier::with(['zonesToCover', 'shifts.shiftTemplate'])->find($courierId);
 
             if (!$courier) {
-                return $this->errorResponse(__('Courier not found'), 404);
+                return $this->errorResponse(__('message.courier_not_found'), 404);
             }
 
             // Build query for shifts

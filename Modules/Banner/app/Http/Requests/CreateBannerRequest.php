@@ -24,6 +24,7 @@ class CreateBannerRequest extends FormRequest
             "is_active" => ["nullable", "boolean"],
             "bannerable_type" => ["nullable", "string"],
             "bannerable_id" => ['nullable', 'integer'],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
             "city_id" => ["nullable", "exists:cities,id"],
         ];
     }

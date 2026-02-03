@@ -24,12 +24,13 @@ class CreateSectionRequest extends FormRequest
             'countries' => ['required', 'array'],
             'countries.*' => ['integer', Rule::exists('countries', 'id')],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
         ];
 
         // Make categories required if type is not delivery_company
-        if ($this->type && $this->type !== SectionTypeEnum::DELIVERY_COMPANY->value) {
-            $rules['categories'] = ['required', 'array'];
-        }
+        // if ($this->type && $this->type !== SectionTypeEnum::DELIVERY_COMPANY->value) {
+        //     $rules['categories'] = ['required', 'array'];
+        // }
 
         return $rules;
     }

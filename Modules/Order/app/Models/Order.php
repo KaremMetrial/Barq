@@ -57,7 +57,8 @@ class Order extends Model
         'updated_at',
         'pos_shift_id',
         'coupon_id',
-        'payment_method_id'
+        'payment_method_id',
+        'applied_promotions'
     ];
 
     protected $casts = [
@@ -78,6 +79,7 @@ class Order extends Model
         'type' => OrderTypeEnum::class,
         'status' => OrderStatus::class,
         'payment_status' => PaymentStatusEnum::class,
+        'applied_promotions' => 'array',
     ];
     public function store()
     {
@@ -160,7 +162,7 @@ class Order extends Model
                 $query->where('user_id', $filters['user_id']);
             });
 
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
         if ($user) {
             if ($user->tokenCan('admin')) {
                 // Admin sees all orders - no additional filter

@@ -32,6 +32,7 @@ class Country extends Model implements TranslatableContract
         'currency_factor',
         'service_fee_percentage',
         'tax_rate',
+        'timezone',
     ];
     protected $casts = [
         'is_active' => 'boolean',

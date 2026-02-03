@@ -21,7 +21,7 @@ class VehicleService
     }
     public function createVehicle(array $data): ?Vehicle
     {
-        $data['icon'] = $this->upload(request(), 'icon', 'icons/vehicles');
+        $data['icon'] = $this->upload(request(), 'icon', 'icons/vehicles', 'public', [512,512]);
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->VehicleRepository->create($data)->refresh();
     }
@@ -31,7 +31,7 @@ class VehicleService
     }
     public function updateVehicle(int $id, array $data)
     {
-        $data['icon'] = $this->upload(request(), 'icon', 'icons/vehicles');
+        $data['icon'] = $this->upload(request(), 'icon', 'icons/vehicles', 'public', [512,512]);
         $data = array_filter($data, fn($value) => !blank($value));
         return $this->VehicleRepository->update($id, $data)->refresh();
     }

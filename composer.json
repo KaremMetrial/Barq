@@ -10,8 +10,6 @@
     "license": "MIT",
     "require": {
         "astrotomic/laravel-translatable": "^11.16",
-        "barryvdh/laravel-dompdf": "^3.1",
-        "carlos-meneses/laravel-mpdf": "^2.1",
         "cviebrock/eloquent-sluggable": "^12.0",
         "doctrine/dbal": "^4.4",
         "kreait/laravel-firebase": "^6.1",
@@ -20,6 +18,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/scout": "^10.23",
         "laravel/tinker": "^2.10.1",
+        "mpdf/mpdf": "^8.2",
         "nwidart/laravel-modules": "^12.0",
         "pusher/pusher-php-server": "^7.2",
         "spatie/image": "^3.8",

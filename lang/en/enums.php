@@ -131,6 +131,12 @@ return [
         'length' => 'Length',
         'count' => 'Count',
     ],
+    'national_identity_type' => [
+        'national_id' => 'National ID',
+        'driving_license' => 'Driving License',
+        'passport' => 'Passport',
+        'other' => 'Other',
+    ],
     'product_watermark_position' => [
         'top_left' => 'Top Left',
         'top_right' => 'Top Right',

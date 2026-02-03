@@ -39,6 +39,8 @@ use Modules\PosTerminal\Models\PosTerminal;
 use Modules\Product\Policies\ProductPolicy;
 use Modules\Section\Policies\SectionPolicy;
 use Modules\Setting\Policies\SettingPolicy;
+use Modules\Slider\Models\Slider;
+use Modules\Slider\Policies\SliderPolicy;
 use Modules\Vehicle\Policies\VehiclePolicy;
 use Modules\Category\Policies\CategoryPolicy;
 use Modules\PosShift\Policies\PosShiftPolicy;
@@ -74,6 +76,7 @@ class AuthServiceProvider extends ServiceProvider
         Review::class => ReviewPolicy::class,
         Page::class => PagePolicy::class,
         Section::class => SectionPolicy::class,
+        Slider::class => SliderPolicy::class,
 
         // Logistics
         Zone::class => ZonePolicy::class,

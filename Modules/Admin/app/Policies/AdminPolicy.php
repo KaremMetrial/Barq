@@ -286,7 +286,151 @@ class AdminPolicy
     }
 
     /**
-     * Determine whether the user can manage admin notifications.
+     * Determine whether the user can send admin notifications.
+     */
+    public function sendNotification($user, Admin $admin): bool
+    {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
+        // Admins with specific notification permission
+        if ($user instanceof Admin && PermissionHelper::hasPermission('create_admin_notification', 'admin')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can view notification history.
+     */
+    public function viewNotificationHistory($user, Admin $admin): bool
+    {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
+        // Admins with view notification history permission
+        if ($user instanceof Admin && PermissionHelper::hasPermission('view_admin_notification', 'admin')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can view notification statistics.
+     */
+    public function viewNotificationStatistics($user, Admin $admin): bool
+    {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
+        // Admins with view statistics permission
+        if ($user instanceof Admin && PermissionHelper::hasPermission('view_admin_notification', 'admin')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can manage notification templates.
+     */
+    public function manageNotificationTemplates($user, Admin $admin): bool
+    {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
+        // Admins with template management permission
+        if ($user instanceof Admin && PermissionHelper::hasPermission('create_admin_notification', 'admin')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can schedule notifications.
+     */
+    public function scheduleNotifications($user, Admin $admin): bool
+    {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
+        // Admins with scheduling permission
+        if ($user instanceof Admin && PermissionHelper::hasPermission('create_admin_notification', 'admin')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can cancel scheduled notifications.
+     */
+    public function cancelScheduledNotifications($user, Admin $admin): bool
+    {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
+        // Admins with cancel scheduling permission
+        if ($user instanceof Admin && PermissionHelper::hasPermission('create_admin_notification', 'admin')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can view notification recipients.
+     */
+    public function viewNotificationRecipients($user, Admin $admin): bool
+    {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
+        // Admins with recipient view permission
+        if ($user instanceof Admin && PermissionHelper::hasPermission('view_admin_notification', 'admin')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can export notification data.
+     */
+    public function exportNotificationData($user, Admin $admin): bool
+    {
+        // Super Admin
+        if ($user instanceof Admin && PermissionHelper::isSuperAdmin('admin')) {
+            return true;
+        }
+
+        // Admins with export permission
+        if ($user instanceof Admin && PermissionHelper::hasPermission('view_admin_notification', 'admin')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can manage admin notifications (legacy method).
      */
     public function manageNotifications($user, Admin $admin): bool
     {
@@ -295,7 +439,7 @@ class AdminPolicy
             return true;
         }
 
-        // Admins can manage admin notifications
+        // Admins can manage admin notifications (backward compatibility)
         if ($user instanceof Admin && PermissionHelper::hasPermission('update_admin', 'admin')) {
             return true;
         }

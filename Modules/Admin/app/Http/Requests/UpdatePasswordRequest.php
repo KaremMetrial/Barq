@@ -36,7 +36,7 @@ class UpdatePasswordRequest extends FormRequest
             $admin = $this->user('admin');
 
             if (!Hash::check($this->old_password, $admin->password)) {
-                $validator->errors()->add('old_password', __('The old password is incorrect.'));
+                $validator->errors()->add('old_password', __('message.old_password_incorrect'));
             }
         });
     }

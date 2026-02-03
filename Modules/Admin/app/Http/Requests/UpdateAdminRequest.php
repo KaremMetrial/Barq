@@ -22,6 +22,7 @@ class UpdateAdminRequest extends FormRequest
             "avatar" => ["nullable", "image", "mimes:jpg,png,jpeg,gif,svg", "max:2048"],
             "is_active" => ["nullable", "boolean"],
             "role" => ["nullable", "string"],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
         ];
     }
 

@@ -26,6 +26,7 @@ class Vendor extends Authenticatable
         'is_active',
         'store_id',
         'last_login',
+        'phone_code',
     ];
     protected $casts = [
         'is_owner' => 'boolean',

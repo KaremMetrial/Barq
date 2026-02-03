@@ -38,7 +38,7 @@ class DeliveryCompanyResource extends JsonResource
             "total_couriers" => $this->couriers_count,
             "total_orders" => $this->orders_count,
             "success_rate" => $this->orders_count > 0 ? round(($this->successful_orders_count / $this->orders_count) * 100, 2) : 0,
-            "total_revenue" => "15000",
+            "total_revenue" => $this->calculateDeliveryCompanyRevenue(),
             'symbol_currency' => $this->getCurrencyCode(),
             'currency_factor' => $this->getCurrencyFactor(),
         ];

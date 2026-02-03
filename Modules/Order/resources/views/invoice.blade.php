@@ -13,8 +13,8 @@
             font-family: 'Arial', sans-serif, 'DejaVu Sans', 'Noto Sans Arabic';
             width: 80mm;
             margin: 0;
-            padding: 5mm;
-            font-size: 11pt;
+            padding: 2mm;
+            font-size: 10pt;
             line-height: 1.4;
             color: #000;
             background: #fff;
@@ -128,7 +128,7 @@
 
     <div class="header text-center">
         @if($order->store->logo)
-            <img src="{{ asset('storage/' . $order->store->logo) }}" alt="Logo" class="logo">
+            <img src="{{ public_path('storage/' . $order->store->logo) }}" alt="Logo" class="logo">
         @endif
         <h1 class="store-name">{{ $order->store->name }}</h1>
         <p>{{ $order->store->address_place }}</p>
@@ -139,7 +139,7 @@
         <div class="order-number font-bold text-center">#{{ $order->order_number }}</div>
         <div class="text-center">{{ $order->created_at->format('Y-m-d H:i:s') }}</div>
         <div style="margin-top: 3mm;">
-            <strong>Customer:</strong> {{ $order->user->name ?? 'Guest' }}<br>
+            <strong>Customer:</strong> {{ $order->user->first_name . ' ' . $order->user->last_name ?? 'Guest' }}<br>
             <strong>Phone:</strong> {{ $order->user->phone ?? 'N/A' }}<br>
             @if($order->isDeliver())
                 <strong>Address:</strong> {{ $order->deliveryAddress->getFullAddressAttribute() ?? 'N/A' }}
@@ -171,7 +171,18 @@
                         @endif
                     </td>
                     <td class="text-center">{{ $item->quantity }}</td>
-                    <td class="text-right">{{ number_format($item->total_price, 2) }}</td>
+                    <td class="text-right">
+                        @php
+                            $currencyFactor = $order->store->currency_factor ?? 100;
+                            $formattedPrice = \App\Helpers\CurrencyHelper::formatPrice(
+                                $item->total_price, 
+                                $order->store->currency_code ?? 'EGP',
+                                $order->store->currency_symbol ?? 'EGP',
+                                $currencyFactor
+                            );
+                        @endphp
+                        {{ $formattedPrice }}
+                    </td>
                 </tr>
             @endforeach
         </tbody>
@@ -180,40 +191,107 @@
     <div class="totals">
         <div class="total-row">
             <span>Subtotal</span>
-            <span>{{ number_format($order->total_amount, 2) }}</span>
+            <span>
+                @php
+                    $currencyFactor = $order->store->currency_factor ?? 100;
+                    $formattedSubtotal = \App\Helpers\CurrencyHelper::formatPrice(
+                        $order->total_amount, 
+                        $order->store->currency_code ?? 'EGP',
+                        $order->store->currency_symbol ?? 'EGP',
+                        $currencyFactor
+                    );
+                @endphp
+                {{ $formattedSubtotal }}
+            </span>
         </div>
         
         @if($order->discount_amount > 0)
             <div class="total-row">
                 <span>Discount</span>
-                <span>-{{ number_format($order->discount_amount, 2) }}</span>
+                <span>
+                    @php
+                        $currencyFactor = $order->store->currency_factor ?? 100;
+                        $formattedDiscount = \App\Helpers\CurrencyHelper::formatPrice(
+                            $order->discount_amount, 
+                            $order->store->currency_code ?? 'EGP',
+                            $order->store->currency_symbol ?? 'EGP',
+                            $currencyFactor
+                        );
+                    @endphp
+                    -{{ $formattedDiscount }}
+                </span>
             </div>
         @endif
         
         @if($order->delivery_fee > 0)
             <div class="total-row">
                 <span>Delivery Fee</span>
-                <span>{{ number_format($order->delivery_fee, 2) }}</span>
+                <span>
+                    @php
+                        $currencyFactor = $order->store->currency_factor ?? 100;
+                        $formattedDelivery = \App\Helpers\CurrencyHelper::formatPrice(
+                            $order->delivery_fee, 
+                            $order->store->currency_code ?? 'EGP',
+                            $order->store->currency_symbol ?? 'EGP',
+                            $currencyFactor
+                        );
+                    @endphp
+                    {{ $formattedDelivery }}
+                </span>
             </div>
         @endif
         
         @if($order->tax_amount > 0)
             <div class="total-row">
                 <span>Tax</span>
-                <span>{{ number_format($order->tax_amount, 2) }}</span>
+                <span>
+                    @php
+                        $currencyFactor = $order->store->currency_factor ?? 100;
+                        $formattedTax = \App\Helpers\CurrencyHelper::formatPrice(
+                            $order->tax_amount, 
+                            $order->store->currency_code ?? 'EGP',
+                            $order->store->currency_symbol ?? 'EGP',
+                            $currencyFactor
+                        );
+                    @endphp
+                    {{ $formattedTax }}
+                </span>
             </div>
         @endif
         
         @if($order->service_fee > 0)
             <div class="total-row">
                 <span>Service Fee</span>
-                <span>{{ number_format($order->service_fee, 2) }}</span>
+                <span>
+                    @php
+                        $currencyFactor = $order->store->currency_factor ?? 100;
+                        $formattedService = \App\Helpers\CurrencyHelper::formatPrice(
+                            $order->service_fee, 
+                            $order->store->currency_code ?? 'EGP',
+                            $order->store->currency_symbol ?? 'EGP',
+                            $currencyFactor
+                        );
+                    @endphp
+                    {{ $formattedService }}
+                </span>
             </div>
         @endif
 
         <div class="total-row final-total font-bold">
             <span>Total</span>
-            <span>{{ number_format($order->total_amount - $order->discount_amount + $order->delivery_fee + $order->service_fee + $order->tax_amount, 2) }} {{ $order->store->currency_symbol ?? 'EGP' }}</span>
+            <span>
+                @php
+                    $currencyFactor = $order->store->currency_factor ?? 100;
+                    $finalAmount = $order->total_amount - $order->discount_amount + $order->delivery_fee + $order->service_fee + $order->tax_amount;
+                    $formattedTotal = \App\Helpers\CurrencyHelper::formatPrice(
+                        $finalAmount, 
+                        $order->store->currency_code ?? 'EGP',
+                        $order->store->currency_symbol ?? 'EGP',
+                        $currencyFactor
+                    );
+                @endphp
+                {{ $formattedTotal }} {{ $order->store->currency_symbol ?? 'EGP' }}
+            </span>
         </div>
     </div>
 

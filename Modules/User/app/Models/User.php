@@ -367,5 +367,8 @@ class User extends Authenticatable
 
         return true;
     }
-
+    public function getCurrencyCode()
+    {
+        return $this->currency_code;
+    }
 }

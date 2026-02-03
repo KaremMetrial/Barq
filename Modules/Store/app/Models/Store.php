@@ -39,6 +39,7 @@ use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Modules\AddOn\Models\AddOn;
 use Modules\Banner\Models\Banner;
 use Laravel\Scout\Searchable;
+use App\Enums\OrderStatus;
 
 class Store extends Model implements TranslatableContract
 {
@@ -321,7 +322,7 @@ class Store extends Model implements TranslatableContract
                 }
             } else {
                 if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-                    $firstSection = Section::where('type', '!=', 'delivery_company')->latest()->first();
+                    $firstSection = Section::where('type', '!=', 'delivery_company')->orderBy('sort_order', 'asc')->first();
                     if ($firstSection) {
                         $filters['section_id'] = $firstSection->id;
                     }
@@ -337,7 +338,7 @@ class Store extends Model implements TranslatableContract
         } else {
             // Unauthenticated users get default section and filters
             if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-                $firstSection = Section::where('type', '!=', 'delivery_company')->latest()->first();
+                $firstSection = Section::where('type', '!=', 'delivery_company')->orderBy('sort_order', 'asc')->first();
                 if ($firstSection) {
                     $filters['section_id'] = $firstSection->id;
                 }
@@ -533,9 +534,9 @@ class Store extends Model implements TranslatableContract
     {
         return $this->storeSetting->tax_rate ?? 0.0;
     }
-    public function getServiceFeePercentage(): float
+    public function getServiceFeePercentage(): int
     {
-        return $this->storeSetting->service_fee_percentage ?? 0.0;
+        return $this->storeSetting->service_fee_percentage ?? 0;
     }
 
     public function getAddressPlaceAttribute(): ?string
@@ -596,7 +597,7 @@ class Store extends Model implements TranslatableContract
     }
     public function getCurrencyCode(): string
     {
-        return $this->currency_code ?? $this->address?->zone?->city?->governorate?->country?->code ?? 'USD';
+        return $this->currency_code ?? $this->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'USD';
     }
 
     /**
@@ -658,5 +659,18 @@ class Store extends Model implements TranslatableContract
             ->filter()
             ->unique()
             ->implode(', ');
+    }
+    /**
+     * Calculate total revenue for delivery company based on courier-delivered orders
+     * Only includes orders that were successfully delivered by couriers from stores in this section
+     */
+    public function calculateDeliveryCompanyRevenue(): float
+    {
+    return $this->whereHas('couriers')
+        ->whereHas('orders', function($query) {
+            $query->where('status', OrderStatus::DELIVERED)
+                  ->whereNotNull('couier_id');
+        })
+        ->sum(DB::raw('(SELECT SUM(total_amount) FROM orders WHERE orders.store_id = stores.id AND orders.status = "delivered" AND orders.couier_id IS NOT NULL)'));
     }
 }

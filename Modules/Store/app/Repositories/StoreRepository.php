@@ -94,7 +94,7 @@ class StoreRepository extends BaseRepository implements StoreRepositoryInterface
     public function getHomeStores(array $relations = [], array $filters = [])
     {
         if (empty($filters['section_id']) || $filters['section_id'] == 0) {
-            $firstSection = Section::where('type', '!=', 'delivery_company')->latest()->first();
+            $firstSection = Section::where('type', '!=', 'delivery_company')->orderBy('sort_order', 'asc')->first();
             if ($firstSection) {
                 $filters['section_id'] = $firstSection->id;
             }

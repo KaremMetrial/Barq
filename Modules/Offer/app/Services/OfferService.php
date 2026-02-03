@@ -99,7 +99,7 @@ class OfferService
         if (method_exists($offerable, 'store') && $offerable->store) {
             return [
                 'factor' => $offerable->store->getCurrencyFactor(),
-                'code' => $offerable->store->currency_code ?? $offerable->store->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP',
+                'code' => $offerable->store->currency_code ?? $offerable->store->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
             ];
         }
 
@@ -107,7 +107,7 @@ class OfferService
         if (method_exists($offerable, 'getCurrencyFactor')) {
             return [
                 'factor' => $offerable->getCurrencyFactor(),
-                'code' => $offerable->currency_code ?? $offerable->address?->zone?->city?->governorate?->country?->currency_name ?? 'EGP',
+                'code' => $offerable->currency_code ?? $offerable->address?->zone?->city?->governorate?->country?->currency_symbol ?? 'EGP',
             ];
         }
 

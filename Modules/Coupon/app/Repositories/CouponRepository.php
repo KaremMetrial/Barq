@@ -18,10 +18,32 @@ class CouponRepository extends BaseRepository implements CouponRepositoryInterfa
     {
         $relations = array_merge($relations, ['stores.address.zone.city.governorate.country']);
 
-        return $this->model
-            ->with($relations)
-            ->filter($filters)
-            ->paginate($perPage, $columns);
+        $query = $this->model->with($relations)->filter($filters);
+
+        // Include user's reward coupon codes
+        if (!empty($filters['user_coupon_codes'])) {
+            $rewardCoupons = $this->model->whereIn('code', $filters['user_coupon_codes'])
+                ->with($relations)
+                ->get();
+
+            // Merge with regular coupons
+            $regularCoupons = $query->get();
+            $allCoupons = $regularCoupons->merge($rewardCoupons);
+
+            // Paginate the merged collection
+            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+            $items = $allCoupons->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                $items,
+                $allCoupons->count(),
+                $perPage,
+                $currentPage,
+                ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
+            );
+        }
+
+        return $query->paginate($perPage, $columns);
     }
 
     public function getAllActive()

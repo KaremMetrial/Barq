@@ -22,6 +22,9 @@ class CreateCategoryRequest extends FormRequest
             "is_featured" => ["nullable", "boolean"],
             "parent_id" => ["nullable", "numeric", "exists:categories,id"],
             "store_id" => ["nullable", "numeric", "exists:stores,id"],
+            'resize' => ['nullable', 'array', 'min:2', 'max:2'],
+            'section_ids' => ['required', 'array'],
+            'section_ids.*' => ['required', 'integer', 'exists:sections,id'],
         ];
     }
 

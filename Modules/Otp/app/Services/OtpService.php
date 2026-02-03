@@ -11,7 +11,8 @@ use App\Services\TwilioSmsService;
 use Illuminate\Support\Facades\Hash;
 use Modules\Otp\Repositories\OtpRepository;
 use Modules\User\Http\Resources\UserResource;
-
+use Modules\Vendor\Http\Resources\VendorResource;
+use Modules\Couier\Http\Resources\CouierResource;
 class OtpService
 {
     protected array $modelTypeMap = [
@@ -55,7 +56,7 @@ class OtpService
                 'otp'            => $otpCode,
             ]
         );
-        $phone = $data['model_type'] != 'vendor' ? $data['phone_code'] . $data['phone'] : $data['phone'];
+        $phone = $data['phone_code'] . $data['phone'];
         $this->smsService->sendOtp(
             $phone,
             $otpCode
@@ -82,7 +83,6 @@ class OtpService
                 'message' => 'Invalid model_type',
             ];
         }
-
         $isValid = Otp::validateOtp(
             $data['phone'],
             $data['otp'],
@@ -114,17 +114,22 @@ class OtpService
             ];
         }
         if (request()->input('update_profile') != 'true') {
-            $newToken = $user->createToken('auth_token',['user']);
+            $newToken = $user->createToken('auth_token');
             $newToken->accessToken->fcm_device = request()->input('fcm_device');
             $newToken->accessToken->language_code = request()->header('Accept-Language');
             $newToken->accessToken->notification_active = request()->input('notification_active') ?? true;
             $newToken->accessToken->save();
             $token = $newToken->plainTextToken;
         }
+        $resource = match($modelTypeClass) {
+            User::class => new UserResource($user),
+            Vendor::class => new VendorResource($user),
+            Couier::class => new CouierResource($user),
+        };
         return [
             'success' => true,
             'token' => $token ?? null,
-            'user' => new UserResource($user),
+            'user' => $resource,
             'message' => 'OTP verified and token generated.',
         ];
     }

@@ -110,7 +110,7 @@ class UpdateStoreRequest extends FormRequest
             if ($zoneId && $latitude && $longitude) {
                 $zone = \Modules\Zone\Models\Zone::findZoneByCoordinates($latitude, $longitude);
                 if (!$zone || $zone->id != $zoneId) {
-                    $validator->errors()->add('address.latitude', 'The provided latitude and longitude are not within the specified zone.');
+                    $validator->errors()->add('address.latitude', __('message.latitude_longitude_not_in_zone'));
                 }
             }
             if (Auth::guard('vendor')->check()) {
@@ -121,7 +121,7 @@ class UpdateStoreRequest extends FormRequest
                     }
                     $isPhoneValidated = $this->isPhoneValidated($storePhone);
                     if (!$isPhoneValidated) {
-                        $validator->errors()->add('store.phone', 'The phone number is not validated with OTP.');
+                        $validator->errors()->add('store.phone', __('message.phone_not_validated_otp'));
                     }
                 }
             }
@@ -153,5 +153,4 @@ class UpdateStoreRequest extends FormRequest
 
         return $record !== null;
     }
-
 }

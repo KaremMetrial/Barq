@@ -52,7 +52,7 @@ class CacheBasedOrderAssignmentService
     /**
      * Assign order to nearest available courier using cached locations
      */
-    public function assignOrderToNearestCourier(array $orderData): ?CourierOrderAssignment
+    public function assignOrderToNearestCourier(array $orderData, \Modules\Order\Models\Order $order): ?CourierOrderAssignment
     {
         DB::beginTransaction();
 
@@ -131,6 +131,9 @@ class CacheBasedOrderAssignmentService
                     $defaults['timeout_seconds']
                 );
                 if ($assignment) {
+                    // LINK ORDER TO COURIER ATOMICALLY
+                    $order->update(['couier_id' => $assignment->courier_id]);
+
                     DB::commit();
                     return $assignment;
                 }
@@ -139,7 +142,6 @@ class CacheBasedOrderAssignmentService
             DB::rollBack();
             Log::warning('Failed to assign order to any cached courier');
             return null;
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Cache-based order assignment failed', [
@@ -158,7 +160,7 @@ class CacheBasedOrderAssignmentService
 
             if (!$courier) {
                 // For cached couriers without full model
-                $courier = Couier::withCount(['assignments' => function($query) {
+                $courier = Couier::withCount(['assignments' => function ($query) {
                     $query->active();
                 }])->find($courierData['courier_id']);
             }
@@ -214,7 +216,7 @@ class CacheBasedOrderAssignmentService
 
             if (!$courier) {
                 // Load courier with active assignments count
-                $courier = Couier::withCount(['assignments' => function($query) {
+                $courier = Couier::withCount(['assignments' => function ($query) {
                     $query->active();
                 }])->find($courierData['courier_id']);
 
@@ -295,7 +297,6 @@ class CacheBasedOrderAssignmentService
             $this->scheduleTimeoutHandling($assignment->id, $timeoutSeconds);
 
             return $assignment;
-
         } catch (\Exception $e) {
             Log::error('Failed to create assignment: ' . $e->getMessage(), [
                 'order_id' => $orderData['order_id'],
@@ -369,7 +370,6 @@ class CacheBasedOrderAssignmentService
             if ($this->shouldReassignOrder($assignment->order_id)) {
                 $this->tryReassignment($assignment->order_id, $assignmentId);
             }
-
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to handle assignment timeout', [
                 'assignment_id' => $assignmentId,
@@ -387,20 +387,25 @@ class CacheBasedOrderAssignmentService
     }
     private function tryReassignment(int $orderId, int $excludedAssignmentId = null): void
     {
-        $assignment = CourierOrderAssignment::where('order_id', $orderId)->first();
+        $order = \Modules\Order\Models\Order::find($orderId);
 
-        if (!$assignment) return;
+        if (!$order) {
+            Log::error('Cannot reassign order: Order not found', ['order_id' => $orderId]);
+            return;
+        }
 
+        // Prepare fresh order data
         $orderData = [
-            'order_id' => $orderId,
-            'pickup_lat' => $assignment->pickup_lat,
-            'pickup_lng' => $assignment->pickup_lng,
-            'delivery_lat' => $assignment->delivery_lat,
-            'delivery_lng' => $assignment->delivery_lng,
-            'priority_level' => $assignment->priority_level,
+            'order_id' => $order->id,
+            'pickup_lat' => $order->store->address->latitude,
+            'pickup_lng' => $order->store->address->longitude,
+            'delivery_lat' => $order->deliveryAddress->latitude,
+            'delivery_lng' => $order->deliveryAddress->longitude,
+            'priority_level' => 'normal', // Or fetch from order if stored
+            // Recalculate zone if needed, or pass it if you want to reuse
         ];
 
-        $this->assignOrderToNearestCourier($orderData);
+        $this->assignOrderToNearestCourier($orderData, $order);
     }
 
     /**
@@ -408,8 +413,12 @@ class CacheBasedOrderAssignmentService
      */
     private function calculateEstimatedDistance(array $orderData): float
     {
-        if (!isset($orderData['pickup_lat'], $orderData['pickup_lng'],
-                   $orderData['delivery_lat'], $orderData['delivery_lng'])) {
+        if (!isset(
+            $orderData['pickup_lat'],
+            $orderData['pickup_lng'],
+            $orderData['delivery_lat'],
+            $orderData['delivery_lng']
+        )) {
             return 0.0;
         }
 
@@ -441,8 +450,8 @@ class CacheBasedOrderAssignmentService
         }
 
         return $courier->status->value === 'active' &&
-               $courier->avaliable_status->value === 'available' &&
-               $courier->shifts()->where('is_open', true)->whereNull('end_time')->exists();
+            $courier->avaliable_status->value === 'available' &&
+            $courier->shifts()->where('is_open', true)->whereNull('end_time')->exists();
     }
 
     /**

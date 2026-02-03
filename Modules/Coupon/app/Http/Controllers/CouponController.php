@@ -36,6 +36,17 @@ class CouponController extends Controller
             $filters['store_id'] = $cart->store_id;
         }
 
+        // Get user's redeemed coupon codes from rewards
+        $userCouponCodes = [];
+        if (auth('user')->check()) {
+            $userCouponCodes = \Modules\Reward\Models\RewardRedemption::where('user_id', auth('user')->id())
+                ->whereNotNull('coupon_code')
+                ->pluck('coupon_code')
+                ->toArray();
+        }
+
+        $filters['user_coupon_codes'] = $userCouponCodes;
+
         $coupons = $this->couponService->getAllCoupons($filters);
         return $this->successResponse([
             "coupons" => CouponResource::collection($coupons),

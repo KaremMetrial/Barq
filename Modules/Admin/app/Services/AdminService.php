@@ -30,7 +30,8 @@ class AdminService
                 request(),
                 'avatar',
                 'uploads/avatars',
-                'public'
+                'public',
+                [512,512]
             );
         }
         $data = array_filter($data, fn($value) => !blank($value));
@@ -54,7 +55,8 @@ class AdminService
                 request(),
                 'avatar',
                 'uploads/avatars',
-                'public'
+                'public',
+                [512,512]
             );
         }
 
@@ -77,13 +79,13 @@ class AdminService
         ]);
         if (! $admin || ! Hash::check($data['password'], $admin->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => [__('message.credentials_incorrect')],
             ]);
         }
         $role = $admin->getRoleNames();
         $permissions = $admin->getAllPermissions()->pluck('name')->toArray();
 
-        $newToken = $admin->createToken('token',['admin']);
+        $newToken = $admin->createToken('token', ['admin']);
         $newToken->accessToken->fcm_device = request()->input('fcm_device');
         $newToken->accessToken->country_id = request()->input('country_id');
         $newToken->accessToken->language_code = request()->header('Accept-Language');
@@ -116,5 +118,4 @@ class AdminService
 
         return $admin;
     }
-
 }

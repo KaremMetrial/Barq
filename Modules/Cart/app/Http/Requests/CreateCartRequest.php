@@ -81,7 +81,7 @@ class CreateCartRequest extends FormRequest
             $storeIds = $products->pluck('store_id')->unique()->filter();
 
             if ($storeIds->count() > 1) {
-                $validator->errors()->add('items', 'Cannot add products from different stores to the same cart');
+                $validator->errors()->add('items', __('message.different_stores_in_cart'));
             }
         });
     }

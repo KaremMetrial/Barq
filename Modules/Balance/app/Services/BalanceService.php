@@ -60,7 +60,7 @@ class BalanceService
         $transactionService->createForStore($store, [
             'type' => 'commission',
             'amount' => $amount,
-            'currency' => $store->currency_code ?? 'USD',
+            'currency' => $store->currency_symbol ?? 'USD',
             'description' => $description ?: "Store commission",
             'status' => 'completed'
         ]);

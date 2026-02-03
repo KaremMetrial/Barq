@@ -46,7 +46,8 @@ class Couier extends Authenticatable
         'iban',
         'auto_accept_orders',
         'accept_overtime',
-        'last_login'
+        'last_login',
+        'phone_code'
     ];
     protected $casts = [
         "avaliable_status" => CouierAvaliableStatusEnum::class,

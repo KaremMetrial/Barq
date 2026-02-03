@@ -3,6 +3,16 @@
 namespace Modules\Promotion\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Promotion\Models\Promotion;
+use Modules\Store\Http\Resources\StoreResource;
+use Modules\Category\Http\Resources\CategoryResource;
+use Modules\Product\Http\Resources\ProductResource;
+use App\Enums\PromotionTargetTypeEnum;
+use Modules\Section\Http\Resources\SectionResource;
+use Modules\Store\Models\Store;
+use Modules\Category\Models\Category;
+use Modules\Product\Models\Product;
+use Modules\Section\Models\Section;
 
 class PromotionResource extends JsonResource
 {
@@ -10,6 +20,7 @@ class PromotionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'image' => $this->image ? asset('storage/' . $this->image) : null,
             'title' => $this->title,
             'description' => $this->description,
             'type' => $this->type,
@@ -27,6 +38,7 @@ class PromotionResource extends JsonResource
             'currency_factor' => $this->currency_factor,
             'first_order_only' => $this->first_order_only,
             'country_id' => $this->country_id,
+            'governorate_id' => $this->governorate_id,
             'city_id' => $this->city_id,
             'zone_id' => $this->zone_id,
             'targets' => PromotionTargetResource::collection($this->promotionTargets),
@@ -44,8 +56,20 @@ class PromotionTargetResource extends JsonResource
         return [
             'target_type' => $this->target_type,
             'target_id' => $this->target_id,
+            'target' => $this->getTarget(),
+            'is_excluded' => $this->is_excluded,
             'is_excluded' => $this->is_excluded,
         ];
+    }
+    private function getTarget()
+    {
+        return match ($this->target_type) {
+            PromotionTargetTypeEnum::STORE => new StoreResource(Store::find($this->target_id)),
+            PromotionTargetTypeEnum::CATEGORY => new CategoryResource(Category::find($this->target_id)),
+            PromotionTargetTypeEnum::PRODUCT => new ProductResource(Product::find($this->target_id)),
+            PromotionTargetTypeEnum::SECTION => new SectionResource(Section::find($this->target_id)),
+            default => null,
+        };
     }
 }
 

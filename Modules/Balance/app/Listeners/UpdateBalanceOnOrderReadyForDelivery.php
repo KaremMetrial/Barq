@@ -33,7 +33,43 @@ class UpdateBalanceOnOrderReadyForDelivery implements ShouldQueue
             return;
         }
 
-        // Logic removed to prevent double counting commission and balance updates.
-        // Balance updates are now handled solely in UpdateBalanceOnOrderDelivered.
+        $order = $event->order;
+
+        DB::transaction(function () use ($order) {
+            $store = $order->store;
+
+            if (!$store) {
+                return;
+            }
+
+            // Calculate amounts
+            $platformCommissionFromOrder = $store->calculateCommission($order->total_amount);
+            $storeAmount = $order->total_amount - $platformCommissionFromOrder;
+
+            // Get store balance
+            $storeBalance = $store->balance()->firstOrCreate([], [
+                'available_balance' => 0,
+                'pending_balance' => 0,
+                'total_balance' => 0,
+            ]);
+
+            // Credit store balance
+            $storeBalance->increment('available_balance', $storeAmount);
+            $storeBalance->increment('total_balance', $storeAmount);
+
+            Transaction::create([
+                'transactionable_type' => 'store',
+                'transactionable_id' => $store->id,
+                'type' => TransactionType::EARNING,
+                'amount' => $storeAmount,
+                'currency' => $store->getCurrencyCode() ?? 'USD',
+                'translations' => [
+                    'ar' => ['description' => "مستحقات معلقة للطلب رقم #{$order->order_number} (جاهز للتوصيل)"],
+                    'en' => ['description' => "Pending earnings for order #{$order->order_number} (Ready for delivery)"],
+                ],
+                'status' => TransactionStatusEnum::SUCCESS->value,
+                'order_id' => $order->id
+            ]);
+        });
     }
 }
